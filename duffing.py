@@ -10,7 +10,8 @@ if __name__=='__main__':
     driver = rki.Driver(rk,0.000000001,0.5,1.0,0.000000001)
     try:
         nn=1000
-        y=[1,0]
+        y=[0,1]
+        plt.title("Duffing's Equation ({0},{1})".format(y[0],y[1]))
         xs=[]
         ys=[]
         for i in range(nn):
@@ -18,6 +19,9 @@ if __name__=='__main__':
             xs.append(y[0])
             ys.append(y[1])
         plt.plot(xs,ys)
+        plt.xlabel('x')
+        plt.ylabel('y')
+
         plt.show()
     except rki.ImplicitRungeKutta.Failed as e:
         print ("caught!",e)
