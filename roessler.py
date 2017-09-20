@@ -14,6 +14,7 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
 import rki,matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
@@ -34,20 +35,25 @@ if __name__=='__main__':
     driver = rki.Driver(rk,0.000000001,0.5,1.0,0.000000001)
 
     try:
-        nn=2000
+        nn=5000
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')          
         plt.suptitle(r'R\"ossler Equation: {0} iterations'.format(nn))
         plt.title(r'$\dot x=-y-z,\dot y=x+ay,\dot z = b + z(x-c),a={0},b={1},c={2}$'.format(a,b,c))
         plt.xlabel('x')
         plt.ylabel('y')
-        for y in [[1,0,0],[0,1,0],[0,0,1],[1,1,1]]:
-            label='({0},{1})'.format(y[0],y[1])
+       
+        for y in [[1,0,0],[0,1,0],[0,0,1],[1,1,1],[0,0,0]]:
+            label='({0},{1},{2})'.format(y[0],y[1],y[2])
             xs=[]
             ys=[]
+            zs=[]
             for i in range(nn):
                 y= driver.step(y)
                 xs.append(y[0])
                 ys.append(y[1])
-            plt.plot(xs,ys,label=label)
+                zs.append(y[2])
+            ax.plot(xs,ys,zs,label=label)
 
         plt.legend()
         plt.savefig('roessler.png')
