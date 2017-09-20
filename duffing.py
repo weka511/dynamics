@@ -10,18 +10,21 @@ if __name__=='__main__':
     driver = rki.Driver(rk,0.000000001,0.5,1.0,0.000000001)
     try:
         nn=1000
-        y=[0,1]
-        plt.title("Duffing's Equation ({0},{1})".format(y[0],y[1]))
-        xs=[]
-        ys=[]
-        for i in range(nn):
-            y= driver.step(y)
-            xs.append(y[0])
-            ys.append(y[1])
-        plt.plot(xs,ys)
+        plt.title("Duffing's Equation: {0} iterations".format(nn))
         plt.xlabel('x')
         plt.ylabel('y')
+        for y in [[0,1],[1,1],[2,2],[3,1],[5,5]]:
+            label='({0},{1})'.format(y[0],y[1])
+            xs=[]
+            ys=[]
+            for i in range(nn):
+                y= driver.step(y)
+                xs.append(y[0])
+                ys.append(y[1])
+            plt.plot(xs,ys,label=label)
 
+        plt.legend()
+        plt.savefig('duffing.png')
         plt.show()
     except rki.ImplicitRungeKutta.Failed as e:
         print ("caught!",e)
