@@ -1,6 +1,6 @@
 # chaos
 
-Chaos stuff
+Code written to accompany [Chaos Book](http://chaosbook.org/) by Predrag Cvitanovic´ et al.
 
 | Name | Description |
 | -------------------------- | ------------------------------------------------| 
@@ -8,5 +8,5 @@ Chaos stuff
 | lorenz.py   | Plot solutions to Lorenz Equation |
 | rk4.py      | Classic Runge Kutta |
 | rki.py      | Implicit Runge-Kutta |
-| roeesler.py | Plot solutions to Roessler Equation |
+| roessler.py | Plot solutions to Roessler Equation |
 | utilities.py | Miscellaneous helpful functions |
