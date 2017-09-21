@@ -13,13 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-import rki,matplotlib.pyplot as plt
+import rki,matplotlib.pyplot as plt,random,math
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
+
+def direct_sphere(d=3,sigma=1,R=1):
+    samples=[random.gauss(0,sigma) for k in range(d)]
+    Sigma=sum([x*x for x in samples])
+    upsilon=random.uniform(0,1)**(1/d)
+    return [R*upsilon*x/math.sqrt(Sigma) for x in samples]
 
 def lorenz(y,sigma=10,b=8/3,rho=28):
     dx=sigma*(y[1]-y[0])
@@ -43,8 +49,8 @@ if __name__=='__main__':
         plt.xlabel('x')
         plt.ylabel('y')
        
-        for y in [[1,0,0],[0,1,0],[0,0,1],[1,1,1],[10,-5,10]]:
-            label='({0},{1},{2})'.format(y[0],y[1],y[2])
+        for y in [direct_sphere(R=10) for i in range(25)]:
+            label='({0:.2f},{1:.2f},{2:.2f})'.format(y[0],y[1],y[2])
             xs=[]
             ys=[]
             zs=[]
