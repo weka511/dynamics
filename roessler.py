@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-import rki,matplotlib.pyplot as plt
+import rki,matplotlib.pyplot as plt,utilities
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
@@ -43,8 +43,8 @@ if __name__=='__main__':
         plt.xlabel('x')
         plt.ylabel('y')
        
-        for y in [[1,0,0],[0,1,0],[0,0,1],[1,1,1],[0,0,0]]:
-            label='({0},{1},{2})'.format(y[0],y[1],y[2])
+        for y in [utilities.direct_sphere(R=2) for i in range(25)]:
+            label='({0:.2f},{1:.2f},{2:.2f})'.format(y[0],y[1],y[2])
             xs=[]
             ys=[]
             zs=[]

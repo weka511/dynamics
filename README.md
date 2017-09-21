@@ -9,3 +9,4 @@ Chaos stuff
 | rk4.py      | Classic Runge Kutta |
 | rki.py      | Implicit Runge-Kutta |
 | roeesler.py | Plot solutions to Roessler Equation |
+| utilities.py | Miscellaneous helpful functions |
