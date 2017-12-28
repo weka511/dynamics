@@ -13,23 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-import numpy as np, matplotlib.pyplot as plt,matplotlib.colors as colors,phase
-
-from scipy.integrate import odeint
+import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
-
-
-
-
         
-if __name__=='__main__':
-    def ex(x,y):
-        return y*(1-y*y),-x-y*y
-    
-    X,Y,U,V=phase.generate(ex)
-    plt.pcolor(X,Y,phase.nullclines(U,V),cmap=plt.cm.inferno)
-    plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
-    plt.colorbar()    
-    plt.show()
+def f(x,y):
+    return y*(1-y*y),-x-y*y
+
+X,Y,U,V=phase.generate(f=f)
+plt.pcolor(X,Y,phase.nullclines(U,V),cmap=plt.cm.inferno)
+plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
+plt.colorbar()    
+plt.show()

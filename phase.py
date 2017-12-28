@@ -19,11 +19,11 @@ def ff(x,t,f):
     u,v=f(x[0],x[1])
     return [u]+[v]
 
-def generate(ex,nx=64, ny = 64):
-    x = np.linspace(-10, 10, nx)
-    y = np.linspace(-10, 10, ny)
+def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-10,xmax=10,ymin=-10,ymax=10):
+    x = np.linspace(xmin, xmax,nx)
+    y = np.linspace(ymin, ymax, ny)
     X, Y = np.meshgrid(x, y)
-    U,V=ex(X,Y)
+    U,V=f(X,Y)
     return X,Y,U,V
 
 @np.vectorize
@@ -34,10 +34,10 @@ def nullclines(u,v):
 
 if __name__=='__main__':
     import matplotlib.pyplot as plt,matplotlib.colors as colors
-    def ex(x,y):
+    def f(x,y):
         return x+np.exp(-y),-y
     
-    X,Y,U,V=generate(ex)
+    X,Y,U,V=generate(f)
     plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.inferno)
     plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
     plt.colorbar()    
