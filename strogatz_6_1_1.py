@@ -17,9 +17,7 @@ import numpy as np, matplotlib.pyplot as plt,matplotlib.colors as colors
 
 from scipy.integrate import odeint
 from matplotlib import rc
-#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-## for Palatino and other serif fonts use:
-rc('font',**{'family':'serif','serif':['Palatino']})
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
 def ex(x,y):
@@ -35,7 +33,20 @@ y = np.linspace(-3, 3, ny)
 X, Y = np.meshgrid(x, y)
 U,V=ex(X,Y)
 
-plt.pcolor(X,Y,np.abs(U)+np.abs(V), norm=colors.LogNorm(),cmap=plt.cm.inferno)
+@np.vectorize
+def nullclines(u,v):
+    if u<0:
+        if v<0:
+            return 4
+        else:
+            return 1
+    else:
+        if v<0:
+            return 2
+        else:
+            return 3
+        
+plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.inferno)
 plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
 plt.colorbar()
 t = np.linspace(0, 10, 101)
