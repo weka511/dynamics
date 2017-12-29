@@ -14,13 +14,11 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase
-from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-rc('text', usetex=True)
+
         
 def f(x,y):
     return y*(1-y*y),-x-y*y
 
 X,Y,U,V=phase.generate(f=f)
-phase.plot_phase_portrait(X,Y,U,V)  
+phase.plot_phase_portrait(X,Y,U,V,title=r'Example 6.6.1: $\dot{x}=y-y^3,\dot{y}=-x-y^2$')  
 plt.show()

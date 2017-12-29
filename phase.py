@@ -14,6 +14,9 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
 import numpy as np, matplotlib.pyplot as plt,matplotlib.colors as colors
+from matplotlib import rc
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rc('text', usetex=True)
 
 def ff(x,t,f):
     u,v=f(x[0],x[1])
@@ -32,10 +35,10 @@ def nullclines(u,v):
         return offset if v<0 else offset+1        
     return y(v) if u<0 else y(v,offset=2)
 
-def plot_phase_portrait(X,Y,U,V):
-    plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.inferno)
-    plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
-    plt.colorbar()
+def plot_phase_portrait(X,Y,U,V,title=''):
+    plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.Pastel1)
+    plt.streamplot(X, Y, U, V, linewidth=1)
+    plt.title(title)
     
 if __name__=='__main__':
     
@@ -43,6 +46,6 @@ if __name__=='__main__':
         return x+np.exp(-y),-y
     
     X,Y,U,V=generate(f)
-    plot_phase_portrait(X,Y,U,V)
+    plot_phase_portrait(X,Y,U,V,title='Example 6.1.1: $\dot{x}=x+e^{-y},dot{y}=-y$')
     
     plt.show()
