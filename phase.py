@@ -65,20 +65,23 @@ def adapt(f):
 
 if __name__=='__main__':
     from scipy.integrate import odeint
+    import utilities
     
     def f(x,y):
         return x+np.exp(-y),-y
     
-    t = np.linspace(0, 10, 101)
+    t = np.linspace(0, 25, 101)
     cs = ['r','b','g','m','c','y']
     X,Y,U,V=generate(f,nx=256, ny = 256)
     plot_phase_portrait(X,Y,U,V,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
-    starts=[[-2,3],[-0.5,3],[-1.1,3],[-2,-3],[-2,-3],[-2,-3]]
+    starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
     for xy0,i in zip(starts,range(len(starts))):
         xy = odeint(adapt(f=f), xy0, t)
-        plt.plot(xy[:,0],xy[:,1],c=cs[i%len(cs)],label='({0},{1})'.format(xy0[0],xy0[1]),linewidth=3)
+        plt.plot(xy[:,0],xy[:,1],c=cs[i%len(cs)],label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
 
         
-    plt.legend(loc='best')    
+    leg=plt.legend(loc='best')
+    if leg:
+        leg.draggable()
     
     plt.show()
