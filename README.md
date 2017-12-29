@@ -12,5 +12,6 @@ Code written to accompany my readings in Dynamics and Chaos:
 | rk4.py      | Classic Runge Kutta |
 | rki.py      | Implicit Runge-Kutta |
 | roessler.py | Plot solutions to Roessler Equation |
+| strogatz_6_1.py | Exercise from Strogatz |
 | strogatz_6_6_1.py | Example from Strogatz |
 | utilities.py | Miscellaneous helpful functions |
