@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-import numpy as np
+import numpy as np, matplotlib.pyplot as plt,matplotlib.colors as colors
 
 def ff(x,t,f):
     u,v=f(x[0],x[1])
@@ -32,13 +32,17 @@ def nullclines(u,v):
         return offset if v<0 else offset+1        
     return y(v) if u<0 else y(v,offset=2)
 
+def plot_phase_portrait(X,Y,U,V):
+    plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.inferno)
+    plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
+    plt.colorbar()
+    
 if __name__=='__main__':
-    import matplotlib.pyplot as plt,matplotlib.colors as colors
+    
     def f(x,y):
         return x+np.exp(-y),-y
     
     X,Y,U,V=generate(f)
-    plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.inferno)
-    plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
-    plt.colorbar()    
+    plot_phase_portrait(X,Y,U,V)
+    
     plt.show()

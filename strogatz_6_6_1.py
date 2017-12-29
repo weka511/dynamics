@@ -22,7 +22,5 @@ def f(x,y):
     return y*(1-y*y),-x-y*y
 
 X,Y,U,V=phase.generate(f=f)
-plt.pcolor(X,Y,phase.nullclines(U,V),cmap=plt.cm.inferno)
-plt.streamplot(X, Y, U, V, color=U, linewidth=1, cmap=plt.cm.inferno)
-plt.colorbar()    
+phase.plot_phase_portrait(X,Y,U,V)  
 plt.show()
