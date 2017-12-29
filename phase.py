@@ -37,12 +37,20 @@ def nullclines(u,v):
         return offset if v<0 else offset+1        
     return setnum_offset(v) if u<0 else setnum_offset(v,offset=2)
 
-def plot_phase_portrait(X,Y,U,V,title=''):
+def plot_phase_portrait(X,Y,U,V,title='',suptitle=''):
     '''
     Plot nullclines and steram lines
     '''
+    def apply2D(Z,f=min):
+        return f(z for zrow in Z for z in zrow)
+    
     plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.Pastel1)
     plt.streamplot(X, Y, U, V, linewidth=1)
+    plt.xlim(apply2D(X,f=min),apply2D(X,f=max))
+    plt.ylim(apply2D(Y,f=min),apply2D(Y,f=max))
+    plt.xlabel('$x$')
+    plt.ylabel('$y$')
+    plt.suptitle(suptitle)
     plt.title(title)
 
 def adapt(f):
@@ -64,15 +72,12 @@ if __name__=='__main__':
     t = np.linspace(0, 10, 101)
     cs = ['r','b','g','m','c','y']
     X,Y,U,V=generate(f,nx=256, ny = 256)
-    plot_phase_portrait(X,Y,U,V,title='Example 6.1.1: $\dot{x}=x+e^{-y},dot{y}=-y$')
+    plot_phase_portrait(X,Y,U,V,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
     starts=[[-2,3],[-0.5,3],[-1.1,3],[-2,-3],[-2,-3],[-2,-3]]
     for xy0,i in zip(starts,range(len(starts))):
         xy = odeint(adapt(f=f), xy0, t)
         plt.plot(xy[:,0],xy[:,1],c=cs[i%len(cs)],label='({0},{1})'.format(xy0[0],xy0[1]),linewidth=3)
-        plt.xlim(-5,5)
-        plt.ylim(-3,3)
-        plt.xlabel('x')
-        plt.ylabel('y')
+
         
     plt.legend(loc='best')    
     

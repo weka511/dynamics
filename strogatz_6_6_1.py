@@ -20,5 +20,5 @@ def f(x,y):
     return y*(1-y*y),-x-y*y
 
 X,Y,U,V=phase.generate(f=f)
-phase.plot_phase_portrait(X,Y,U,V,title=r'Example 6.6.1: $\dot{x}=y-y^3,\dot{y}=-x-y^2$')  
+phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=y-y^3,\dot{y}=-x-y^2$',suptitle='Example 6.6.1')  
 plt.show()
