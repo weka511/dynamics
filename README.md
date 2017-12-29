@@ -1,8 +1,8 @@
 # chaos
 
-Code written to accompany [Chaos Book](http://chaosbook.org/) by Predrag Cvitanovic´ et al, and also
-[Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering)
-by Steve Strogatz.
+Code written to accompany my reading of some books on Dynamics and Chaos:
+* [Chaos Book](http://chaosbook.org/) by Predrag Cvitanovic´ et al
+* [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
 | Name | Description |
 | -------------------------- | ------------------------------------------------| 
