@@ -39,13 +39,33 @@ def plot_phase_portrait(X,Y,U,V,title=''):
     plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.Pastel1)
     plt.streamplot(X, Y, U, V, linewidth=1)
     plt.title(title)
-    
+
+def adapt(f):
+    def adapted(x,y):
+        u,v=f(x[0],x[1])
+        return [u]+[v]
+    return adapted
+
 if __name__=='__main__':
+    from scipy.integrate import odeint
     
     def f(x,y):
         return x+np.exp(-y),-y
     
-    X,Y,U,V=generate(f)
+    t = np.linspace(0, 10, 101)
+    cs = ['r','b','g','m','c','y']
+    X,Y,U,V=generate(f,nx=256, ny = 256)
     plot_phase_portrait(X,Y,U,V,title='Example 6.1.1: $\dot{x}=x+e^{-y},dot{y}=-y$')
+    i=0
+    for xy0 in [[-2,3],[-0.5,3],[-1.1,3],[-2,-3],[-2,-3],[-2,-3]]:
+        xy = odeint(adapt(f=f), xy0, t)
+        plt.plot(xy[:,0],xy[:,1],c=cs[i%len(cs)],label='({0},{1})'.format(xy0[0],xy0[1]),linewidth=3)
+        plt.xlim(-5,5)
+        plt.ylim(-3,3)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        #plt.title('Example 6.1.1')
+        i+=1
+    plt.legend(loc='best')    
     
     plt.show()
