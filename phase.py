@@ -26,37 +26,38 @@ def find_zeroes(f,xs,ys,tol=0.001,tol2=0.001):
             if abs(x-xc)<tol2 and abs(y-yc)<tol2:
                 return True
         return False
+    
     def cross(w0,w1):
         return (w0<=0 and w1>=0) or (w0>=0 and w1<=0)
+    
     def near_zero(u,v):
         return abs(u)<tol and abs(v)<tol
+    
     def find_crossings():
         crossings=[]
         for x0,x1 in zip(xs[:-1],xs[1:]):
             for y0,y1 in zip(ys[:-1],ys[1:]):
                 u0,v0=f(x0,y0)
                 u1,v1=f(x1,y1)
-                #print (x0,y0,u0,v0,x1,y1,u1,v1)
                 if cross(u0,u1) or cross(v0,v1):
                     crossings.append(((x0+x1)/2,(y0+y1)/2))
                 elif near_zero(u0,v0):
-                    crossings.append((u0,v0))
+                    crossings.append((x0,y0))
                 elif near_zero(u0,v1):
-                    crossings.append((u0,v1))
+                    crossings.append((x0,y1))
                 elif near_zero(u1,v0):
-                    crossings.append((u1,v0))
+                    crossings.append((x1,y0))
                 elif near_zero(u1,v1):
-                    crossings.append((u1,v1))
-                #else:
-                    #print((x0+x1)/2,(y0+y1)/2,(u0+u1)/2,(v0+v1)/2)
+                    crossings.append((x1,y1))
+                
         return crossings
     
     zeroes=[]
-    for result in [opt.root(adapt(f,T=False),crossing) for crossing in find_crossings()]:
+    #  Levenberg-Marquardt gives the best results for strogatz_6_1
+    #  Still having problems with exercise 6.1.3, thoiugh.
+    
+    for result in [opt.root(adapt(f,T=False),crossing,tol=0.00001,method='lm') for crossing in find_crossings()]:
         if result.success:
-            if not found(result.x,zeroes):
-                zeroes.append(result.x)
-        else:
             if not found(result.x,zeroes):
                 zeroes.append(result.x)
             
@@ -70,7 +71,13 @@ def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-10,xmax=10,ymin=-10,ymax=10
     ys = np.linspace(ymin, ymax, ny)
     X, Y = np.meshgrid(xs, ys)
     U,V=f(X,Y)
-    print (find_zeroes(f,xs,ys))
+    zeroes=find_zeroes(f,xs,ys)
+    if len(zeroes)>0:
+        print("List of fixed points")
+        for zero in zeroes:
+            print ('\t({0:.3f},{1:3f})'.format(zero[0],zero[1]))
+    else:
+        print ("No fixed points were found")
     return X,Y,U,V
 
 @np.vectorize
@@ -120,14 +127,14 @@ if __name__=='__main__':
     X,Y,U,V=generate(f,nx=256, ny = 256)
 
     plot_phase_portrait(X,Y,U,V,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
-    #starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
-    #for xy0,i in zip(starts,range(len(starts))):
-        #xy = odeint(adapt(f=f), xy0, t)
-        #plt.plot(xy[:,0],xy[:,1],c=cs[i%len(cs)],label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
+    starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
+    for xy0,i in zip(starts,range(len(starts))):
+        xy = odeint(adapt(f=f), xy0, t)
+        plt.plot(xy[:,0],xy[:,1],c=cs[i%len(cs)],label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
 
         
-    #leg=plt.legend(loc='best')
-    #if leg:
-        #leg.draggable()
+    leg=plt.legend(loc='best')
+    if leg:
+        leg.draggable()
     
     plt.show()
