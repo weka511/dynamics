@@ -16,45 +16,27 @@
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np
 
 
-def f1(x,y):
-    return x-y,1-np.exp(x)
-
-X,Y,U,V=phase.generate(f=f1)
+X,Y,U,V=phase.generate(f=lambda x,y:(x-y,1-np.exp(x)))
 phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x-y,\dot{y}=1-e^x$',suptitle='Example 6.1.1') 
 plt.figure()
 
-def f2(x,y):
-    return x-x**3,-y
-
-X,Y,U,V=phase.generate(f=f2)
+X,Y,U,V=phase.generate(f=lambda x,y:(x-x**3,-y))
 phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x-x^3,\dot{y}=-y$',suptitle='Example 6.1.2') 
 plt.figure()
 
-def f3(x,y):
-    return x*(x-y),y*(2*x-y)
-
-X,Y,U,V=phase.generate(f=f3)
+X,Y,U,V=phase.generate(f=lambda x,y:(x*(x-y),y*(2*x-y)))
 phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x(x-y),\dot{y}=y*(2x-y)$',suptitle='Example 6.1.3') 
 plt.figure()
 
-def f4(x,y):
-    return y,x*(1+y)-1
-
-X,Y,U,V=phase.generate(f=f4)
+X,Y,U,V=phase.generate(f=lambda x,y:(y,x*(1+y)-1))
 phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=y,\dot{y}=x(1+y)-1$',suptitle='Example 6.1.4') 
 plt.figure()
 
-def f5(x,y):
-    return x*(2-x-y),x-y
-
-X,Y,U,V=phase.generate(f=f5)
+X,Y,U,V=phase.generate(f=lambda x,y:(x*(2-x-y),x-y))
 phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x(2-x-y),\dot{y}=x-y$',suptitle='Example 6.1.5') 
-plt.figure()
+plt.figure() 
 
-def f6(x,y):
-    return x*x-y,x-y
-
-X,Y,U,V=phase.generate(f=f6)
+X,Y,U,V=phase.generate(f=lambda x,y:(x*x-y,x-y))
 phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x^2-y,\dot{y}=x-y$',suptitle='Example 6.1.6') 
 
 
