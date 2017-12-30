@@ -16,28 +16,28 @@
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np
 
 
-X,Y,U,V=phase.generate(f=lambda x,y:(x-y,1-np.exp(x)))
-phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x-y,\dot{y}=1-e^x$',suptitle='Example 6.1.1') 
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,1-np.exp(x)))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=1-e^x$',suptitle='Example 6.1.1') 
 plt.figure()
 
-X,Y,U,V=phase.generate(f=lambda x,y:(x-x**3,-y))
-phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x-x^3,\dot{y}=-y$',suptitle='Example 6.1.2') 
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-x**3,-y))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-x^3,\dot{y}=-y$',suptitle='Example 6.1.2') 
 plt.figure()
 
-X,Y,U,V=phase.generate(f=lambda x,y:(x*(x-y),y*(2*x-y)))
-phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x(x-y),\dot{y}=y*(2x-y)$',suptitle='Example 6.1.3') 
+X,Y,U,V,_=phase.generate(f=lambda x,y:(x*(x-y),y*(2*x-y)))
+phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title=r'$\dot{x}=x(x-y),\dot{y}=y*(2x-y)$',suptitle='Example 6.1.3') 
 plt.figure()
 
-X,Y,U,V=phase.generate(f=lambda x,y:(y,x*(1+y)-1))
-phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=y,\dot{y}=x(1+y)-1$',suptitle='Example 6.1.4') 
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y,x*(1+y)-1))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=y,\dot{y}=x(1+y)-1$',suptitle='Example 6.1.4') 
 plt.figure()
 
-X,Y,U,V=phase.generate(f=lambda x,y:(x*(2-x-y),x-y))
-phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x(2-x-y),\dot{y}=x-y$',suptitle='Example 6.1.5') 
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*(2-x-y),x-y))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x(2-x-y),\dot{y}=x-y$',suptitle='Example 6.1.5') 
 plt.figure() 
 
-X,Y,U,V=phase.generate(f=lambda x,y:(x*x-y,x-y))
-phase.plot_phase_portrait(X,Y,U,V,title=r'$\dot{x}=x^2-y,\dot{y}=x-y$',suptitle='Example 6.1.6') 
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*x-y,x-y))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x^2-y,\dot{y}=x-y$',suptitle='Example 6.1.6') 
 
 
 plt.show()

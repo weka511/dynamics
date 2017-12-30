@@ -71,14 +71,7 @@ def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-10,xmax=10,ymin=-10,ymax=10
     ys = np.linspace(ymin, ymax, ny)
     X, Y = np.meshgrid(xs, ys)
     U,V=f(X,Y)
-    zeroes=find_zeroes(f,xs,ys)
-    if len(zeroes)>0:
-        print("List of fixed points")
-        for zero in zeroes:
-            print ('\t({0:.3f},{1:3f})'.format(zero[0],zero[1]))
-    else:
-        print ("No fixed points were found")
-    return X,Y,U,V
+    return X,Y,U,V,find_zeroes(f,xs,ys)
 
 @np.vectorize
 def nullclines(u,v):
@@ -89,9 +82,9 @@ def nullclines(u,v):
         return offset if v<0 else offset+1        
     return setnum_offset(v) if u<0 else setnum_offset(v,offset=2)
 
-def plot_phase_portrait(X,Y,U,V,title='',suptitle=''):
+def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
     '''
-    Plot nullclines and stream lines
+    Plot nullclines, stream lines, and fixed points
     '''
     def apply2D(Z,f=min):
         return f(z for zrow in Z for z in zrow)
@@ -102,6 +95,9 @@ def plot_phase_portrait(X,Y,U,V,title='',suptitle=''):
     plt.ylim(apply2D(Y,f=min),apply2D(Y,f=max))
     plt.xlabel('$x$')
     plt.ylabel('$y$')
+    xs=[x for (x,_) in fixed]
+    ys=[y for (_,y) in fixed]
+    plt.scatter(xs,ys,marker='x',s=60,c='r')
     plt.suptitle(suptitle)
     plt.title(title)
 
@@ -124,9 +120,9 @@ if __name__=='__main__':
     
     t = np.linspace(0, 25, 101)
     cs = ['r','b','g','m','c','y']
-    X,Y,U,V=generate(f,nx=256, ny = 256)
+    X,Y,U,V,fixed=generate(f,nx=256, ny = 256)
 
-    plot_phase_portrait(X,Y,U,V,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
+    plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
     starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
     for xy0,i in zip(starts,range(len(starts))):
         xy = odeint(adapt(f=f), xy0, t)
