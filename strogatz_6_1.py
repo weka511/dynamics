@@ -15,7 +15,6 @@
 
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np
 
-
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,1-np.exp(x)))
 phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=1-e^x$',suptitle='Example 6.1.1') 
 plt.figure()
@@ -38,6 +37,24 @@ plt.figure()
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*x-y,x-y))
 phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x^2-y,\dot{y}=x-y$',suptitle='Example 6.1.6') 
+plt.figure()
 
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x,-x+y*(1-x*x)))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x,\dot{y}=-x+y(1-x^2)$',suptitle='Example 6.1.8 - van de Pol')
+plt.figure()
+
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y+y*y,y*y-x*x))
+phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title=r'$\dot{x}=2xy,\dot{y}=y^2-x^2$',suptitle='Example 6.1.9 - Dipole fixed point')
+plt.figure()
+
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y+y*y,-x/2+y/5-x*y+6*y*y/5))
+phase.plot_phase_portrait(X,Y,U,V,fixed,
+                          title=r'$\dot{x}=y+y^2,\dot{y}=-\frac{x}{2}+\frac{y}{5}-xy+\frac{6}{5}y^2$',
+                          suptitle='Example 6.1.10 - Two eyed monster')
+plt.figure()
+X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y+y*y,-x+y/5-x*y+6*y*y/5))
+phase.plot_phase_portrait(X,Y,U,V,fixed,
+                          title=r'$\dot{x}=y+y^2,\dot{y}=-x+\frac{y}{5}-xy+\frac{6}{5}y^2$',
+                          suptitle='Example 6.1.11 - Parrot')
 
 plt.show()
