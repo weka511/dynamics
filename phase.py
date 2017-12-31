@@ -56,7 +56,7 @@ def find_zeroes(f,xs,ys,tol=0.001,tol2=0.001):
     #  Levenberg-Marquardt gives the best results for strogatz_6_1
     #  Still having problems with exercise 6.1.3, thoiugh.
     
-    for result in [opt.root(adapt(f,T=False),crossing,tol=0.00001,method='lm') for crossing in find_crossings()]:
+    for result in [opt.root(adapt(f),crossing,tol=0.00001,method='lm') for crossing in find_crossings()]:
         if result.success:
             if not found(result.x,zeroes):
                 zeroes.append(result.x)
@@ -101,15 +101,16 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
     plt.suptitle(suptitle)
     plt.title(title)
 
-def adapt(f,T=True):
+def adapt(f):
     '''
     Adapt a 2D function so it is in the form that scipy.integrate.odeint requires, i.e.:
     ((x,y)->(dx,dy))->(([x],t)->[dx])
+    The adapted function may also be used by scipy.optimize.root, as t has a default value of zero.
     '''
-    def adapted(x,t):
+    def adapted(x,t=0):
         u,v=f(x[0],x[1])
         return [u]+[v]
-    return adapted if T else lambda x: adapted(x,0)
+    return adapted 
 
 if __name__=='__main__':
     from scipy.integrate import odeint
@@ -120,7 +121,7 @@ if __name__=='__main__':
     
     t = np.linspace(0, 25, 101)
     cs = ['r','b','g','m','c','y']
-    X,Y,U,V,fixed=generate(f,nx=256, ny = 256)
+    X,Y,U,V,fixed=generate(f=lambda x,y:(x+np.exp(-y),-y),nx=256, ny = 256)
 
     plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
     starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
