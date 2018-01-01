@@ -39,12 +39,21 @@ def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0
         return False
     
     def cross(w0,w1):
+        '''
+        Find approximate position where a v:aues crosses between +ve and -ve
+        '''
         return (w0<=0 and w1>=0) or (w0>=0 and w1<=0)
     
     def near_zero(u,v,tol=tolerance_near_zero):
+        '''
+        Establish whether a point is near the prigon
+        '''
         return abs(u)<tol and abs(v)<tol
     
     def find_crossings():
+        '''
+        Find all posotion in rectangle where value is near zero
+        '''
         crossings=[]
         for x0,x1 in zip(xs[:-1],xs[1:]):
             for y0,y1 in zip(ys[:-1],ys[1:]):
@@ -119,6 +128,14 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
             suptitle
     '''
     def apply2D(Z,f=min):
+        '''
+        Apply a function to every element in a matrix
+        Used to find minimum and maximum
+        
+            Parameters:
+                Z     The matrix
+                f     The function to be applied
+        '''
         return f(z for zrow in Z for z in zrow)
     
     plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.Pastel1)
@@ -127,9 +144,7 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
     plt.ylim(apply2D(Y,f=min),apply2D(Y,f=max))
     plt.xlabel('$x$')
     plt.ylabel('$y$')
-    xs=[x for (x,_) in fixed]
-    ys=[y for (_,y) in fixed]
-    plt.scatter(xs,ys,marker='x',s=60,c='r')
+    plt.scatter([x for (x,_) in fixed],[y for (_,y) in fixed],marker='x',s=60,c='r')
     plt.suptitle(suptitle)
     plt.title(title)
 
