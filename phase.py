@@ -2,7 +2,7 @@
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software already_foundation, either version 3 of the License, or
 # (at your option) any later version.
 
 # This software is distributed in the hope that it will be useful,
@@ -19,18 +19,29 @@ from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
-def find_zeroes(f,xs,ys,tol=0.001,tol2=0.001):
-    def found(candidate,zeroes):
+def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0.001,tolerance_root_finder=0.00001):
+    '''
+    Determine fixed points of differential equation
+    
+    Parameters:
+        f                        Function - dx,dy=f(x,y)
+        xs                       x values from grid
+        ys                       y values from grid
+        tolerance_near_zero
+        tolerance_already_found
+        tolerance_root_finder
+    '''
+    def already_found(candidate,zeroes,tol=tolerance_already_found):
         xc,yc=candidate
         for x,y in zeroes:
-            if abs(x-xc)<tol2 and abs(y-yc)<tol2:
+            if abs(x-xc)<tol and abs(y-yc)<tol:
                 return True
         return False
     
     def cross(w0,w1):
         return (w0<=0 and w1>=0) or (w0>=0 and w1<=0)
     
-    def near_zero(u,v):
+    def near_zero(u,v,tol=tolerance_near_zero):
         return abs(u)<tol and abs(v)<tol
     
     def find_crossings():
@@ -54,11 +65,11 @@ def find_zeroes(f,xs,ys,tol=0.001,tol2=0.001):
     
     zeroes=[]
     #  Levenberg-Marquardt gives the best results for strogatz_6_1
-    #  Still having problems with exercise 6.1.3, thoiugh.
+    #  Still having problems with exercise 6.1.3, though.
     
-    for result in [opt.root(adapt(f),crossing,tol=0.00001,method='lm') for crossing in find_crossings()]:
+    for result in [opt.root(adapt(f),crossing,tol=tolerance_root_finder,method='lm') for crossing in find_crossings()]:
         if result.success:
-            if not found(result.x,zeroes):
+            if not already_found(result.x,zeroes):
                 zeroes.append(result.x)
             
     return zeroes
@@ -66,17 +77,29 @@ def find_zeroes(f,xs,ys,tol=0.001,tol2=0.001):
 def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-10,xmax=10,ymin=-10,ymax=10):
     '''
     Generate a grid X,Y and the corresponding derivatives
+        Parameters
+            f        Function from differential equation, dx,dy=f(x,y)
+            nx       Number of x steps in grid
+            ny       Number of y steps in grid
+            xmin     Minimum x value
+            xmax     Maximum x value
+            ymin     Minimum y value
+            ymax     Maximum y value
     '''
     xs = np.linspace(xmin, xmax,nx)
     ys = np.linspace(ymin, ymax, ny)
     X, Y = np.meshgrid(xs, ys)
     U,V=f(X,Y)
-    return X,Y,U,V,find_zeroes(f,xs,ys)
+    return X,Y,U,V,get_fixed_points(f,xs,ys)
 
 @np.vectorize
 def nullclines(u,v):
     '''
     Used to plot nullclines. Forgets everyting except sign of u and v
+    
+        Parameters:
+            u
+            v
     '''
     def setnum_offset(v,offset=0):
         return offset if v<0 else offset+1        
@@ -85,6 +108,15 @@ def nullclines(u,v):
 def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
     '''
     Plot nullclines, stream lines, and fixed points
+    
+        Parameters:
+            X
+            Y
+            U
+            V
+            fixed
+            title
+            suptitle
     '''
     def apply2D(Z,f=min):
         return f(z for zrow in Z for z in zrow)
@@ -106,6 +138,9 @@ def adapt(f):
     Adapt a 2D function so it is in the form that scipy.integrate.odeint requires, i.e.:
     ((x,y)->(dx,dy))->(([x],t)->[dx])
     The adapted function may also be used by scipy.optimize.root, as t has a default value of zero.
+    
+        Parameters:
+            f     The function to be adapted
     '''
     def adapted(x,t=0):
         u,v=f(x[0],x[1])

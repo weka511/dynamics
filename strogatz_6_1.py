@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
+# Exercise 6.1 from Strogatz
+# Plot phase porttraits for a number of ODEs
+
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,1-np.exp(x)))
