@@ -1,4 +1,4 @@
-# Copyright (C) 2014 Greenweaves Software Pty Ltd
+# Copyright (C) 2014-2016 Greenweaves Software Pty Ltd
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,11 +15,18 @@
 
 """Runge Kutta Library"""
 
-def rk4(h,y,ff):
-    """Traditional 4th order Runge Kutta"""
-    k0=tuple([h*f for f in ff(y)])
-    k1=tuple([h*f for f in ff(tuple([y+0.5*k for y,k in zip(y,k0)]))])
-    k2=tuple([h*f for f in ff(tuple([y+0.5*k for y,k in zip(y,k1)]))])
-    k3=tuple([h*f for f in ff(tuple([y+k for y,k in zip(y,k2)]))])
+def rk4(h,y,f):
+    """
+    Traditional 4th order Runge Kutta
+    
+        Parameters:
+            h      Step size
+            y      Initial value for y in y'=f(y)
+            f     Function in y=f(y)
+    """
+    k0=tuple([h*ff for ff in f(y)])
+    k1=tuple([h*ff for ff in f(tuple([y+0.5*k for y,k in zip(y,k0)]))])
+    k2=tuple([h*ff for ff in f(tuple([y+0.5*k for y,k in zip(y,k1)]))])
+    k3=tuple([h*ff for ff in f(tuple([y+k for y,k in zip(y,k2)]))])
     return tuple([yy+(kk0+2*kk1+2*kk2+kk3)/6 for yy,kk0,kk1,kk2,kk3 in zip(y,k0,k1,k2,k3)])
 

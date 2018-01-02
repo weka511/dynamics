@@ -1,4 +1,4 @@
-# Copyright (C) 2017 Greenweaves Software Pty Ltd
+# Copyright (C) 2017-2018 Greenweaves Software Pty Ltd
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -150,21 +150,19 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
 
 def adapt(f):
     '''
-    Adapt a 2D function so it is in the form that scipy.integrate.odeint requires, i.e.:
-    ((x,y)->(dx,dy))->(([x],t)->[dx])
-    The adapted function may also be used by scipy.optimize.root, as t has a default value of zero.
+    Adapt a 2D function so it is in the form that rk4.rk4 requires, i.e.:
+    ((x,y)->(dx,dy))->(([x])->[dx])
     
         Parameters:
             f     The function to be adapted
     '''
-    def adapted(x,t=0):
+    def adapted(x):
         u,v=f(x[0],x[1])
         return [u]+[v]
     return adapted 
 
 if __name__=='__main__':
-    from scipy.integrate import odeint
-    import utilities
+    import utilities,rk4
     
     def f(x,y):
         return x+np.exp(-y),-y
@@ -176,10 +174,14 @@ if __name__=='__main__':
     plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
     starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
     for xy0,i in zip(starts,range(len(starts))):
-        xy = odeint(adapt(f=f), xy0, t)
-        plt.plot(xy[:,0],xy[:,1],c=cs[i%len(cs)],label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
+        xy=[xy0]
+        for j in range(1000):
+            xy.append(rk4.rk4(0.1,xy[-1],adapt(f=f)))
+        plt.plot([z[0] for z in xy],
+                 [z[1] for z in xy],
+                 c=cs[i%len(cs)],
+                 label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
 
-        
     leg=plt.legend(loc='best')
     if leg:
         leg.draggable()
