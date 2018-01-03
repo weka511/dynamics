@@ -47,7 +47,7 @@ def f(x,y):
 
 X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-11,xmax=10,ymin=0,ymax=20)
 
-phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=-x-e^{-y},\dot{y}=y$',suptitle='Example 6.1.7')
+phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=-x-e^{-y},\dot{y}=y$',suptitle='Example 6.1.7 showing Stable manifold')
 
 eps=1e-6
 xy0=[-1,eps]
