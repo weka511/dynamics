@@ -24,9 +24,9 @@ def rk4(h,y,f):
             y      Initial value for y in y'=f(y)
             f     Function in y=f(y)
     """
-    k0=tuple([h*ff for ff in f(y)])
-    k1=tuple([h*ff for ff in f(tuple([y+0.5*k for y,k in zip(y,k0)]))])
-    k2=tuple([h*ff for ff in f(tuple([y+0.5*k for y,k in zip(y,k1)]))])
-    k3=tuple([h*ff for ff in f(tuple([y+k for y,k in zip(y,k2)]))])
-    return tuple([yy+(kk0+2*kk1+2*kk2+kk3)/6 for yy,kk0,kk1,kk2,kk3 in zip(y,k0,k1,k2,k3)])
+    k0=tuple([h*f_y for f_y in f(y)])
+    k1=tuple([h*f_y for f_y in f(tuple([y+0.5*k for y,k in zip(y,k0)]))])
+    k2=tuple([h*f_y for f_y in f(tuple([y+0.5*k for y,k in zip(y,k1)]))])
+    k3=tuple([h*f_y for f_y in f(tuple([y+k for y,k in zip(y,k2)]))])
+    return tuple([yy+(_k0+2*_k1+2*_k2+_k3)/6 for yy,_k0,_k1,_k2,_k3 in zip(y,k0,k1,k2,k3)])
 

@@ -167,11 +167,11 @@ if __name__=='__main__':
     def f(x,y):
         return x+np.exp(-y),-y
     
-    t = np.linspace(0, 25, 101)
-    cs = ['r','b','g','m','c','y']
     X,Y,U,V,fixed=generate(f=lambda x,y:(x+np.exp(-y),-y),nx=256, ny = 256)
 
     plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
+    t = np.linspace(0, 25, 101)
+    cs = ['r','b','g','m','c','y']    
     starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
     for xy0,i in zip(starts,range(len(starts))):
         xy=[xy0]
