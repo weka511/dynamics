@@ -14,4 +14,5 @@ Code written to accompany my readings in Dynamics and Chaos:
 | roessler.py | Plot solutions to Roessler Equation |
 | strogatz_6_1.py | Exercise 6.1 from Strogatz |
 | strogatz_6_2.py | Exercise 6.2 from Strogatz |
+| strogatz_6_3.py | Exercise 6.3 from Strogatz |
 | utilities.py | Miscellaneous helpful functions |
