@@ -32,7 +32,7 @@ X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-20,xmax=20,ymin=-20,ymax
 phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=y^3-4x,\dot{y}=y^3-y-3x$',suptitle='Example 6.3.9')
 
 cs = ['r','b','g','m','c','y']    
-starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
+starts=[ utilities.direct_sphere(d=2,R=10) for i in range(12)]
 for xy0,i in zip(starts,range(len(starts))):
     xy=[xy0]
     for j in range(100000):
