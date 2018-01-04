@@ -22,5 +22,28 @@ X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,x*x-4))
 phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=x^2-4$',suptitle='Example 6.3.1') 
 plt.figure()
 
-    
+import utilities,rk4
+
+def f(x,y):
+    return (y*y*y-4*x,y*y*y-y-3*x)
+
+X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-20,xmax=20,ymin=-20,ymax=20)
+
+phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=y^3-4x,\dot{y}=y^3-y-3x$',suptitle='Example 6.3.9')
+
+cs = ['r','b','g','m','c','y']    
+starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
+for xy0,i in zip(starts,range(len(starts))):
+    xy=[xy0]
+    for j in range(100000):
+        xy.append(rk4.rk4(0.0001,xy[-1],phase.adapt(f=f)))
+    plt.plot([z[0] for z in xy],
+             [z[1] for z in xy],
+             c=cs[i%len(cs)],
+             label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
+
+leg=plt.legend(loc='best')
+if leg:
+    leg.draggable()
+     
 plt.show()
