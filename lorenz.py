@@ -55,7 +55,7 @@ if __name__=='__main__':
                 zs.append(y[2])
             ax.plot(xs,ys,zs,label=label)
 
-        plt.legend()
+        plt.legend(loc='best')
         plt.savefig('lorenz.png')
         plt.show()
     except rki.ImplicitRungeKutta.Failed as e:

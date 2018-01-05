@@ -19,3 +19,4 @@ Code written to accompany my readings in Dynamics and Chaos:
 | strogatz_6_1.py |
 | strogatz_6_2.py |
 | strogatz_6_3.py |
+| strogatz_6_4.py |
