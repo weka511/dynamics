@@ -24,19 +24,19 @@ plt.figure()
 
 import utilities,rk4
 
-def f(x,y):
-    return (y*y*y-4*x,y*y*y-y-3*x)
+def f(x,y,direction=1):
+    return (direction*(y*y*y-4*x),direction*(y*y*y-y-3*x))
 
-X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-20,xmax=20,ymin=-20,ymax=20)
+X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-100,xmax=100,ymin=-100,ymax=100)
 
 phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=y^3-4x,\dot{y}=y^3-y-3x$',suptitle='Example 6.3.9')
 
 cs = ['r','b','g','m','c','y']    
-starts=[ utilities.direct_sphere(d=2,R=10) for i in range(12)]
+starts=[ (0,25*i) for i in range(-5,6)]
 for xy0,i in zip(starts,range(len(starts))):
     xy=[xy0]
     for j in range(100000):
-        xy.append(rk4.rk4(0.0001,xy[-1],phase.adapt(f=f)))
+        xy.append(rk4.rk4(0.0001,xy[-1],phase.adapt(f=lambda x,y:f(x,y,-1))))
     plt.plot([z[0] for z in xy],
              [z[1] for z in xy],
              c=cs[i%len(cs)],
