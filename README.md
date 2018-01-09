@@ -1,6 +1,6 @@
-# chaos
+# dynamcs
 
-Code written to accompany my readings in Dynamics and Chaos:
+## Code written to accompany my readings in Dynamics and Chaos:
 * [Chaos Book](http://chaosbook.org/) by Predrag Cvitanovic´ et al
 * [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
@@ -20,3 +20,11 @@ Code written to accompany my readings in Dynamics and Chaos:
 | strogatz_6_2.py |
 | strogatz_6_3.py |
 | strogatz_6_4.py |
+
+## simul
+Also Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
+
+| File | Description |
+|-----------------------|----------------------------------------|
+| ex2_integrator.py | Integration exercise from week 2 |
+| ex3_LotkaVolterra.py | Lotka Volterra exercise from week 3 |
