@@ -127,12 +127,12 @@ plotData(rk2.getIntegrationTime(),rk2.integrate()[:,1],'b-',"cheetah (RK)")
 plotData(eul.getIntegrationTime(),eul.integrate()[:,0],'g-',"antelope (E)")
 plotData(eul.getIntegrationTime(),eul.integrate()[:,1],'m-',"cheetah (E)")
 
-plt.show()
+plt.figure()
 
 parametricPlotData(rk2.integrate()[:,0], rk2.integrate()[:,1],'r-','a(t)','c(t)',"6 ini (RK)")
 parametricPlotData(eul.integrate()[:,0], eul.integrate()[:,1],'b-','a(t)','c(t)',"6 ini (E)")
 
-plt.show()
+plt.figure()
 
 # Compues the errror between 2 solutions with a given ratio 
 # in term of resolution points
@@ -164,24 +164,25 @@ for i in n_rk:
 	rk = Integrator(RK2(LotkaVolterra(1,1,0.5,0.5)),x0,tmin,tmax,i)
 	r_rk = n_ref//i
 	errRK.append(computeError(rk.integrate(),solRefRK,r_rk))
+	print ('RK4',i,errRK[-1])
 	print(computeError(rk.integrate(),solRefRK,r_rk))
 
 plt.loglog(n_rk,errRK,'ro',linewidth=2.0,label="RK2 error")
 plt.loglog(n_rk,np.power(n_rk/10,-2),'k-',linewidth=2.0,label="-2 slope")
 plt.legend(loc=3)
-plt.show()
+plt.figure()
 
 errE = []
 for i in n_rk:
 	e = Integrator(ExplicitEuler(LotkaVolterra(1,1,0.5,0.5)),x0,tmin,tmax,i)
 	r_rk = n_ref//i
 	errE.append(computeError(e.integrate(),solRefRK,r_rk))
+	print ('Euler',i,errE[-1])
 	print(computeError(e.integrate(),solRefRK,r_rk))
 
 
 plt.loglog(n_rk,errE,'ro',linewidth=2.0,label="Euler error")
 plt.loglog(n_rk,np.power(n_e/100,-2),'k-',linewidth=2.0,label="-1 slope")
 plt.legend(loc=3)
+
 plt.show()
-
-
