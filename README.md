@@ -25,6 +25,8 @@
 Also Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
 
 | File | Description |
-|-----------------------|----------------------------------------|
+|-------------------------|----------------------------------------|
 | ex2_integrator.py | Integration exercise from week 2 |
 | ex3_LotkaVolterra.py | Lotka Volterra exercise from week 3 |
+| parityRule.py | Week 4 Exercise|
+| parityRuleSolution.py |  Week 4 Exercise |
