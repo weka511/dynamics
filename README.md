@@ -28,7 +28,6 @@
 | ex2_integrator.py | Integration exercise from week 2 |
 | ex3_LotkaVolterra.py | Lotka Volterra exercise from week 3 |
 | parityRule.py | Week 4 Exercise|
-| parityRuleSolution.py |  Week 4 Exercise |
 | lbmFlowAroundCylinder.py | Week 5 Exercise |
 | barnes_hut.py | Week 6 Exercise |
 | bacteria.py| Week 7 Exercise |
