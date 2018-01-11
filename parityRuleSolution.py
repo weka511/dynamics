@@ -8,7 +8,7 @@
 from numpy import *
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import scipy
+import scipy, scipy.misc
 import copy
     
 # Definition of functions

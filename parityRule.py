@@ -28,28 +28,27 @@ image = readImage(imageName) # Note that "image" is a numPy array of type "int".
 
 # Get the shape of the image , i.e. the number of pixels horizontally and vertically. 
 # Note that the function shape return a type "tuple" (vertical_size,horizontal_size)
-imageSize = np.shape(image);
+m,n = np.shape(image);
 
 # Print to screen the initial image.
-print('Initial image:')
 plt.clf()
 plt.imshow(image, cmap=cm.gray)
+plt.title('Initial image:')
+plt.savefig('step_{0}.png'.format(0))
 
 # Main loop
 for it in range(1,maxIter+1):
     
     imageCopy = copy.copy(image);
     
-    m=len(image)
-    n=len(image[0])
     for i in range(m):
         for j in range(n):
             image[i][j]=(imageCopy[(i-1)%m][j]+imageCopy[(i+1)%m][j]+imageCopy[i][(j-1)%n]+imageCopy[i][(j+1)%n])%2
-    print('Image after',it,'iterations:')
     plt.figure()
     plt.clf()
     plt.imshow(image, cmap=cm.gray)
-
+    plt.title('Image after {} iterations:'.format(it))
+    plt.savefig('step_{0}.png'.format(it))
         
 # Print to screen the number of white pixels in the final image
 print("The number of white pixels after",it,"iterations is: ", sum(sum(image)))
