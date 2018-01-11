@@ -5,11 +5,8 @@
 # The Parity Rule
 #
 
-from numpy import *
-import matplotlib.pyplot as plt
+import numpy as np, matplotlib.pyplot as plt,scipy,copy,scipy.misc
 from matplotlib import cm
-import scipy
-import copy
     
 # Definition of functions
 def readImage(string): # This function only work for monochrome BMP. 
@@ -31,7 +28,7 @@ image = readImage(imageName) # Note that "image" is a numPy array of type "int".
 
 # Get the shape of the image , i.e. the number of pixels horizontally and vertically. 
 # Note that the function shape return a type "tuple" (vertical_size,horizontal_size)
-imageSize = shape(image);
+imageSize = np.shape(image);
 
 # Print to screen the initial image.
 print('Initial image:')
