@@ -32,6 +32,7 @@ from numpy import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+images='./images/' 
 class Node:
 # A node represents a body if it is an endnote (i.e. if node.child is None)
 # or an abstract node of the quad-tree if it has child.
@@ -156,7 +157,7 @@ def plot_bodies(bodies, i):
     ax.scatter([b.pos()[0] for b in bodies], [b.pos()[1] for b in bodies], 1)
     ax.set_xlim([0., 1.0])
     ax.set_ylim([0., 1.0])
-    plt.gcf().savefig('bodies_{0:06}.png'.format(i))
+    plt.gcf().savefig('{0}bodies_{1:06}.png'.format(images,i))
 
 
 ######### MAIN PROGRAM ########################################################

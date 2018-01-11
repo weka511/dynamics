@@ -7,9 +7,10 @@
 
 import numpy as np, matplotlib.pyplot as plt,scipy,copy,imageio
 from matplotlib import cm
-    
+
+images='./images/'    
 # Definition of functions
-def readImage(string): # This function only work for monochrome BMP. 
+def readImage(string): # This function works for monochrome BMP only. 
     image =  imageio.imread(string);
     image[image == 255] = 1
     image = image.astype(int) 
@@ -34,7 +35,7 @@ m,n = np.shape(image);
 plt.clf()
 plt.imshow(image, cmap=cm.gray)
 plt.title('Initial image:')
-plt.savefig('step_{0}.png'.format(0))
+plt.savefig('{0}step_{1}.png'.format(images,0))
 
 # Main loop
 for it in range(1,maxIter+1):
@@ -48,7 +49,7 @@ for it in range(1,maxIter+1):
     plt.clf()
     plt.imshow(image, cmap=cm.gray)
     plt.title('Image after {} iterations:'.format(it))
-    plt.savefig('step_{0}.png'.format(it))
+    plt.savefig('{0}step_{1}.png'.format(images,it))
         
 # Print to screen the number of white pixels in the final image
 print("The number of white pixels after",it,"iterations is: ", sum(sum(image)))
