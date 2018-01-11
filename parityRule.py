@@ -5,12 +5,12 @@
 # The Parity Rule
 #
 
-import numpy as np, matplotlib.pyplot as plt,scipy,copy,scipy.misc
+import numpy as np, matplotlib.pyplot as plt,scipy,copy,imageio
 from matplotlib import cm
     
 # Definition of functions
 def readImage(string): # This function only work for monochrome BMP. 
-    image =  scipy.misc.imread(string,1);
+    image =  imageio.imread(string);
     image[image == 255] = 1
     image = image.astype(int) 
     return image # Note that the image output is a numPy array of type "int".
