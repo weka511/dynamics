@@ -137,5 +137,6 @@ if __name__=='__main__':
                               axis=1)
             
         visualize_velocity(T,u)
+        
     print("--- Execution time for {0} steps = {1} seconds ---".format( maxIter, int(time.time() - start_time)))
 
