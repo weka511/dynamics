@@ -5,15 +5,15 @@
 # 2D flow around a cylinder
 #
 
-# Use the Python code provided in the course, i.e. “lbmFlowAroundCylinder.py”,
+# Use the Python code provided in the course,
 # to approximately determine the critical Reynold number,
 # i.e. the lowest Reynold number for which the flow around the cylinder
 # enters an unsteady regime after a sufficient number of iterations.
 
 
 # For the purpose of this project, it is sufficient to find the critical 
-# Reynolds number within an accuracy of ±5. You will need to run the Python
-# code several time at different Reynolds numbers, but in each run,
+# Reynolds number within an accuracy of +/-5. You will need to run the Python
+# code several times at different Reynolds numbers, but in each run,
 # you are not required to run the code for more than 200 000 time steps.
 
 # You may want to consult the following Wikipedia article to make
@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 ###### Flow definition #########################################################
-maxIter = 200000  # Total number of time iterations.
+maxIter = 200000 # Total number of time iterations.
 Re = 10.0         # Reynolds number.
 nx, ny = 420, 180 # Numer of lattice nodes.
 ly = ny-1         # Height of the domain in lattice units.
@@ -52,8 +52,8 @@ col1 = array([0, 1, 2])
 col2 = array([3, 4, 5])
 col3 = array([6, 7, 8])
 
-images = './images/'
-###### Function Definitions ####################################################
+
+
 def macroscopic(fin):
     rho = sum(fin, axis=0)
     u = zeros((2, nx, ny))
@@ -63,7 +63,10 @@ def macroscopic(fin):
     u /= rho
     return rho, u
 
-def equilibrium(rho, u):              # Equilibrium distribution function.
+def equilibrium(rho, u):
+    '''
+    Equilibrium distribution function.
+    '''
     usqr = 3/2 * (u[0]**2 + u[1]**2)
     feq = zeros((9,nx,ny))
     for i in range(9):
@@ -88,37 +91,51 @@ vel = fromfunction(inivel, (2,nx,ny))
 # Initialization of the populations at equilibrium with the given velocity.
 fin = equilibrium(1, vel)
 
-###### Main time loop ##########################################################
-for time in range(maxIter):
-    # Right wall: outflow condition.
-    fin[col3,-1,:] = fin[col3,-2,:] 
-
-    # Compute macroscopic variables, density and velocity.
-    rho, u = macroscopic(fin)
-
-    # Left wall: inflow condition.
-    u[:,0,:] = vel[:,0,:]
-    rho[0,:] = 1/(1-u[0,0,:]) * ( sum(fin[col2,0,:], axis=0) +
-                                  2*sum(fin[col3,0,:], axis=0) )
-    # Compute equilibrium.
-    feq = equilibrium(rho, u)
-    fin[[0,1,2],0,:] = feq[[0,1,2],0,:] + fin[[8,7,6],0,:] - feq[[8,7,6],0,:]
-
-    # Collision step.
-    fout = fin - omega * (fin - feq)
-
-    # Bounce-back condition for obstacle.
-    for i in range(9):
-        fout[i, obstacle] = fin[8-i, obstacle]
-
-    # Streaming step.
-    for i in range(9):
-        fin[i,:,:] = roll(
-                            roll(fout[i,:,:], v[i,0], axis=0),
-                            v[i,1], axis=1 )
- 
-    # Visualization of the velocity.
-    if (time%100==0):
+def visualize_velocity(time,u,images = './images/',freq=100):
+    '''
+    Visualize the velocity.
+    
+        Parameters:
+            time
+            u
+            images
+            freq
+    '''
+    if (time%freq==0):
         plt.clf()
         plt.imshow(sqrt(u[0]**2+u[1]**2).transpose(), cmap=cm.Reds)
         plt.savefig('{0}vel.{1:04d}.png'.format(images,time//100))
+        
+if __name__=='__main__':
+    import time
+    start_time = time.time()    
+    for T in range(maxIter):
+        fin[col3,-1,:] = fin[col3,-2,:]  # Right wall: outflow condition.
+    
+        rho, u = macroscopic(fin) # Compute macroscopic variables, density and velocity.
+    
+        # Left wall: inflow condition.
+        u[:,0,:] = vel[:,0,:]
+        rho[0,:] = 1/(1-u[0,0,:]) * ( sum(fin[col2,0,:], axis=0) +
+                                      2*sum(fin[col3,0,:], axis=0) )
+        # Compute equilibrium.
+        feq = equilibrium(rho, u)
+        fin[[0,1,2],0,:] = feq[[0,1,2],0,:] + fin[[8,7,6],0,:] - feq[[8,7,6],0,:]
+    
+        fout = fin - omega * (fin - feq)  # Collision step.
+    
+        # Bounce-back condition for obstacle.
+        for i in range(9):
+            fout[i, obstacle] = fin[8-i, obstacle]
+    
+        # Streaming step.
+        for i in range(9):
+            fin[i,:,:] = roll(roll(fout[i,:,:], 
+                                   v[i,0], 
+                                   axis=0),
+                              v[i,1],
+                              axis=1)
+            
+        visualize_velocity(T,u)
+    print("--- Execution time for {0} steps = {1} seconds ---".format( maxIter, int(time.time() - start_time)))
+
