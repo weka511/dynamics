@@ -28,6 +28,7 @@ col1 = array([0, 1, 2])
 col2 = array([3, 4, 5])
 col3 = array([6, 7, 8])
 
+images = './images/'
 ###### Function Definitions ####################################################
 def macroscopic(fin):
     rho = sum(fin, axis=0)
@@ -96,4 +97,4 @@ for time in range(maxIter):
     if (time%100==0):
         plt.clf()
         plt.imshow(sqrt(u[0]**2+u[1]**2).transpose(), cmap=cm.Reds)
-        plt.savefig("vel.{0:04d}.png".format(time//100))
+        plt.savefig('{0}vel.{1:04d}.png'.format(images,time//100))
