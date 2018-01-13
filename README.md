@@ -28,7 +28,7 @@
 | ex2_integrator.py | Integration exercise from week 2 |
 | ex3_LotkaVolterra.py | Lotka Volterra exercise from week 3 |
 | parityRule.py | Week 4 Exercise|
-| lbmFlowAroundCylinder.py | Week 5 Exercise |
+| lbmFlowAroundCylinder.py | Week 5 Exercise. Determine the _critical Reynold number,_ i.e. the lowest Reynold number for which the flow around the cylinder enters an unsteady regime after a sufficient number of iterations. |
 | barnes_hut.py | Week 6 Exercise |
 | bacteria.py| Week 7 Exercise |
 | trafficLights.py | Week 8 Exercise|
