@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
+import functools
+
 def to_binary(w,n=3):
     s=[]
     while len(s)<2**n:
@@ -22,10 +24,7 @@ def to_binary(w,n=3):
 
 def step(rule,state,n=1):
     def index(i,extended_state):
-        value=0
-        for j in range(i,i+2*n+1):
-            value=2*value+extended_state[j]
-        return value
+        return functools.reduce(lambda value,j:2*value+extended_state[j],range(i,i+2*n+1),0)
     return [rule[index(i,[0]*n+state+[0]*n)] for i in range(len(state))]
 
 
@@ -33,7 +32,6 @@ if __name__=='__main__':
     w = 110
     #w=30
     r = to_binary(w)[::-1]
-    #print (r)
 
     s = [0]*9+[1,0,0]
     #s = [0]*21+[1]+[0]*21
