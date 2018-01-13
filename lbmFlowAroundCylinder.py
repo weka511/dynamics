@@ -5,6 +5,30 @@
 # 2D flow around a cylinder
 #
 
+# Use the Python code provided in the course, i.e. “lbmFlowAroundCylinder.py”,
+# to approximately determine the critical Reynold number,
+# i.e. the lowest Reynold number for which the flow around the cylinder
+# enters an unsteady regime after a sufficient number of iterations.
+
+
+# For the purpose of this project, it is sufficient to find the critical 
+# Reynolds number within an accuracy of ±5. You will need to run the Python
+# code several time at different Reynolds numbers, but in each run,
+# you are not required to run the code for more than 200 000 time steps.
+
+# You may want to consult the following Wikipedia article to make
+# sure you understand the difference between a steady and an unsteady
+# flow: https://en.wikipedia.org/wiki/Fluid_dynamics#Steady_vs_unsteady_flow
+
+# For this exercise, we consider a flow configuration to be steady 
+# if the velocity norm ||u|| is time independent after a sufficient number of iterations.
+# Otherwise, we assume that it remains unsteady forever.
+# Note that the cylinder is spatially immobile and that the frame of reference is stationary with respect to the cylinder.
+
+# It is also interesting to point out that the critical Reynolds number
+# depends on the flow configuration. In an exterior flow, in which the flow is not, 
+# as in our example, restricted by lateral walls, the critical Reynolds number would be larger.
+
 from numpy import *
 import matplotlib.pyplot as plt
 from matplotlib import cm
