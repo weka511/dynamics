@@ -20,27 +20,24 @@ def to_binary(w,n=3):
         w=w//2
     return s[::-1]
 
-def step(rule,state,n=3):
-    new_state=[]
-    for i in range(len(state)):
-        index=0
-        for k in range(i-1,i+1):
-            index*=2
-            if 0<=k and k<len(state):
-                index+=state[k]
-        new_state.append(rule[index])
-    return new_state
+def step(rule,state,n=1):
+    def index(i,extended_state):
+        value=0
+        for j in range(i,i+2*n+1):
+            value=2*value+extended_state[j]
+        return value
+    return [rule[index(i,[0]*n+state+[0]*n)] for i in range(len(state))]
+
 
 if __name__=='__main__':
     w = 110
     #w=30
     r = to_binary(w)[::-1]
-    print (r)
+    #print (r)
 
     s = [0]*9+[1,0,0]
-    #s = [0]*10+[1]+[0]*10
-    print (s)
-    #step(r,s)
+    #s = [0]*21+[1]+[0]*21
+
     for t in range(8+1):
         print (t,s)
         s=step(r,s)

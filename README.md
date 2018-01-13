@@ -32,3 +32,4 @@
 | barnes_hut.py | Week 6 Exercise |
 | bacteria.py| Week 7 Exercise |
 | trafficLights.py | Week 8 Exercise|
+| Wolfram_ca.py    | Week 4 quiz - program to do Wolfram CA |
