@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # Copyright (C) 2015 Universite de Geneve, Switzerland
 # E-mail contact: jonas.latt@unige.ch
 #
