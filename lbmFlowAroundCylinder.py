@@ -28,8 +28,7 @@
 # depends on the flow configuration. In an exterior flow, in which the flow is not, 
 # as in our example, restricted by lateral walls, the critical Reynolds number would be larger.
 
-from numpy import *
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt,numpy as np
 from matplotlib import cm
 
 ###### Flow definition #########################################################
@@ -43,19 +42,19 @@ nulb    = uLB*r/Re;             # Viscoscity in lattice units.
 omega = 1 / (3*nulb+0.5);    # Relaxation parameter.
 
 ###### Lattice Constants #######################################################
-v = array([ [ 1,  1], [ 1,  0], [ 1, -1], [ 0,  1], [ 0,  0],
+v = np.array([ [ 1,  1], [ 1,  0], [ 1, -1], [ 0,  1], [ 0,  0],
             [ 0, -1], [-1,  1], [-1,  0], [-1, -1] ])
-t = array([ 1/36, 1/9, 1/36, 1/9, 4/9, 1/9, 1/36, 1/9, 1/36])
+t = np.array([ 1/36, 1/9, 1/36, 1/9, 4/9, 1/9, 1/36, 1/9, 1/36])
 
-col1 = array([0, 1, 2])
-col2 = array([3, 4, 5])
-col3 = array([6, 7, 8])
+col1 = np.array([0, 1, 2])
+col2 = np.array([3, 4, 5])
+col3 = np.array([6, 7, 8])
 
 
 
 def macroscopic(fin):
-    rho = sum(fin, axis=0)
-    u = zeros((2, nx, ny))
+    rho = np.sum(fin, axis=0)
+    u = np.zeros((2, nx, ny))
     for i in range(9):
         u[0,:,:] += v[i,0] * fin[i,:,:]
         u[1,:,:] += v[i,1] * fin[i,:,:]
@@ -67,7 +66,7 @@ def equilibrium(rho, u):
     Equilibrium distribution function.
     '''
     usqr = 3/2 * (u[0]**2 + u[1]**2)
-    feq = zeros((9,nx,ny))
+    feq = np.zeros((9,nx,ny))
     for i in range(9):
         cu = 3 * (v[i,0]*u[0,:,:] + v[i,1]*u[1,:,:])
         feq[i,:,:] = rho*t[i] * (1 + cu + 0.5*cu**2 - usqr)
@@ -78,14 +77,14 @@ def equilibrium(rho, u):
 def obstacle_fun(x, y):
     return (x-cx)**2+(y-cy)**2<r**2
 
-obstacle = fromfunction(obstacle_fun, (nx,ny))
+obstacle = np.fromfunction(obstacle_fun, (nx,ny))
 
 # Initial velocity profile: almost zero, with a slight perturbation to trigger
 # the instability.
 def inivel(d, x, y):
-    return (1-d) * uLB * (1 + 1e-4*sin(y/ly*2*pi))
+    return (1-d) * uLB * (1 + 1e-4*np.sin(y/ly*2*np.pi))
 
-vel = fromfunction(inivel, (2,nx,ny))
+vel = np.fromfunction(inivel, (2,nx,ny))
 
 # Initialization of the populations at equilibrium with the given velocity.
 fin = equilibrium(1, vel)
@@ -102,7 +101,7 @@ def visualize_velocity(time,u,Re,images = './images/',freq=100):
     '''
     if (time%freq==0):
         plt.clf()
-        plt.imshow(sqrt(u[0]**2+u[1]**2).transpose(), cmap=cm.Reds)
+        plt.imshow(np.sqrt(u[0]**2+u[1]**2).transpose(), cmap=cm.Reds)
         plt.title('Re={0}'.format(Re))
         plt.savefig('{0}vel.{1:04d}.png'.format(images,time//100))
         
@@ -117,8 +116,8 @@ if __name__=='__main__':
     
         # Left wall: inflow condition.
         u[:,0,:] = vel[:,0,:]
-        rho[0,:] = 1/(1-u[0,0,:]) * ( sum(fin[col2,0,:], axis=0) +
-                                      2*sum(fin[col3,0,:], axis=0) )
+        rho[0,:] = 1/(1-u[0,0,:]) * ( np.sum(fin[col2,0,:], axis=0) +
+                                      2*np.sum(fin[col3,0,:], axis=0) )
         # Compute equilibrium.
         feq = equilibrium(rho, u)
         fin[[0,1,2],0,:] = feq[[0,1,2],0,:] + fin[[8,7,6],0,:] - feq[[8,7,6],0,:]
@@ -131,7 +130,7 @@ if __name__=='__main__':
     
         # Streaming step.
         for i in range(9):
-            fin[i,:,:] = roll(roll(fout[i,:,:], 
+            fin[i,:,:] = np.roll(np.roll(fout[i,:,:], 
                                    v[i,0], 
                                    axis=0),
                               v[i,1],

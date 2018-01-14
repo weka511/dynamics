@@ -72,7 +72,7 @@ class Node:
         cutoff_dist = 0.002
         d = self.dist(other)
         if d < cutoff_dist:
-            return array([0., 0.])
+            return array([0., 0., 0.])
         else:
             # Gravitational force goes like 1/r**2.
             return (self.pos() - other.pos()) * (self.m*other.m / d**3)
@@ -169,7 +169,7 @@ def plot_bodies3(bodies, i):
     ax.set_xlim([0., 1.0])
     ax.set_ylim([0., 1.0])
     ax.set_zlim([0., 1.0])    
-    plt.gcf().savefig('bodies3D_{0:06}.png'.format(i))
+    plt.gcf().savefig('{0}bodies3D_{1:06}.png'.format(images,i))
 
 ######### MAIN PROGRAM ########################################################
 
