@@ -35,7 +35,7 @@ from matplotlib import cm
 
 ###### Flow definition #########################################################
 maxIter = 200000 # Total number of time iterations.
-Re = 10.0         # Reynolds number.
+Re = 38.125         # Reynolds number.
 nx, ny = 420, 180 # Numer of lattice nodes.
 ly = ny-1         # Height of the domain in lattice units.
 cx, cy, r = nx//4, ny//2, ny//9 # Coordinates of the cylinder.
@@ -91,7 +91,7 @@ vel = fromfunction(inivel, (2,nx,ny))
 # Initialization of the populations at equilibrium with the given velocity.
 fin = equilibrium(1, vel)
 
-def visualize_velocity(time,u,images = './images/',freq=100):
+def visualize_velocity(time,u,Re,images = './images/',freq=100):
     '''
     Visualize the velocity.
     
@@ -104,11 +104,13 @@ def visualize_velocity(time,u,images = './images/',freq=100):
     if (time%freq==0):
         plt.clf()
         plt.imshow(sqrt(u[0]**2+u[1]**2).transpose(), cmap=cm.Reds)
+        plt.title('Re={0}'.format(Re))
         plt.savefig('{0}vel.{1:04d}.png'.format(images,time//100))
         
 if __name__=='__main__':
     import time
-    start_time = time.time()    
+    start_time = time.time() 
+    print ('Reynolds number={0}'.format(Re))
     for T in range(maxIter):
         fin[col3,-1,:] = fin[col3,-2,:]  # Right wall: outflow condition.
     
@@ -136,7 +138,7 @@ if __name__=='__main__':
                               v[i,1],
                               axis=1)
             
-        visualize_velocity(T,u)
+        visualize_velocity(T,u,Re)
         
     print("--- Execution time for {0} steps = {1} seconds ---".format( maxIter, int(time.time() - start_time)))
 
