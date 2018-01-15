@@ -32,18 +32,17 @@ from numpy import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-images='./images/' 
 class Node:
 # A node represents a body if it is an endnote (i.e. if node.child is None)
 # or an abstract node of the quad-tree if it has child.
 
-    def __init__(self, m, x, y,z=0):
+    def __init__(self, m, x, y):
     # The initializer creates a child-less node (an actual body).
         self.m = m
         # Instead of storing the position of a node, we store the mass times
         # position, m_pos. This makes it easier to update the center-of-mass.
-        self.m_pos = m * array([x, y,z])
-        self.momentum = array([0., 0., 0.])
+        self.m_pos = m * array([x, y])
+        self.momentum = array([0., 0.])
         self.child = None
 
     def into_next_quadrant(self):
@@ -72,7 +71,7 @@ class Node:
         cutoff_dist = 0.002
         d = self.dist(other)
         if d < cutoff_dist:
-            return array([0., 0., 0.])
+            return array([0., 0.])
         else:
             # Gravitational force goes like 1/r**2.
             return (self.pos() - other.pos()) * (self.m*other.m / d**3)
@@ -148,7 +147,7 @@ def verlet(bodies, root, theta, G, dt):
         body.m_pos += dt * body.momentum 
 
 
-def plot_bodies2(bodies, i):
+def plot_bodies(bodies, i):
 # Write an image representing the current position of the bodies.
 # To create a movie with avconv or ffmpeg use the following command:
 # ffmpeg -r 15 -i bodies_%06d.png -q:v 0 bodies.avi
@@ -157,19 +156,8 @@ def plot_bodies2(bodies, i):
     ax.scatter([b.pos()[0] for b in bodies], [b.pos()[1] for b in bodies], 1)
     ax.set_xlim([0., 1.0])
     ax.set_ylim([0., 1.0])
-    plt.gcf().savefig('{0}bodies_{1:06}.png'.format(images,i))
+    plt.gcf().savefig('bodies_{0:06}.png'.format(i))
 
-def plot_bodies3(bodies, i):
-# Write an image representing the current position of the bodies.
-# To create a movie with avconv or ffmpeg use the following command:
-# ffmpeg -r 15 -i bodies3D_%06d.png -q:v 0 bodies3D.avi
-    ax = plt.gcf().add_subplot(111, aspect='equal', projection='3d')
-    ax.scatter([b.pos()[0] for b in bodies], \
-    [b.pos()[1] for b in bodies], [b.pos()[2] for b in bodies])
-    ax.set_xlim([0., 1.0])
-    ax.set_ylim([0., 1.0])
-    ax.set_zlim([0., 1.0])    
-    plt.gcf().savefig('{0}bodies3D_{1:06}.png'.format(images,i))
 
 ######### MAIN PROGRAM ########################################################
 
@@ -198,20 +186,18 @@ img_iter = 20
 random.seed(1)
 posx = random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
 posy = random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
-posz = random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
 # We only keep the bodies inside a circle of radius ini_radius.
-bodies = [ Node(mass, px, py, pz) for (px,py,pz) in zip(posx, posy,posz) \
-               if (px-0.5)**2 + (py-0.5)**2 + (pz-0.5)**2 < ini_radius**2 ]
+bodies = [ Node(mass, px, py) for (px,py) in zip(posx, posy) \
+               if (px-0.5)**2 + (py-0.5)**2 < ini_radius**2 ]
 
 #input("Press the <ENTER> key to continue...")
 #print ("here")
 # Initially, the bodies have a radial velocity of an amplitude proportional to
 # the distance from the center. This induces a rotational motion creating a
 # "galaxy-like" impression.
-for body in bodies: 
-    r = body.pos() - array([0.5, 0.5, body.pos()[2] ])
-    body.momentum = array([-r[1], r[0], 0.]) * \
-    mass*inivel*norm(r)/ini_radius
+for body in bodies:
+    r = body.pos() - array([0.5,0.5])
+    body.momentum = array([-r[1], r[0]]) * mass*inivel*norm(r)/ini_radius
 
 # Principal loop over time iterations.
 for i in range(max_iter):
@@ -226,5 +212,5 @@ for i in range(max_iter):
            
     if i%img_iter==0:
         print("Writing images at iteration {0}".format(i))
-        plot_bodies3(bodies, i//img_iter)
+        plot_bodies(bodies, i//img_iter)
 
