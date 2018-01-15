@@ -9,7 +9,6 @@
 # i.e. the lowest Reynold number for which the flow around the cylinder
 # enters an unsteady regime after a sufficient number of iterations.
 
-
 # For the purpose of this project, it is sufficient to find the critical 
 # Reynolds number within an accuracy of +/-5. You will need to run the Python
 # code several times at different Reynolds numbers, but in each run,
@@ -31,28 +30,55 @@
 import matplotlib.pyplot as plt,numpy as np
 from matplotlib import cm
 
-###### Flow definition #########################################################
-maxIter = 200000 # Total number of time iterations.
-Re = 38.125         # Reynolds number.
-nx, ny = 420, 180 # Numer of lattice nodes.
-ly = ny-1         # Height of the domain in lattice units.
-cx, cy, r = nx//4, ny//2, ny//9 # Coordinates of the cylinder.
-uLB     = 0.04                  # Velocity in lattice units.
-nulb    = uLB*r/Re;             # Viscoscity in lattice units.
-omega = 1 / (3*nulb+0.5);    # Relaxation parameter.
+###### Flow definition ######################## #################################
+maxIter   = 200000                # Total number of time iterations.
+Re        = 38.125                # Reynolds number.
+nx, ny    = 420, 180              # Number of lattice nodes.
+ly        = ny-1                  # Height of the domain in lattice units.
+cx, cy, r = nx//4, ny//2, ny//9   # Coordinates of the cylinder.
+uLB       = 0.04                  # Velocity in lattice units.
+nulb      = uLB*r/Re;             # Viscoscity in lattice units.
+omega     = 1 / (3*nulb+0.5)      # Relaxation parameter.
+
+# In lecture, fin and fout are indexed as follows
+# fin:   258       fout: 630
+#        147             741
+#        036             852
 
 ###### Lattice Constants #######################################################
-v = np.array([ [ 1,  1], [ 1,  0], [ 1, -1], [ 0,  1], [ 0,  0],
-            [ 0, -1], [-1,  1], [-1,  0], [-1, -1] ])
-t = np.array([ 1/36, 1/9, 1/36, 1/9, 4/9, 1/9, 1/36, 1/9, 1/36])
+v = np.array([ # weights for velocity calculation - first index matches fin
+    [ 1,  1],  # Lower Left
+    [ 1,  0],  # Left middle
+    [ 1, -1],  # Upper left
+    [ 0,  1],  # Upper centre
+    [ 0,  0],  # Middle centre (stationary)
+    [ 0, -1],  # Lower centre
+    [-1,  1],  # Upper right
+    [-1,  0],  # Middle right
+    [-1, -1]   # Lower right
+    ])
+
+t = np.array([ # weights used in equilibrium calculation - allow dor differences in velocities
+    1/36,   # Lower Left - [1,1]
+    1/9,    # Left middle = [1,0]
+    1/36,
+    1/9,
+    4/9,    # Middle (stationary)
+    1/9,
+    1/36, 
+    1/9, 
+    1/36
+])
 
 col1 = np.array([0, 1, 2])
 col2 = np.array([3, 4, 5])
 col3 = np.array([6, 7, 8])
 
 
-
 def macroscopic(fin):
+    '''
+    Calculate density and velocity
+    '''
     rho = np.sum(fin, axis=0)
     u = np.zeros((2, nx, ny))
     for i in range(9):
@@ -63,7 +89,7 @@ def macroscopic(fin):
 
 def equilibrium(rho, u):
     '''
-    Equilibrium distribution function.
+    Equilibrium distribution function (series expansion of Bolzmann)
     '''
     usqr = 3/2 * (u[0]**2 + u[1]**2)
     feq = np.zeros((9,nx,ny))
@@ -73,16 +99,21 @@ def equilibrium(rho, u):
     return feq
 
 ###### Setup: cylindrical obstacle and velocity inlet with perturbation ########
-# Creation of a mask with 1/0 values, defining the shape of the obstacle.
+
 def obstacle_fun(x, y):
+    '''
+    Create a mask with 1/0 values, defining the shape of the obstacle.
+    '''
     return (x-cx)**2+(y-cy)**2<r**2
 
 obstacle = np.fromfunction(obstacle_fun, (nx,ny))
 
-# Initial velocity profile: almost zero, with a slight perturbation to trigger
-# the instability.
-def inivel(d, x, y):
-    return (1-d) * uLB * (1 + 1e-4*np.sin(y/ly*2*np.pi))
+def inivel(d, x, y,perturbation=1e-4):
+    '''
+    Initial velocity profile: almost zero, with a slight perturbation to trigger
+    the instability.
+    '''
+    return (1-d) * uLB * (1 + perturbation*np.sin(y/ly*2*np.pi))
 
 vel = np.fromfunction(inivel, (2,nx,ny))
 
@@ -120,7 +151,7 @@ if __name__=='__main__':
                                       2*np.sum(fin[col3,0,:], axis=0) )
         # Compute equilibrium.
         feq = equilibrium(rho, u)
-        fin[[0,1,2],0,:] = feq[[0,1,2],0,:] + fin[[8,7,6],0,:] - feq[[8,7,6],0,:]
+        fin[[0,1,2],0,:] = feq[[0,1,2],0,:] + fin[[8,7,6],0,:] - feq[[8,7,6],0,:] #???
     
         fout = fin - omega * (fin - feq)  # Collision step.
     
@@ -131,12 +162,12 @@ if __name__=='__main__':
         # Streaming step.
         for i in range(9):
             fin[i,:,:] = np.roll(np.roll(fout[i,:,:], 
-                                   v[i,0], 
-                                   axis=0),
-                              v[i,1],
-                              axis=1)
+                                         v[i,0], 
+                                         axis=0),
+                                 v[i,1],
+                                 axis=1)
             
         visualize_velocity(T,u,Re)
         
     print("--- Execution time for {0} steps = {1} seconds ---".format( maxIter, int(time.time() - start_time)))
-
+    
