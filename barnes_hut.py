@@ -25,12 +25,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from copy import deepcopy
-from numpy import array
-from numpy.linalg import norm
-from numpy import random
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+import copy,numpy as np,matplotlib.pyplot as plt,mpl_toolkits.mplot3d
+
+images='./images/' 
 
 class Node:
 # A node represents a body if it is an endnote (i.e. if node.child is None)
@@ -41,8 +38,8 @@ class Node:
         self.m = m
         # Instead of storing the position of a node, we store the mass times
         # position, m_pos. This makes it easier to update the center-of-mass.
-        self.m_pos = m * array([x, y])
-        self.momentum = array([0., 0.])
+        self.m_pos = m * np.array([x, y])
+        self.momentum = np.array([0., 0.])
         self.child = None
 
     def into_next_quadrant(self):
@@ -63,7 +60,7 @@ class Node:
 
     def dist(self, other):
     # Distance between present node and another node.
-        return norm(other.pos() - self.pos())
+        return np.linalg.norm(other.pos() - self.pos())
 
     def force_on(self, other):
     # Force which the present node is exerting on a given body.
@@ -71,7 +68,7 @@ class Node:
         cutoff_dist = 0.002
         d = self.dist(other)
         if d < cutoff_dist:
-            return array([0., 0.])
+            return np.array([0., 0.])
         else:
             # Gravitational force goes like 1/r**2.
             return (self.pos() - other.pos()) * (self.m*other.m / d**3)
@@ -99,7 +96,7 @@ def add(body, node):
         # 3. If node n is an external node, then the new body b is in conflict
         #    with a body already present in this region. ...
         if node.child is None:
-            new_node = deepcopy(node)
+            new_node = copy.deepcopy(node)
         #    ... Subdivide the region further by creating four children
             new_node.child = [None for i in range(4)]
         #    ... And to start with, insert the already present body recursively
@@ -156,7 +153,7 @@ def plot_bodies(bodies, i):
     ax.scatter([b.pos()[0] for b in bodies], [b.pos()[1] for b in bodies], 1)
     ax.set_xlim([0., 1.0])
     ax.set_ylim([0., 1.0])
-    plt.gcf().savefig('bodies_{0:06}.png'.format(i))
+    plt.gcf().savefig('{0}bodies_{1:06}.png'.format(images,i))
 
 
 ######### MAIN PROGRAM ########################################################
@@ -183,9 +180,9 @@ img_iter = 20
 
 # The pseudo-random number generator is initialized at a deterministic # value, for proper validation of the output for the exercise series.  random.seed(1)
 # x- and y-pos are initialized to a square with side-length 2*ini_radius.
-random.seed(1)
-posx = random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
-posy = random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
+np.random.seed(1)
+posx = np.random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
+posy = np.random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
 # We only keep the bodies inside a circle of radius ini_radius.
 bodies = [ Node(mass, px, py) for (px,py) in zip(posx, posy) \
                if (px-0.5)**2 + (py-0.5)**2 < ini_radius**2 ]
@@ -196,8 +193,8 @@ bodies = [ Node(mass, px, py) for (px,py) in zip(posx, posy) \
 # the distance from the center. This induces a rotational motion creating a
 # "galaxy-like" impression.
 for body in bodies:
-    r = body.pos() - array([0.5,0.5])
-    body.momentum = array([-r[1], r[0]]) * mass*inivel*norm(r)/ini_radius
+    r = body.pos() - np.array([0.5,0.5])
+    body.momentum = np.array([-r[1], r[0]]) * mass*inivel*np.linalg.norm(r)/ini_radius
 
 # Principal loop over time iterations.
 for i in range(max_iter):
