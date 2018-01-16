@@ -144,17 +144,6 @@ def verlet(bodies, root, theta, G, dt):
         body.m_pos += dt * body.momentum 
 
 
-def plot_bodies(bodies, i):
-# Write an image representing the current position of the bodies.
-# To create a movie with avconv or ffmpeg use the following command:
-# ffmpeg -r 15 -i bodies_%06d.png -q:v 0 bodies.avi
-    ax = plt.gcf().add_subplot(111, aspect='equal')
-    ax.cla()
-    ax.scatter([b.pos()[0] for b in bodies], [b.pos()[1] for b in bodies], 1)
-    ax.set_xlim([0., 1.0])
-    ax.set_ylim([0., 1.0])
-    plt.gcf().savefig('{0}bodies_{1:06}.png'.format(images,i))
-
 def plot_bodies3(bodies, i):
 # Write an image representing the current position of the bodies.
 # To create a movie with avconv or ffmpeg use the following command:
@@ -198,7 +187,7 @@ posz = np.random.random(numbodies) *2.*ini_radius + 0.5-ini_radius
 
 # We only keep the bodies inside a circle of radius ini_radius.
 bodies = [ Node(mass, px, py,pz) for (px,py,pz) in zip(posx, posy,posz) \
-               if (px-0.5)**2 + (py-0.5)**2 + + (pz-0.5)**2< ini_radius**2 ]
+               if (px-0.5)**2 + (py-0.5)**2 + (pz-0.5)**2< ini_radius**2 ]
 
 
 # Initially, the bodies have a radial velocity of an amplitude proportional to
@@ -210,16 +199,16 @@ for body in bodies:
 
 # Principal loop over time iterations.
 for i in range(max_iter):
-    # The quad-tree is recomputed at each iteration.
+    # The oct-tree is recomputed at each iteration.
     root = None
     for body in bodies:
         body.reset_to_0th_octant()
         root = add(body, root)
-    # Computation of forces, and advancment of bodies.
+    # Compute forces and advance bodies.
     verlet(bodies, root, theta, G, dt)
     # Output
            
     if i%img_iter==0:
         print("Writing images at iteration {0}".format(i))
-        plot_bodies(bodies, i//img_iter)
+        plot_bodies3(bodies, i//img_iter)
         print (i,bodies[0].m_pos[2])
