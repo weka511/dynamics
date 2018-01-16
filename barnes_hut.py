@@ -42,20 +42,20 @@ class Node:
         self.momentum = np.array([0., 0.,0.])
         self.child = None
 
-    def into_next_quadrant(self):
-    # Places node into next-level quadrant and returns the quadrant number.
-        self.s = 0.5 * self.s   # s: side-length of current quadrant.
-        return self._subdivide(1) + 2*self._subdivide(0)
+    def into_next_octant(self):
+    # Places node into next-level octant and returns the octant number.
+        self.s = 0.5 * self.s   # s: side-length of current octant.
+        return self._subdivide(2) + 2*self._subdivide(1) + 4*self._subdivide(0)
 
     def pos(self):
-    # Physical position of node, independent of currently active quadrant.
+    # Physical position of node, independent of currently active octant.
         return self.m_pos / self.m
 
-    def reset_to_0th_quadrant(self):
-    # Re-positions the node to the level-0 quadrant (full domain).
-        # Side-length of the level-0 quadrant is 1.
+    def reset_to_0th_octant(self):
+    # Re-positions the node to the level-0 octant (full domain).
+        # Side-length of the level-0 octant is 1.
         self.s = 1.0
-        # Relative position inside the quadrant is equal to physical position.
+        # Relative position inside the octant is equal to physical position.
         self.relpos = self.pos().copy()
 
     def dist(self, other):
@@ -74,15 +74,15 @@ class Node:
             return (self.pos() - other.pos()) * (self.m*other.m / d**3)
 
     def _subdivide(self, i):
-    # Places node into next-level quadrant along direction i and recomputes
-    # the relative position relpos of the node inside this quadrant.
+    # Places node into next-level octant along direction i and recomputes
+    # the relative position relpos of the node inside this octant.
         self.relpos[i] *= 2.0
         if self.relpos[i] < 1.0:
-            quadrant = 0
+            octant = 0
         else:
-            quadrant = 1
+            octant = 1
             self.relpos[i] -= 1.0
-        return quadrant
+        return octant
 
 
 def add(body, node):
@@ -90,19 +90,19 @@ def add(body, node):
 # a new body into a quad-tree node. Returns an updated version of the node.
     # 1. If node n does not contain a body, put the new body b here.
     new_node = body if node is None else None
-    # To limit the recursion depth, set a lower limit for the size of quadrant.
-    smallest_quadrant = 1.e-4
-    if node is not None and node.s > smallest_quadrant:
+    # To limit the recursion depth, set a lower limit for the size of octant.
+    smallest_octant = 1.e-4
+    if node is not None and node.s > smallest_octant:
         # 3. If node n is an external node, then the new body b is in conflict
         #    with a body already present in this region. ...
         if node.child is None:
             new_node = copy.deepcopy(node)
-        #    ... Subdivide the region further by creating four children
-            new_node.child = [None for i in range(4)]
+        #    ... Subdivide the region further by creating eight children
+            new_node.child = [None for i in range(8)]
         #    ... And to start with, insert the already present body recursively
-        #        into the appropriate quadrant.
-            quadrant = node.into_next_quadrant()
-            new_node.child[quadrant] = node
+        #        into the appropriate octant.
+            octant = node.into_next_octant()
+            new_node.child[octant] = node
         # 2. If node n is an internal node, we don't to modify its child.
         else:
             new_node = node
@@ -111,9 +111,9 @@ def add(body, node):
         #           ... update its mass and "center-of-mass times mass".
         new_node.m += body.m
         new_node.m_pos += body.m_pos
-        # ... and recursively add the new body into the appropriate quadrant.
-        quadrant = body.into_next_quadrant()
-        new_node.child[quadrant] = add(body, new_node.child[quadrant])
+        # ... and recursively add the new body into the appropriate octant.
+        octant = body.into_next_octant()
+        new_node.child[octant] = add(body, new_node.child[octant])
     return new_node
 
 
@@ -213,7 +213,7 @@ for i in range(max_iter):
     # The quad-tree is recomputed at each iteration.
     root = None
     for body in bodies:
-        body.reset_to_0th_quadrant()
+        body.reset_to_0th_octant()
         root = add(body, root)
     # Computation of forces, and advancment of bodies.
     verlet(bodies, root, theta, G, dt)
@@ -222,4 +222,4 @@ for i in range(max_iter):
     if i%img_iter==0:
         print("Writing images at iteration {0}".format(i))
         plot_bodies(bodies, i//img_iter)
-
+        print (i,bodies[0].m_pos[2])
