@@ -49,7 +49,7 @@ class Node:
         Place node into next-level octant and return the octant number.
         '''
         self.s = 0.5 * self.s   # s: side-length of current octant.
-        return self._subdivide(2) + 2*self._subdivide(1) + 4*self._subdivide(0)
+        return self._subdivide(1) + 2*self._subdivide(0) #self._subdivide(2) + 2*self._subdivide(1) + 4*self._subdivide(0)
 
     def pos(self):
         '''
@@ -225,9 +225,8 @@ if __name__=='__main__':
         for body in bodies:
             body.reset_to_0th_octant()
             root = add(body, root)
-        # Compute forces and advance bodies.
-        verlet(bodies, root, theta, G, dt)
-        # Output
+        
+        verlet(bodies, root, theta, G, dt) # Compute forces and advance bodies.
                
         if i%img_iter==0:
             print("Writing images at iteration {0}".format(i))
