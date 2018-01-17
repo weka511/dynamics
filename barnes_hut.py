@@ -201,7 +201,7 @@ dt = 1.e-3
 # Number of bodies (the actual number is smaller, because all bodies
 # outside the initial radius are removed).
 numbodies = 1000
-# Number of time-iterations executed by the program.
+# Number of time-iterations executed by the program.d
 max_iter = 10000
 # Frequency at which PNG images are written.
 img_iter = 20
