@@ -71,11 +71,17 @@ class Node:
         '''
         return np.linalg.norm(other.pos() - self.pos())
 
-    def force_on(self, other):
+    def force_on(self, other,cutoff_dist = 0.002):
         '''
         Force which the present node is exerting on a given body.
+        
+            Parameters:
+                self
+                other
+                cutoff_dist   To avoid numerical instabilities, introduce a short-distance cutoff.
+            
         '''       
-        cutoff_dist = 0.002 # To avoid numerical instabilities, introduce a short-distance cutoff.
+
         d = self.dist(other)
         if d < cutoff_dist:
             return np.array([0., 0., 0.])
@@ -96,16 +102,19 @@ class Node:
         return octant
 
 
-def add(body, node):
+def add(body, node,smallest_octant = 1.e-4):
     '''
     Barnes-Hut algorithm: Creation of the quad-tree. This function adds
     a new body into a quad-tree node. Returns an updated version of the node.
+    
+      Parameters:
+          body
+          node
+          smallest_octant  To limit the recursion depth, set a lower limit for the size of octant.
     '''
     # 1. If node n does not contain a body, put the new body b here.
     new_node = body if node is None else None
     
-    # To limit the recursion depth, set a lower limit for the size of octant.
-    smallest_octant = 1.e-4
     if node is not None and node.s > smallest_octant:
         # 3. If node n is an external node, then the new body b is in conflict
         #    with a body already present in this region. ...
@@ -193,7 +202,7 @@ dt = 1.e-3
 # outside the initial radius are removed).
 numbodies = 1000
 # Number of time-iterations executed by the program.
-max_iter = 501#10000
+max_iter = 10000
 # Frequency at which PNG images are written.
 img_iter = 20
 
@@ -231,4 +240,3 @@ if __name__=='__main__':
         if i%img_iter==0:
             print("Writing images at iteration {0}".format(i))
             plot_bodies3(bodies, i//img_iter)
-        print ('{0},{1}'.format(i,bodies[0].m_pos[2]))
