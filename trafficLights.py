@@ -92,32 +92,34 @@ class G2R(Event):
         self.name = "G2R"
     def action(self,queue,state):
         # On the line 95, change the state and turn the light to red
-
+        pass
+    
 ### EVENT QUEUE ##############################################
 
+
 class EventQueue:
-  def __init__(self):
-      self.q = []
-  def notEmpty(self):
-      """
-      Returns true if the queue is not empty
-      """
-      return len(self.q) > 0
-  def remaining(self):
-      """
-      Returns the number of events awaiting processing
-      """
-      return len(self.q)
-  def insert(self, event):
-      """ 
-      Create a new event in the queue
-      """
-      heappush( self.q, event )
-  def next(self):
-      """
-      Returns and removes from the queue the next event to be processed
-      """
-      return heappop( self.q )
+    def __init__(self):
+        self.q = []
+    def notEmpty(self):
+        """
+        Returns true if the queue is not empty
+        """
+        return len(self.q) > 0
+    def remaining(self):
+        """
+        Returns the number of events awaiting processing
+        """
+        return len(self.q)
+    def insert(self, event):
+        """ 
+        Create a new event in the queue
+        """
+        heappush( self.q, event )
+    def next(self):
+        """
+        Returns and removes from the queue the next event to be processed
+        """
+        return heappop( self.q )
 
 ### MAIN #####################################################
 
