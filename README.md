@@ -20,6 +20,8 @@
 | strogatz_6_2.py |
 | strogatz_6_3.py |
 | strogatz_6_4.py |
+| strogatz_5_19.py |
+| strogatz_10_6.py |
 
 ## Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
 
