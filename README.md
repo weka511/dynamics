@@ -28,7 +28,7 @@
 |CycleStability.py||
 |Newton.py||
 |Poincare.py||
-|Rossler.py||
+|Rossler.py|Q1.4  Integrating Roessler system |
 |RungeKutta.py|Q1.3 Runge-Kutta integration |
 |Stability.py||
 

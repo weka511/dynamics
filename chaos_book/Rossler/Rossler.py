@@ -1,3 +1,4 @@
+# Q1.4  Integrating Roessler system 
 import numpy as np  # Import NumPy
 from scipy.integrate import odeint  # Import odeint
 
@@ -26,8 +27,8 @@ def Velocity(ssp, t):
     x, y, z = ssp  # Read state space points
     # Rossler flow equations:
     dxdt = - y - z
-    dydt = None  # COMPLETE THIS LINE
-    dzdt = None  # COMPLETE THIS LINE
+    dydt = x + a * y
+    dzdt = b + z * (x - c)
     # Collect Rossler flow equations in a single NumPy array:
     vel = np.array([dxdt, dydt, dzdt], float)  # Velocity vector
     return vel
@@ -140,8 +141,8 @@ if __name__ == "__main__":
                      1.0,
                      1.0], float)  # Initial condition for the solution
 
-    #sspSolution = rk.RK4(Velocity, ssp0, tArray)
-    sspSolution = odeint(Velocity, ssp0, tArray)
+    sspSolution = rk.RK4(Velocity, ssp0, tArray)
+    #sspSolution = odeint(Velocity, ssp0, tArray)
 
     xt = sspSolution[:, 0]  # Read x(t)
     yt = sspSolution[:, 1]  # Read y(t)
