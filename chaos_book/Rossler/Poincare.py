@@ -1,4 +1,5 @@
-
+# -*- coding: iso-8859-1 -*-
+# Q1.5 Poincaré sections and return maps of the Rössler system
 
 import numpy as np   # Import NumPy
 from numpy import cos, sin, pi  # We import cos and sin functions and pi from
