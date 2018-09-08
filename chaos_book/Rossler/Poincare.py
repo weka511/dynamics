@@ -1,3 +1,5 @@
+
+
 import numpy as np   # Import NumPy
 from numpy import cos, sin, pi  # We import cos and sin functions and pi from
                                 # numpy individually to avoid referring to np
@@ -18,8 +20,8 @@ def zRotation(theta):
     Rz: Rotation matrix about z-axis
     """
     Rz = np.array([[cos(theta), -sin(theta), 0],
-                   [None, None, None],   # COMPLETE THIS LINE
-                   [None, None, None]], float)  # COMPLETE THIS LINE
+                   [sin(theta), cos(theta), 0],  
+                   [0, 0, 1]], float)  
     return Rz
 
 #Set the angle between the Poincare section hyperplane and the x-axis:
@@ -35,7 +37,7 @@ sspTemplate = np.dot(zRotation(thetaPoincare), e_x)  # Matrix multiplication in
                                                      # reference to learn more
 #Normal to this plane will be equal to template vector rotated pi/2 about
 #the z axis:
-nTemplate = None  # COMPLETE THIS LINE
+nTemplate = np.dot(zRotation(pi/2), e_x)  # COMPLETE THIS LINE
 
 #Define the Poincare section hyperplane equation
 
@@ -51,7 +53,7 @@ def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
     U: Hyperplane equation which should be satisfied on the Poincare section
        U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
     """
-    U = None  # COMPLETE THIS LINE          # Hyperplane equation, note that
+    U = np.dot(ssp - sspTemplate,nTemplate) # Hyperplane equation, note that
                                             # np.dot() function is used both
                                             # for matrix multiplication and
                                             # the scalar product
@@ -84,8 +86,8 @@ if __name__ == "__main__":
     for i in range(np.size(sspSolution, 0) - 1):
         #Look at every instance from integration and search for Poincare
         #section hyperplane crossings:
-        if UPoincare(sspSolution[i]) < 0 and UPoincare(None) > 0:
-            #COMPLETE THE LINE ABOVE, HINT:
+        if UPoincare(sspSolution[i]) < 0 and UPoincare(sspSolution[i+1]) > 0: #Simon
+            
             #If the hyperplane equation is lesser than zero at one instance
             #and greater than zero at the next, this implies that there is a
             #zero in between

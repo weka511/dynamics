@@ -27,10 +27,12 @@
 |-------------------|---------------------------------------------------------------------------------------------------|
 |CycleStability.py||
 |Newton.py||
-|Poincare.py||
-|Rossler.py|Q1.4 Integrating Roessler system |
-|RungeKutta.py|Q1.3 Runge-Kutta integration |
+|Poincare.py|Q1.5 Poincaré sections and return maps of the Rössler system |
+|Rossler.py|Q1.4 Integrating Roessler system - -5.5777764608209477|
+|RungeKutta.py|Q1.3 Runge-Kutta integration - -0.145500033145|
 |Stability.py||
+
+
 
 ## Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
 
