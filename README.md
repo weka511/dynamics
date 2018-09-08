@@ -14,14 +14,14 @@
 | roessler.py | Plot solutions to Roessler Equation |
 | utilities.py | Miscellaneous helpful functions |
 
-| Exercises from Strogatz  |
-| ----------------------------------------------------------| 
-| strogatz_6_1.py |
-| strogatz_6_2.py |
-| strogatz_6_3.py |
-| strogatz_6_4.py |
-| strogatz_5_19.py |
-| strogatz_10_6.py |
+|| Exercises from Strogatz  |
+|------------------|----------------------------------------------------------| 
+| strogatz_6_1.py ||
+| strogatz_6_2.py ||
+| strogatz_6_3.py ||
+| strogatz_6_4.py ||
+| strogatz_5_19.py ||
+| strogatz_10_6.py ||
 
 || Exercises from Chaos Book|
 |-------------------|---------------------------------------------------------------------------------------------------|
