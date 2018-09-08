@@ -14,7 +14,7 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
 # Exercise 6.3 from Strogatz
-# Plot phase porttraits for a number of ODEs
+# Plot phase portraits for a number of ODEs
 
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
 

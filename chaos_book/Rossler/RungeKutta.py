@@ -1,4 +1,4 @@
-# Q1.3
+# Q1.3  Runge-Kutta integration 
 
 import numpy as np
 
