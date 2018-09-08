@@ -133,16 +133,16 @@ if __name__ == "__main__":
     import RungeKutta as rk
 
     tInitial = 0  # Initial time
-    tFinal = 100  # Final time
+    tFinal = 2.0 # 5.881088455554846384  # Final time
     Nt = 10000  # Number of time points to be used in the integration
 
     tArray = np.linspace(tInitial, tFinal, Nt)  # Time array for solution
-    ssp0 = np.array([1.0,
-                     1.0,
-                     1.0], float)  # Initial condition for the solution
+    ssp0 = np.array([9.269083709793489945,
+                     0.0,
+                     2.581592405683282632], float)  # Initial condition for the solution
 
-    sspSolution = rk.RK4(Velocity, ssp0, tArray)
-    #sspSolution = odeint(Velocity, ssp0, tArray)
+    #sspSolution = rk.RK4(Velocity, ssp0, tArray)
+    sspSolution = odeint(Velocity, ssp0, tArray)
 
     xt = sspSolution[:, 0]  # Read x(t)
     yt = sspSolution[:, 1]  # Read y(t)
