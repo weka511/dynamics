@@ -1,4 +1,6 @@
-import numpy as np  # Import numpy
+# Q1.3
+
+import numpy as np
 
 
 def RK4(velocityFunction, initialCondition, timeArray):
@@ -27,11 +29,11 @@ def RK4(velocityFunction, initialCondition, timeArray):
         deltat = timeArray[i + 1] - timeArray[i]
         #Runge Kutta k's:
         k1 = deltat * velocityFunction(SolutionArray[i], timeArray[i])
-        k2 = None  # COMPLETE THIS LINE
-        k3 = None  # COMPLETE THIS LINE
-        k4 = None  # COMPLETE THIS LINE
+        k2 = deltat * velocityFunction(SolutionArray[i] + 0.5 * k1, timeArray[i] + 0.5*deltat)
+        k3 = deltat * velocityFunction(SolutionArray[i] + 0.5 * k2, timeArray[i] + 0.5*deltat)
+        k4 = deltat * velocityFunction(SolutionArray[i] + k3, timeArray[i] + deltat)
         #Next integration step:
-        SolutionArray[i + 1] = SolutionArray[i] + None  # COMPLETE THIS LINE
+        SolutionArray[i + 1] = SolutionArray[i] + (k1 + 2*k2 +2*k3 +k4)/6
     return SolutionArray
 
 if __name__ == "__main__":

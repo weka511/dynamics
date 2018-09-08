@@ -23,7 +23,7 @@
 | strogatz_5_19.py |
 | strogatz_10_6.py |
 
-| Exercises from Chaos Book||
+|| Exercises from Chaos Book|
 |-------------------|---------------------------------------------------------------------------------------------------|
 |CycleStability.py||
 |Newton.py||
