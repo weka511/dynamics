@@ -23,6 +23,15 @@
 | strogatz_5_19.py |
 | strogatz_10_6.py |
 
+| Exercises from Chaos Book|
+|-------------------|---------------------------------------------------------------------------------------------------|
+|CycleStability.py|
+|Newton.py|
+|Poincare.py|
+|Rossler.py|
+|RungeKutta.py|
+|Stability.py
+
 ## Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
 
 | File | Description |
