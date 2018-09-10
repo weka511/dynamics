@@ -15,16 +15,6 @@
 | roessler.py | Plot solutions to Roessler Equation |
 | utilities.py | Miscellaneous helpful functions |
 
-|| Exercises from Strogatz  |
-|------------------|----------------------------------------------------------| 
-| strogatz_6_1.py |Plot phase portraits for a number of ODEs|
-| strogatz_6_2.py |Plot phase portraits for a number of ODEs|
-| strogatz_6_3.py |Plot phase portraits for a number of ODEs|
-| strogatz_6_4.py |Plot phase portraits for a number of ODEs|
-| strogatz_5_19.py |Plot phase portraits for a number of ODEs|
-| strogatz_10_6.py |Bifurcations|
-
-
 
 
 ## Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
