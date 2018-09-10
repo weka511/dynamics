@@ -173,7 +173,7 @@ if __name__ == "__main__":
     #UNCOMMENT FOLLOWING TWO LINES AFTER READING INITIAL GUESS FOR THE SOLVER
     #FROM THE RETURN MAP
     rfixed = fsolve(ReturnMap, 8.3871)
-    print(rfixed)
+    print(rfixed)  #  8.38094142
 
     #Import plotting functions:
     import matplotlib as mpl

@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
     #Generate an array of time points for which we will compute the solution:
     tInitial = 0
-    tFinal = 8
-    Nt = 800  # Number of points time points in the interval tInitial, tFinal
+    tFinal   = 10
+    Nt       = 1000  # Number of points time points in the interval tInitial, tFinal
     tArray = np.linspace(tInitial, tFinal, Nt)
 
     #Initial condition for the Harmonic oscillator:
