@@ -1,16 +1,10 @@
 # -*- coding: iso-8859-1 -*-
 # Q1.5 Poincaré sections and return maps of the Rössler system
 
-import numpy as np   # Import NumPy
-from numpy import cos, sin, pi  # We import cos and sin functions and pi from
-                                # numpy individually to avoid referring to np
-                                # each time we call them.
-from scipy.integrate import odeint  # Import odeint from scipy.integrate
-import Rossler  # Import Rossler file from which we will call the Velocity and
-                # Flow functions
-
-#Define the matrix which rotates vectors about z-axis
-
+import numpy as np  
+from numpy import cos, sin, pi  
+from scipy.integrate import odeint
+import Rossler  
 
 def zRotation(theta):
     """
@@ -25,23 +19,17 @@ def zRotation(theta):
                    [0, 0, 1]], float)  
     return Rz
 
-#Set the angle between the Poincare section hyperplane and the x-axis:
-thetaPoincare = -pi / 2.0
+thetaPoincare = -pi / 2.0 #Set the angle between the Poincare section hyperplane and the x-axis:
 
 #Define vectors which will be on and orthogonal to the Poincare section
 #hyperplane:
 e_x = np.array([1, 0, 0], float)  # Unit vector in x-direction
 #Template vector to define the Poincare section hyperplane:
-sspTemplate = np.dot(zRotation(thetaPoincare), e_x)  # Matrix multiplication in
-                                                     # numpy is handled by the
-                                                     #`dot' function, see numpy
-                                                     # reference to learn more
+sspTemplate = np.dot(zRotation(thetaPoincare), e_x)  
+
 #Normal to this plane will be equal to template vector rotated pi/2 about
 #the z axis:
 nTemplate = np.dot(zRotation(pi/2), e_x)  # COMPLETE THIS LINE
-
-#Define the Poincare section hyperplane equation
-
 
 def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
     """
@@ -54,21 +42,14 @@ def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
     U: Hyperplane equation which should be satisfied on the Poincare section
        U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
     """
-    U = np.dot(ssp - sspTemplate,nTemplate) # Hyperplane equation, note that
-                                            # np.dot() function is used both
-                                            # for matrix multiplication and
-                                            # the scalar product
-    return U
+    return np.dot(ssp - sspTemplate,nTemplate) 
 
 
 if __name__ == "__main__":
     #This block will be evaluated if this script is called as the main routine
     #and will be ignored if this file is imported from another script.
 
-    from scipy.optimize import fsolve  # Import nonlinear root finder fsolve
-                                       # from scipy.optimize which we will use
-                                       # to find exact Poincare section
-                                       # intersections
+    from scipy.optimize import fsolve 
 
     #We will first run an ergodic trajectory on the Rossler attractor:
     tInitial = 0  # Initial time
@@ -171,7 +152,7 @@ if __name__ == "__main__":
     ReturnMap = lambda r: interpolate.splev(r, tck) - r
     #UNCOMMENT FOLLOWING TWO LINES AFTER READING INITIAL GUESS FOR THE SOLVER
     #FROM THE RETURN MAP
-    #rfixed = fsolve(ReturnMap, #VISUALLY GUESS FROM THE RETURN MAP)
+    #rfixed = fsolve(ReturnMap, 1)
     #print(rfixed)
 
     #Import plotting functions:
