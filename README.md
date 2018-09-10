@@ -1,11 +1,12 @@
 # Dynamics
 
 ## Code written to accompany my readings in Dynamics and Chaos:
-* [Chaos Book](http://chaosbook.org/) by Predrag CvitanovicÂ´ et al
+* [Chaos Book](http://chaosbook.org/) by Predrag CvitanovicÃ‚Â´ et al
 * [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
 | Name | Description |
-| -------------------------- | ------------------------------------------------| 
+| -------------------------- | ------------------------------------------------|
+|chaos_book| Exercises from Chaos Book|
 | duffing.py  | Plot solutions to Duffing's equation |
 | lorenz.py   | Plot solutions to Lorenz Equation |
 | phase.py    | Helper functions for drawing phase portraits |
@@ -23,14 +24,6 @@
 | strogatz_5_19.py |Plot phase portraits for a number of ODEs|
 | strogatz_10_6.py |Bifurcations|
 
-|| Exercises from Chaos Book|
-|-------------------|---------------------------------------------------------------------------------------------------|
-|CycleStability.py||
-|Newton.py||
-|Poincare.py|Q1.5 Poincaré sections and return maps of the Rössler system |
-|Rossler.py|Q1.4 Integrating Roessler system - -5.5777764608209477|
-|RungeKutta.py|Q1.3 Runge-Kutta integration - -0.145500033145|
-|Stability.py||
 
 
 
