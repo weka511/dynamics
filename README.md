@@ -1,12 +1,31 @@
 # Dynamics
 
-## Code written to accompany my readings in Dynamics and Chaos:
-* [Chaos Book](http://chaosbook.org/) by Predrag CvitanovicÂ´ et al
-* [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
+## Code written to accompany  [Chaos Book](http://chaosbook.org/) by Predrag Cvitanović et al
+
+|#| File | Remarks|
+|1|-------------------|---------------------------------------------------------------------------------------------------|
+|1|CycleStability.py||
+|1|Newton.py||
+|1|Poincare.py|Q1.5 PoincarÃ© sections and return maps of the RÃ¶ssler system |
+|1|Rossler.py|Q1.4 Integrating Roessler system|
+|1|RungeKutta.py|Q1.3 Runge-Kutta integration|
+|1|Stability.py||
+
+## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
+
+| Name | Description |
+|------------------|----------------------------------------------------------| 
+| strogatz_6_1.py |Plot phase portraits for a number of ODEs|
+| strogatz_6_2.py |Plot phase portraits for a number of ODEs|
+| strogatz_6_3.py |Plot phase portraits for a number of ODEs|
+| strogatz_6_4.py |Plot phase portraits for a number of ODEs|
+| strogatz_5_19.py |Plot phase portraits for a number of ODEs|
+| strogatz_10_6.py |Bifurcations|
+
+## Other
 
 | Name | Description |
 | -------------------------- | ------------------------------------------------|
-|chaos_book| Exercises from Chaos Book|
 | duffing.py  | Plot solutions to Duffing's equation |
 | lorenz.py   | Plot solutions to Lorenz Equation |
 | phase.py    | Helper functions for drawing phase portraits |
