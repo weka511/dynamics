@@ -3,11 +3,11 @@
 ## Code written to accompany  [Chaos Book](http://chaosbook.org/) by Predrag Cvitanović et al
 
 |#| File | Remarks|
-|1|-------------------|---------------------------------------------------------------------------------------------------|
+|--|-------------------|---------------------------------------------------------------------------------------------------|
 |1|CycleStability.py||
 |1|Newton.py||
-|1|Poincare.py|Q1.5 PoincarÃ© sections and return maps of the RÃ¶ssler system |
-|1|Rossler.py|Q1.4 Integrating Roessler system|
+|1|Poincare.py|Q1.5 Poincaré sections and return maps of the Rössler system |
+|1|Rossler.py|Q1.4 Integrating Rössler system|
 |1|RungeKutta.py|Q1.3 Runge-Kutta integration|
 |1|Stability.py||
 
