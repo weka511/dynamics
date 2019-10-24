@@ -52,7 +52,7 @@ def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0
     
     def find_crossings():
         '''
-        Find all posotion in rectangle where value is near zero
+        Find all position in rectangle where value is near zero
         '''
         crossings=[]
         for x0,x1 in zip(xs[:-1],xs[1:]):

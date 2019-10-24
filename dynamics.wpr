@@ -33,17 +33,17 @@ proj.file-list = [loc('duffing.py'),
 proj.file-type = 'normal'
 [user attributes]
 debug.show-args-dialog = {loc('barnes_hut.py'): False,
-                          loc('duffing.py'): False,
                           loc('lbmFlowAroundCylinder.py'): False,
+                          loc('parityRule.py'): False,
+                          loc('duffing.py'): False,
                           loc('lorentz.py'): False,
                           loc('lorenz.py'): False,
-                          loc('parityRule.py'): False,
                           loc('parityRuleSolution.py'): False,
                           loc('rk4.py'): False,
                           loc('rki.py'): False,
                           loc('roessler.py'): False,
                           loc('test.py'): False,
-                          loc('unknown:<untitled> #2'): False}
+                          loc('unknown:<untitled> #5'): False}
 edit.file-encoding = {loc('README.md'): 'utf_8'}
 guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                             'windows': [{'name': 'dtaAtJloNhSft7SabFzspl0xqE'\
@@ -62,15 +62,10 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                                0,
                                {'tree-state': {'file-sort-method': 'by name',
         'list-files-first': False,
-        'tree-states': {'deep': {'expanded-nodes': [(0,),
-        (0,
-         0),
-        (1,),
-        (2,)],
-                                 'selected-nodes': [(0,)],
-                                 'top-node': (0,
-        0,
-        0)}},
+        'tree-states': {'deep': {'expanded-nodes': [(2,),
+        (8,)],
+                                 'selected-nodes': [(5,)],
+                                 'top-node': (0,)}},
         'tree-style': 'deep'}}),
                               ('source-assistant',
                                'tall',
@@ -118,9 +113,6 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
         'top-node': [('function def',
                       loc('../bioinformatics/rosalind.py'),
                       'dbru')]},
-        loc('README.md'): {'expanded-nodes': [],
-                           'selected-nodes': [],
-                           'top-node': None},
         loc('bacteria.py'): {'expanded-nodes': [],
                              'selected-nodes': [],
                              'top-node': [('class def',
@@ -164,7 +156,10 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                                   'selected-nodes': [],
                                   'top-node': [('class def',
         loc('trafficLights.py'),
-        'CAR')]}},
+        'CAR')]},
+        loc('README.md'): {'expanded-nodes': [],
+                           'selected-nodes': [],
+                           'top-node': None}},
                                 'browse_mode': u'Current Module',
                                 'follow-selection': False,
                                 'sort_mode': 'Alphabetically',
@@ -177,7 +172,7 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                                {})],
                  'primary_view_state': {'area': 'wide',
         'constraint': None,
-        'current_pages': [1,
+        'current_pages': [3,
                           0],
         'notebook_display': 'normal',
         'notebook_percent': 0.29875986471251414,
@@ -197,7 +192,7 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                                        'fRegexFlags': 42,
                                        'fReplaceText': '',
                                        'fReverse': False,
-                                       'fSearchText': '',
+                                       'fSearchText': u'',
                                        'fStartPos': 0,
                                        'fStyle': 'text',
                                        'fWholeWords': False,
@@ -281,817 +276,246 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                       {'last-percent': 0.8,
                        'toolbox-percent': 1.0,
                        'toolbox-tree-sel': ''})],
-        'primary_view_state': {'editor_states': ({'bookmarks': ([[loc('chaos_book/Rossler/Poincare.py'),
-        {'attrib-starts': [],
-         'first-line': 79L,
+        'primary_view_state': {'editor_states': ({'bookmarks': ([[loc('phase.py'),
+        {'attrib-starts': [('generate|0|',
+                            85)],
+         'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-'\
+                      '10,xmax=10,ymin=-10,ymax=10):\r\n',
+         'first-line': 84L,
          'folded-linenos': [],
-         'sel-line': 91L,
-         'sel-line-start': 4022L,
-         'selection_end': 4040L,
-         'selection_start': 4035L,
+         'sel-line': 85L,
+         'sel-line-start': 3224L,
+         'selection_end': 3236L,
+         'selection_start': 3228L,
          'zoom': 0L},
-        1536538066.007],
-        [loc('chaos_book/hw1Rossler/Poincare.py'),
+        1571956083.741],
+        [loc('strogatz/exercise_6_3_10.py'),
          {'attrib-starts': [],
-          'first-line': 163L,
-          'folded-linenos': [],
-          'sel-line': 175L,
-          'sel-line-start': 9037L,
-          'selection_end': 9069L,
-          'selection_start': 9059L,
-          'zoom': 0L},
-         1536541220.378],
-        [loc('chaos_book/Rossler/RungeKutta.py'),
-         {'attrib-starts': [],
+          'code-line': 'X, Y = np.mashgrid(xs,ys)\r\n',
           'first-line': 0L,
           'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 32L,
-          'selection_start': 32L,
+          'sel-line': 5L,
+          'sel-line-start': 111L,
+          'selection_end': 135L,
+          'selection_start': 135L,
           'zoom': 0L},
-         1536541226.416],
-        [loc('chaos_book/Rossler/Rossler.py'),
-         {'attrib-starts': [],
-          'first-line': 0L,
+         1571956103.163],
+        [loc('phase.py'),
+         {'attrib-starts': [('generate|0|',
+                             85)],
+          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
+                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
+          'first-line': 84L,
           'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 0L,
-          'selection_start': 0L,
+          'sel-line': 85L,
+          'sel-line-start': 3224L,
+          'selection_end': 3236L,
+          'selection_start': 3228L,
           'zoom': 0L},
-         1536541227.328],
-        [loc('README.md'),
-         {'attrib-starts': [],
-          'first-line': 22L,
-          'folded-linenos': [],
-          'sel-line': 26L,
-          'sel-line-start': 1314L,
-          'selection_end': 1565L,
-          'selection_start': 1503L,
-          'zoom': 0L},
-         1536541228.193],
-        [loc('bacteria.py'),
-         {'attrib-starts': [('Bacteria|0|',
-                             30),
-                            ('Bacteria|0|.update|0|',
-                             46)],
-          'code-line': '            if random.random() < ???????:\r\n',
-          'first-line': 41L,
-          'folded-linenos': [],
-          'sel-line': 51L,
-          'sel-line-start': 1436L,
-          'selection_end': 1476L,
-          'selection_start': 1469L,
-          'zoom': 0L},
-         1571634215.935],
-        [loc('README.md'),
-         {'attrib-starts': [],
-          'code-line': '| strogatz | Exerecises from Strogatz |\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 15L,
-          'sel-line-start': 811L,
-          'selection_end': 850L,
-          'selection_start': 850L,
-          'zoom': 0L},
-         1571634702.284],
-        [loc('strogatz/README.md'),
-         {'attrib-starts': [],
-          'code-line': '# Dynamics\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 727L,
-          'selection_start': 0L,
-          'zoom': 0L},
-         1571634715.607],
-        [loc('README.md'),
-         {'attrib-starts': [],
-          'code-line': '\r\n',
+         1571956116.345],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [('f|0|',
+                             3)],
+          'code-line': '    \r\n',
           'first-line': 0L,
           'folded-linenos': [],
           'sel-line': 4L,
-          'sel-line-start': 155L,
-          'selection_end': 155L,
-          'selection_start': 155L,
+          'sel-line-start': 68L,
+          'selection_end': 72L,
+          'selection_start': 72L,
           'zoom': 0L},
-         1571634775.464],
-        [loc('chaos_book/hw1Rossler/README.md'),
+         1571956130.526],
+        [loc('phase.py'),
+         {'attrib-starts': [('generate|0|',
+                             85)],
+          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
+                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
+          'first-line': 84L,
+          'folded-linenos': [],
+          'sel-line': 85L,
+          'sel-line-start': 3224L,
+          'selection_end': 3236L,
+          'selection_start': 3228L,
+          'zoom': 0L},
+         1571956135.003],
+        [loc('strogatz/exercise_6_3_10.py'),
          {'attrib-starts': [],
-          'code-line': '# Homework for week 1 -- Rossler\r\n',
+          'code-line': 'import numpy as np\r\n',
           'first-line': 0L,
           'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 405L,
-          'selection_start': 0L,
+          'sel-line': 1L,
+          'sel-line-start': 33L,
+          'selection_end': 51L,
+          'selection_start': 51L,
           'zoom': 0L},
-         1571634788.381],
+         1571956174.534],
+        [loc('phase.py'),
+         {'attrib-starts': [('generate|0|',
+                             85)],
+          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
+                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
+          'first-line': 84L,
+          'folded-linenos': [],
+          'sel-line': 85L,
+          'sel-line-start': 3224L,
+          'selection_end': 3236L,
+          'selection_start': 3228L,
+          'zoom': 0L},
+         1571956183.504],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': 'import numpy as np\r\n',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 1L,
+          'sel-line-start': 33L,
+          'selection_end': 51L,
+          'selection_start': 51L,
+          'zoom': 0L},
+         1571956188.948],
+        [loc('phase.py'),
+         {'attrib-starts': [('generate|0|',
+                             85)],
+          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
+                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
+          'first-line': 84L,
+          'folded-linenos': [],
+          'sel-line': 85L,
+          'sel-line-start': 3224L,
+          'selection_end': 3236L,
+          'selection_start': 3228L,
+          'zoom': 0L},
+         1571956191.413],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': 'xs   = np.arange(-1, 1, 0.1)\r\n',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 6L,
+          'sel-line-start': 93L,
+          'selection_end': 98L,
+          'selection_start': 98L,
+          'zoom': 0L},
+         1571956219.618],
+        [loc('strogatz/strogatz_6_1.py'),
+         {'attrib-starts': [],
+          'code-line': 'X,Y,U,V,_=phase.generate(f=lambda x,y:(x*(x-y),y*(2*'\
+                       'x-y)))\r\n',
+          'first-line': 8L,
+          'folded-linenos': [],
+          'sel-line': 28L,
+          'sel-line-start': 1210L,
+          'selection_end': 1234L,
+          'selection_start': 1226L,
+          'zoom': 0L},
+         1571956223.346],
+        [loc('phase.py'),
+         {'attrib-starts': [],
+          'code-line': "    plot_phase_portrait(X,Y,U,V,fixed,title='$\\dot{"\
+                       "x}=x+e^{-y},\\dot{y}=-y$',suptitle='Example 6.1.1')"\
+                       "\r\n",
+          'first-line': 160L,
+          'folded-linenos': [],
+          'sel-line': 171L,
+          'sel-line-start': 5728L,
+          'selection_end': 5751L,
+          'selection_start': 5732L,
+          'zoom': 0L},
+         1571956233.985],
+        [loc('phase.py'),
+         {'attrib-starts': [('plot_phase_portrait|0|',
+                             116)],
+          'code-line': "def plot_phase_portrait(X,Y,U,V,fixed,title='',supti"\
+                       "tle=''):\r\n",
+          'first-line': 131L,
+          'folded-linenos': [],
+          'sel-line': 116L,
+          'sel-line-start': 4236L,
+          'selection_end': 4259L,
+          'selection_start': 4240L,
+          'zoom': 0L},
+         1571956247.246],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': 'plt.streamplot\r\n',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 11L,
+          'sel-line-start': 197L,
+          'selection_end': 211L,
+          'selection_start': 211L,
+          'zoom': 0L},
+         1571956268.041],
+        [loc('phase.py'),
+         {'attrib-starts': [('plot_phase_portrait|0|',
+                             116)],
+          'code-line': "def plot_phase_portrait(X,Y,U,V,fixed,title='',supti"\
+                       "tle=''):\r\n",
+          'first-line': 131L,
+          'folded-linenos': [],
+          'sel-line': 116L,
+          'sel-line-start': 4236L,
+          'selection_end': 4259L,
+          'selection_start': 4240L,
+          'zoom': 0L},
+         1571956271.614],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': 'plt.streamplot(\r\n',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 11L,
+          'sel-line-start': 197L,
+          'selection_end': 212L,
+          'selection_start': 212L,
+          'zoom': 0L},
+         1571956277.698],
+        [loc('phase.py'),
+         {'attrib-starts': [('plot_phase_portrait|0|',
+                             116)],
+          'code-line': "def plot_phase_portrait(X,Y,U,V,fixed,title='',supti"\
+                       "tle=''):\r\n",
+          'first-line': 131L,
+          'folded-linenos': [],
+          'sel-line': 116L,
+          'sel-line-start': 4236L,
+          'selection_end': 4259L,
+          'selection_start': 4240L,
+          'zoom': 0L},
+         1571956289.242],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': 'plt.quiver(X,Y,U,V)\r\n',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 11L,
+          'sel-line-start': 200L,
+          'selection_end': 210L,
+          'selection_start': 210L,
+          'zoom': 0L},
+         1571956540.584],
         [loc('README.md'),
          {'attrib-starts': [],
-          'code-line': '\r\n',
-          'first-line': 0L,
+          'code-line': '| exercise_6_3_10.py ||\r\n',
+          'first-line': 10L,
           'folded-linenos': [],
-          'sel-line': 4L,
-          'sel-line-start': 134L,
-          'selection_end': 134L,
-          'selection_start': 134L,
+          'sel-line': 20L,
+          'sel-line-start': 1010L,
+          'selection_end': 1033L,
+          'selection_start': 1033L,
           'zoom': 0L},
-         1571634903.431],
-        [loc('chaos_book/hw1Rossler/README.md'),
+         1571956667.571],
+        [loc('strogatz/exercise_6_3_10.py'),
          {'attrib-starts': [],
-          'code-line': '# Homework for week 1 -- Rossler\r\n',
+          'code-line': 'ys   = np.arange(-1, 1, 0.1)\r\n',
           'first-line': 0L,
           'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 405L,
-          'selection_start': 0L,
+          'sel-line': 7L,
+          'sel-line-start': 124L,
+          'selection_end': 150L,
+          'selection_start': 150L,
           'zoom': 0L},
-         1571634905.568],
-        [loc('README.md'),
-         {'attrib-starts': [],
-          'code-line': '\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 4L,
-          'sel-line-start': 134L,
-          'selection_end': 134L,
-          'selection_start': 134L,
-          'zoom': 0L},
-         1571634906.473],
-        [loc('strogatz/README.md'),
-         {'attrib-starts': [],
-          'code-line': '# Dynamics\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 727L,
-          'selection_start': 0L,
-          'zoom': 0L},
-         1571634907.908],
-        [loc('README.md'),
-         {'attrib-starts': [],
-          'code-line': '## Code written to accompany my readings of [Chaos B'\
-                       'ook](http://chaosbook.org/) by Predrag Cvitanovi\xc4'\
-                       '\x87 et al\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 2L,
-          'sel-line-start': 14L,
-          'selection_end': 116L,
-          'selection_start': 116L,
-          'zoom': 0L},
-         1571635220.614],
-        [loc('bacteria.py'),
-         {'attrib-starts': [('Bacteria|0|',
-                             30),
-                            ('Bacteria|0|.update|0|',
-                             46)],
-          'code-line': '            if random.random() < ???????:\r\n',
-          'first-line': 41L,
-          'folded-linenos': [],
-          'sel-line': 51L,
-          'sel-line-start': 1436L,
-          'selection_end': 1476L,
-          'selection_start': 1469L,
-          'zoom': 0L},
-         1571635229.085],
-        [loc('README.md'),
-         {'attrib-starts': [],
-          'code-line': '\xe2\x80\xa3\xe7\xa5\x84\xe6\x85\xae\xe6\xa5\xad\xe7'\
-                       '\x8d\xa3\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe4\x8c'\
-                       '\xa0\xe6\x91\xaf\xe2\x81\xa5\xe7\x89\xb7\xe7\x91\xa9'\
-                       '\xe6\x95\xb4\xe2\x81\xae\xe6\xbd\xb4\xe6\x84\xa0\xe6'\
-                       '\x8d\xa3\xe6\xb5\xaf\xe6\x85\xb0\xe7\xa5\xae\xe2\x80'\
-                       '\xa0\xe4\x8d\x9b\xe6\x85\xa8\xe7\x8d\xaf\xe4\x88\xa0'\
-                       '\xe6\xbd\xaf\xe5\xb5\xab\xe6\xa0\xa8\xe7\x91\xb4\xe3'\
-                       '\xa9\xb0\xe2\xbc\xaf\xe6\xa1\xa3\xe6\xbd\xa1\xe6\x89'\
-                       '\xb3\xe6\xbd\xaf\xe2\xb9\xab\xe7\x89\xaf\xe2\xbd\xa7'\
-                       '\xe2\x80\xa9\xe7\xa5\xa2\xe5\x80\xa0\xe6\x95\xb2\xe7'\
-                       '\x89\xa4\xe6\x9d\xa1\xe4\x8c\xa0\xe6\xa5\xb6\xe6\x85'\
-                       '\xb4\xe6\xbd\xae\xe6\xa5\xb6\xe8\x9f\x84\xe6\x94\xa0'\
-                       '\xe2\x81\xb4\xe6\xb1\xa1\xe0\xa8\x8d\xe0\xa8\x8d\xe2'\
-                       '\x8d\xbc\xe2\x81\xbc\xe6\xa5\x86\xe6\x95\xac\xe7\xb0'\
-                       '\xa0\xe5\x88\xa0\xe6\xb5\xa5\xe7\x89\xa1\xe7\x8d\xab'\
-                       '\xe0\xb5\xbc\xe7\xb0\x8a\xe2\xb4\xad\xe2\xb5\xbc\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe0\xb5\xbc\xe7\xb0\x8a'\
-                       '\xe7\xb0\xb1\xe7\xa5\x83\xe6\xb1\xa3\xe5\x8d\xa5\xe6'\
-                       '\x85\xb4\xe6\xa5\xa2\xe6\xa5\xac\xe7\xa5\xb4\xe7\x80'\
-                       '\xae\xe7\xb1\xb9\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0\xb1'\
-                       '\xe6\x95\x8e\xe7\x91\xb7\xe6\xb9\xaf\xe7\x80\xae\xe7'\
-                       '\xb1\xb9\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0\xb1\xe6\xbd'\
-                       '\x90\xe6\xb9\xa9\xe6\x85\xa3\xe6\x95\xb2\xe7\x80\xae'\
-                       '\xe7\xb1\xb9\xe3\x85\x91\xe3\x94\xae\xe5\x80\xa0\xe6'\
-                       '\xa5\xaf\xe6\x8d\xae\xe7\x89\xa1\xea\xa7\x83\xe7\x8c'\
-                       '\xa0\xe6\x8d\xa5\xe6\xa5\xb4\xe6\xb9\xaf\xe2\x81\xb3'\
-                       '\xe6\xb9\xa1\xe2\x81\xa4\xe6\x95\xb2\xe7\x95\xb4\xe6'\
-                       '\xb9\xb2\xe6\xb4\xa0\xe7\x81\xa1\xe2\x81\xb3\xe6\x99'\
-                       '\xaf\xe7\x90\xa0\xe6\x95\xa8\xe5\x88\xa0\xeb\x9b\x83'\
-                       '\xe7\x8d\xb3\xe6\x95\xac\xe2\x81\xb2\xe7\xa5\xb3\xe7'\
-                       '\x91\xb3\xe6\xb5\xa5\xe7\xb0\xa0\xe0\xa8\x8d\xe3\x85'\
-                       '\xbc\xe5\x89\xbc\xe7\x8d\xaf\xe6\xb1\xb3\xe7\x89\xa5'\
-                       '\xe7\x80\xae\xe7\xb1\xb9\xe3\x85\x91\xe3\x90\xae\xe4'\
-                       '\xa4\xa0\xe7\x91\xae\xe6\x9d\xa5\xe6\x85\xb2\xe6\xa5'\
-                       '\xb4\xe6\x9d\xae\xe5\x88\xa0\xeb\x9b\x83\xe7\x8d\xb3'\
-                       '\xe6\x95\xac\xe2\x81\xb2\xe7\xa5\xb3\xe7\x91\xb3\xe6'\
-                       '\xb5\xa5\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0\xb1\xe7\x95'\
-                       '\x92\xe6\x9d\xae\xe4\xad\xa5\xe7\x91\xb5\xe6\x85\xb4'\
-                       '\xe7\x80\xae\xe7\xb1\xb9\xe3\x85\x91\xe3\x8c\xae\xe5'\
-                       '\x88\xa0\xe6\xb9\xb5\xe6\x95\xa7\xe4\xac\xad\xe7\x91'\
-                       '\xb5\xe6\x85\xb4\xe6\xa4\xa0\xe7\x91\xae\xe6\x9d\xa5'\
-                       '\xe6\x85\xb2\xe6\xa5\xb4\xe6\xb9\xaf\xe0\xb5\xbc\xe7'\
-                       '\xb0\x8a\xe7\xb0\xb1\xe7\x91\x93\xe6\x89\xa1\xe6\xb1'\
-                       '\xa9\xe7\x91\xa9\xe2\xb9\xb9\xe7\xa5\xb0\xe7\xb1\xbc'\
-                       '\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe5\xac\xa0\xe6'\
-                       '\xbd\x8e\xe2\x81\xae\xe6\xa5\x8c\xe6\x95\xae\xe7\x89'\
-                       '\xa1\xe4\x90\xa0\xe6\xb9\xb9\xe6\xb5\xa1\xe6\x8d\xa9'\
-                       '\xe2\x81\xb3\xe6\xb9\xa1\xe2\x81\xa4\xe6\xa1\x83\xe6'\
-                       '\xbd\xa1\xe2\x81\xb3\xe6\xa5\xb7\xe6\xa1\xb4\xe4\x84'\
-                       '\xa0\xe7\x81\xb0\xe6\xa5\xac\xe6\x85\xa3\xe6\xa5\xb4'\
-                       '\xe6\xb9\xaf\xe2\xb1\xb3\xe3\x88\xa0\xe6\x91\xae\xe4'\
-                       '\x94\xa0\xe6\xa5\xa4\xe6\xa5\xb4\xe6\xb9\xaf\xe2\xa1'\
-                       '\x9d\xe7\x91\xa8\xe7\x81\xb4\xe2\xbc\xba\xe7\x9c\xaf'\
-                       '\xe7\x9d\xb7\xe7\x8c\xae\xe6\x95\xb4\xe6\x95\xb6\xe7'\
-                       '\x8d\xae\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe2\xb9'\
-                       '\xba\xe6\xbd\xa3\xe2\xbd\xad\xe6\xbd\xa2\xe6\xad\xaf'\
-                       '\xe2\xbd\xb3\xe6\xbd\xae\xe6\xb1\xae\xe6\xb9\xa9\xe6'\
-                       '\x85\xa5\xe2\xb5\xb2\xe7\xa5\xa4\xe6\x85\xae\xe6\xa5'\
-                       '\xad\xe7\x8d\xa3\xe6\x84\xad\xe6\x91\xae\xe6\x8c\xad'\
-                       '\xe6\x85\xa8\xe7\x8d\xaf\xe7\x9c\xad\xe7\x91\xa9\xe2'\
-                       '\xb5\xa8\xe7\x81\xa1\xe6\xb1\xb0\xe6\x8d\xa9\xe7\x91'\
-                       '\xa1\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xad\xe2\xb5\xaf'\
-                       '\xe6\xa1\xb0\xe7\x8d\xb9\xe6\x8d\xa9\xe2\xb5\xb3\xe6'\
-                       '\xa5\xa2\xe6\xb1\xaf\xe6\x9d\xaf\xe2\xb5\xb9\xe6\xa1'\
-                       '\xa3\xe6\xb5\xa5\xe7\x8d\xa9\xe7\x89\xb4\xe2\xb5\xb9'\
-                       '\xe6\xb9\xa1\xe2\xb5\xa4\xe6\xb9\xa5\xe6\xa5\xa7\xe6'\
-                       '\x95\xae\xe7\x89\xa5\xe6\xb9\xa9\xe2\xa5\xa7\xe6\x88'\
-                       '\xa0\xe2\x81\xb9\xe7\x91\x93\xe7\x99\xa5\xe2\x81\xa5'\
-                       '\xe7\x91\x93\xe6\xbd\xb2\xe6\x85\xa7\xe7\xa9\xb4\xe0'\
-                       '\xb4\xae\xe0\xb4\x8a\xe7\xb0\x8a\xe4\xb8\xa0\xe6\xb5'\
-                       '\xa1\xe2\x81\xa5\xe2\x81\xbc\xe6\x95\x84\xe6\x8d\xb3'\
-                       '\xe6\xa5\xb2\xe7\x91\xb0\xe6\xbd\xa9\xe2\x81\xae\xe0'\
-                       '\xb5\xbc\xe7\xb0\x8a\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb5\xbc\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe7\xb0\xad\xe0\xb4\xa0\xe7\xb0\x8a\xe7\x8c'\
-                       '\xa0\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe5\xbd\xba'\
-                       '\xe5\xbc\xb6\xe2\xb8\xb1\xe7\xa5\xb0\xe7\xb0\xa0\xe6'\
-                       '\xb1\x90\xe7\x91\xaf\xe7\x80\xa0\xe6\x85\xa8\xe6\x95'\
-                       '\xb3\xe7\x80\xa0\xe7\x89\xaf\xe7\x89\xb4\xe6\xa5\xa1'\
-                       '\xe7\x8d\xb4\xe6\x98\xa0\xe7\x89\xaf\xe6\x84\xa0\xe6'\
-                       '\xb8\xa0\xe6\xb5\xb5\xe6\x95\xa2\xe2\x81\xb2\xe6\x99'\
-                       '\xaf\xe4\xbc\xa0\xe4\x95\x84\xe7\xb1\xb3\xe0\xa8\x8d'\
-                       '\xe2\x81\xbc\xe7\x91\xb3\xe6\xbd\xb2\xe6\x85\xa7\xe7'\
-                       '\xa9\xb4\xe3\x99\x9f\xe3\x89\x9f\xe7\x80\xae\xe2\x81'\
-                       '\xb9\xe5\x81\xbc\xe6\xbd\xac\xe2\x81\xb4\xe6\xa1\xb0'\
-                       '\xe7\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2\xe6'\
-                       '\x85\xb2\xe7\x91\xa9\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81'\
-                       '\xb2\xe2\x81\xa1\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5'\
-                       '\xe6\xbc\xa0\xe2\x81\xa6\xe4\x91\x8f\xe7\x8d\x85\xe0'\
-                       '\xb5\xbc\xe7\xb0\x8a\xe7\x8c\xa0\xe7\x89\xb4\xe6\x9d'\
-                       '\xaf\xe7\x91\xa1\xe5\xbd\xba\xe5\xbc\xb6\xe2\xb8\xb3'\
-                       '\xe7\xa5\xb0\xe7\xb0\xa0\xe6\xb1\x90\xe7\x91\xaf\xe7'\
-                       '\x80\xa0\xe6\x85\xa8\xe6\x95\xb3\xe7\x80\xa0\xe7\x89'\
-                       '\xaf\xe7\x89\xb4\xe6\xa5\xa1\xe7\x8d\xb4\xe6\x98\xa0'\
-                       '\xe7\x89\xaf\xe6\x84\xa0\xe6\xb8\xa0\xe6\xb5\xb5\xe6'\
-                       '\x95\xa2\xe2\x81\xb2\xe6\x99\xaf\xe4\xbc\xa0\xe4\x95'\
-                       '\x84\xe7\xb1\xb3\xe0\xa8\x8d\xe2\x81\xbc\xe7\x91\xb3'\
-                       '\xe6\xbd\xb2\xe6\x85\xa7\xe7\xa9\xb4\xe3\x99\x9f\xe3'\
-                       '\x91\x9f\xe7\x80\xae\xe2\x81\xb9\xe5\x81\xbc\xe6\xbd'\
-                       '\xac\xe2\x81\xb4\xe6\xa1\xb0\xe7\x8d\xa1\xe2\x81\xa5'\
-                       '\xe6\xbd\xb0\xe7\x91\xb2\xe6\x85\xb2\xe7\x91\xa9\xe2'\
-                       '\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2\xe2\x81\xa1\xe7\x95'\
-                       '\xae\xe6\x89\xad\xe7\x89\xa5\xe6\xbc\xa0\xe2\x81\xa6'\
-                       '\xe4\x91\x8f\xe7\x8d\x85\xe0\xb5\xbc\xe7\xb0\x8a\xe7'\
-                       '\x8c\xa0\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe5\xbd'\
-                       '\xba\xe5\xbc\xb5\xe3\xa4\xb1\xe7\x80\xae\xe2\x81\xb9'\
-                       '\xe5\x81\xbc\xe6\xbd\xac\xe2\x81\xb4\xe6\xa1\xb0\xe7'\
-                       '\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2\xe6\x85'\
-                       '\xb2\xe7\x91\xa9\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2'\
-                       '\xe2\x81\xa1\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe6'\
-                       '\xbc\xa0\xe2\x81\xa6\xe4\x91\x8f\xe7\x8d\x85\xe0\xb5'\
-                       '\xbc\xe7\xb0\x8a\xe7\x8c\xa0\xe7\x89\xb4\xe6\x9d\xaf'\
-                       '\xe7\x91\xa1\xe5\xbd\xba\xe3\x80\xb1\xe3\x99\x9f\xe7'\
-                       '\x80\xae\xe2\x81\xb9\xe4\x89\xbc\xe6\x99\xa9\xe7\x89'\
-                       '\xb5\xe6\x85\xa3\xe6\xa5\xb4\xe6\xb9\xaf\xe7\xb1\xb3'\
-                       '\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe4\xbc\xa0\xe6'\
-                       '\xa1\xb4\xe7\x89\xa5\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x81'\
-                       '\xbc\xe6\x85\x8e\xe6\x95\xad\xe7\xb0\xa0\xe4\x90\xa0'\
-                       '\xe7\x8d\xa5\xe7\x89\xa3\xe7\x81\xa9\xe6\xa5\xb4\xe6'\
-                       '\xb9\xaf\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe7\xb0'\
-                       '\xa0\xe2\xb4\xa0\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe7\xb0\xad\xe0\xa8'\
-                       '\x8d\xe2\x81\xbc\xe7\x95\xa4\xe6\x99\xa6\xe6\xb9\xa9'\
-                       '\xe2\xb9\xa7\xe7\xa5\xb0\xe2\x80\xa0\xe2\x81\xbc\xe6'\
-                       '\xb1\x90\xe7\x91\xaf\xe7\x8c\xa0\xe6\xb1\xaf\xe7\x91'\
-                       '\xb5\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xa0\xe2\x81\xaf'\
-                       '\xe7\x95\x84\xe6\x99\xa6\xe6\xb9\xa9\xe2\x9d\xa7\xe2'\
-                       '\x81\xb3\xe7\x85\xa5\xe6\x85\xb5\xe6\xa5\xb4\xe6\xb9'\
-                       '\xaf\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\xbd\xac'\
-                       '\xe6\x95\xb2\xe7\xa9\xae\xe7\x80\xae\xe2\x81\xb9\xe2'\
-                       '\x80\xa0\xe2\x81\xbc\xe6\xb1\x90\xe7\x91\xaf\xe7\x8c'\
-                       '\xa0\xe6\xb1\xaf\xe7\x91\xb5\xe6\xbd\xa9\xe7\x8d\xae'\
-                       '\xe7\x90\xa0\xe2\x81\xaf\xe6\xbd\x8c\xe6\x95\xb2\xe7'\
-                       '\xa9\xae\xe4\x94\xa0\xe7\x95\xb1\xe7\x91\xa1\xe6\xbd'\
-                       '\xa9\xe2\x81\xae\xe0\xb5\xbc\xe7\xb0\x8a\xe7\x80\xa0'\
-                       '\xe6\x85\xa8\xe6\x95\xb3\xe7\x80\xae\xe2\x81\xb9\xe2'\
-                       '\x80\xa0\xe7\xb0\xa0\xe4\xa0\xa0\xe6\xb1\xa5\xe6\x95'\
-                       '\xb0\xe2\x81\xb2\xe7\x95\xa6\xe6\x8d\xae\xe6\xa5\xb4'\
-                       '\xe6\xb9\xaf\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2\xe7'\
-                       '\x89\xa4\xe7\x9d\xa1\xe6\xb9\xa9\xe2\x81\xa7\xe6\xa1'\
-                       '\xb0\xe7\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2'\
-                       '\xe6\x85\xb2\xe7\x91\xa9\xe2\x81\xb3\xe0\xb5\xbc\xe7'\
-                       '\xb0\x8a\xe7\x88\xa0\xe3\x91\xab\xe7\x80\xae\xe2\x81'\
-                       '\xb9\xe2\x80\xa0\xe2\x80\xa0\xe7\xb0\xa0\xe4\x8c\xa0'\
-                       '\xe6\x85\xac\xe7\x8d\xb3\xe6\x8d\xa9\xe5\x88\xa0\xe6'\
-                       '\xb9\xb5\xe6\x95\xa7\xe4\xac\xa0\xe7\x91\xb5\xe6\x85'\
-                       '\xb4\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\xad\xb2'\
-                       '\xe2\xb9\xa9\xe7\xa5\xb0\xe2\x80\xa0\xe2\x80\xa0\xe2'\
-                       '\x80\xa0\xe2\x81\xbc\xe6\xb5\x89\xe6\xb1\xb0\xe6\x8d'\
-                       '\xa9\xe7\x91\xa9\xe5\x88\xa0\xe6\xb9\xb5\xe6\x95\xa7'\
-                       '\xe4\xac\xad\xe7\x91\xb5\xe6\x85\xb4\xe7\xb0\xa0\xe0'\
-                       '\xa8\x8d\xe2\x81\xbc\xe6\xbd\xb2\xe7\x8d\xa5\xe6\xb1'\
-                       '\xb3\xe7\x89\xa5\xe7\x80\xae\xe2\x81\xb9\xe2\x81\xbc'\
-                       '\xe6\xb1\x90\xe7\x91\xaf\xe7\x8c\xa0\xe6\xb1\xaf\xe7'\
-                       '\x91\xb5\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xa0\xe2\x81'\
-                       '\xaf\xe6\xbd\x92\xe7\x8d\xa5\xe6\xb1\xb3\xe7\x89\xa5'\
-                       '\xe4\x94\xa0\xe7\x95\xb1\xe7\x91\xa1\xe6\xbd\xa9\xe2'\
-                       '\x81\xae\xe0\xb5\xbc\xe7\xb0\x8a\xe7\x94\xa0\xe6\xa5'\
-                       '\xb4\xe6\xa5\xac\xe6\xa5\xb4\xe7\x8d\xa5\xe7\x80\xae'\
-                       '\xe2\x81\xb9\xe2\x81\xbc\xe6\xa5\x8d\xe6\x8d\xb3\xe6'\
-                       '\xb1\xa5\xe6\x85\xac\xe6\x95\xae\xe7\x95\xaf\xe2\x81'\
-                       '\xb3\xe6\x95\xa8\xe7\x81\xac\xe7\x95\xa6\xe2\x81\xac'\
-                       '\xe7\x95\xa6\xe6\x8d\xae\xe6\xa5\xb4\xe6\xb9\xaf\xe2'\
-                       '\x81\xb3\xe0\xb5\xbc\xe0\xb4\x8a\xe0\xb4\x8a\xe0\xb4'\
-                       '\x8a\xe2\x8c\x8a\xe2\x80\xa3\xe6\xa5\x93\xe7\x95\xad'\
-                       '\xe6\x85\xac\xe6\xa5\xb4\xe6\xb9\xaf\xe4\x94\xa0\xe6'\
-                       '\x95\xb8\xe6\x8d\xb2\xe7\x8d\xa9\xe7\x8d\xa5\xe6\x98'\
-                       '\xa0\xe6\xbd\xb2\xe2\x81\xad\xe5\x8d\x9b\xe6\xb5\xa9'\
-                       '\xe6\xb1\xb5\xe7\x91\xa1\xe6\xbd\xa9\xe2\x81\xae\xe6'\
-                       '\xb9\xa1\xe2\x81\xa4\xe6\xbd\xad\xe6\x95\xa4\xe6\xa5'\
-                       '\xac\xe6\x9d\xae\xe6\xbc\xa0\xe2\x81\xa6\xe6\x85\xae'\
-                       '\xe7\x95\xb4\xe6\x85\xb2\xe2\x81\xac\xe7\x89\xb0\xe6'\
-                       '\x8d\xaf\xe7\x8d\xa5\xe6\x95\xb3\xe5\xb5\xb3\xe6\xa0'\
-                       '\xa8\xe7\x91\xb4\xe7\x8d\xb0\xe2\xbc\xba\xe7\x9c\xaf'\
-                       '\xe7\x9d\xb7\xe6\x8c\xae\xe7\x95\xaf\xe7\x8d\xb2\xe7'\
-                       '\x89\xa5\xe2\xb9\xa1\xe7\x89\xaf\xe2\xbd\xa7\xe6\x95'\
-                       '\xac\xe7\x89\xa1\xe2\xbd\xae\xe6\xbd\xad\xe6\x95\xa4'\
-                       '\xe6\xa5\xac\xe6\x9d\xae\xe7\x8c\xad\xe6\xb5\xa9\xe6'\
-                       '\xb1\xb5\xe7\x91\xa1\xe6\xbd\xa9\xe2\xb5\xae\xe6\x85'\
-                       '\xae\xe7\x95\xb4\xe6\x85\xb2\xe2\xb5\xac\xe7\x89\xb0'\
-                       '\xe6\x8d\xaf\xe7\x8d\xa5\xe6\x95\xb3\xe2\xbd\xb3\xe6'\
-                       '\xbd\xa8\xe6\x95\xad\xe6\xa4\xaf\xe6\x99\xae\xe2\xa5'\
-                       '\xaf\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x81\xbc\xe6\xa5\x86'\
-                       '\xe6\x95\xac\xe7\xb0\xa0\xe4\x90\xa0\xe7\x8d\xa5\xe7'\
-                       '\x89\xa3\xe7\x81\xa9\xe6\xa5\xb4\xe6\xb9\xaf\xe7\xb0'\
-                       '\xa0\xe0\xa8\x8d\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe7'\
-                       '\xb0\xad\xe0\xa8\x8d\xe2\x81\xbc\xe7\xa1\xa5\xe5\xbc'\
-                       '\xb2\xe6\xb9\xa9\xe6\x95\xb4\xe7\x89\xa7\xe7\x91\xa1'\
-                       '\xe7\x89\xaf\xe7\x80\xae\xe2\x81\xb9\xe2\x81\xbc\xe6'\
-                       '\xb9\x89\xe6\x95\xb4\xe7\x89\xa7\xe7\x91\xa1\xe6\xbd'\
-                       '\xa9\xe2\x81\xae\xe7\xa1\xa5\xe7\x89\xa5\xe6\xa5\xa3'\
-                       '\xe6\x95\xb3\xe6\x98\xa0\xe6\xbd\xb2\xe2\x81\xad\xe6'\
-                       '\x95\xb7\xe6\xad\xa5\xe3\x88\xa0\xe7\xb0\xa0\xe0\xa8'\
-                       '\x8d\xe2\x81\xbc\xe7\xa1\xa5\xe5\xbc\xb3\xe6\xbd\x8c'\
-                       '\xe6\xad\xb4\xe5\x99\xa1\xe6\xb1\xaf\xe6\x95\xb4\xe7'\
-                       '\x89\xb2\xe2\xb9\xa1\xe7\xa5\xb0\xe7\xb0\xa0\xe4\xb0'\
-                       '\xa0\xe7\x91\xaf\xe6\x85\xab\xe5\x98\xa0\xe6\xb1\xaf'\
-                       '\xe6\x95\xb4\xe7\x89\xb2\xe2\x81\xa1\xe7\xa1\xa5\xe7'\
-                       '\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe6\x98\xa0\xe6\xbd'\
-                       '\xb2\xe2\x81\xad\xe6\x95\xb7\xe6\xad\xa5\xe3\x8c\xa0'\
-                       '\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\x85\xb0\xe6'\
-                       '\xa5\xb2\xe7\xa5\xb4\xe7\x95\x92\xe6\x95\xac\xe7\x80'\
-                       '\xae\xe2\x81\xb9\xe2\x81\xbc\xe6\x95\x97\xe6\xad\xa5'\
-                       '\xe3\x90\xa0\xe4\x94\xa0\xe6\x95\xb8\xe6\x8d\xb2\xe7'\
-                       '\x8d\xa9\xe3\xa9\xa5\xe4\x8c\xa0\xe2\x81\x81\xe6\xbd'\
-                       '\xa6\xe2\x81\xb2\xe6\x85\x90\xe6\xa5\xb2\xe7\xa5\xb4'\
-                       '\xe5\x88\xa0\xe6\xb1\xb5\xe7\xb1\xa5\xe0\xa8\x8d\xe2'\
-                       '\x81\xbc\xe6\x89\xac\xe4\x99\xad\xe6\xbd\xac\xe4\x85'\
-                       '\xb7\xe6\xbd\xb2\xe6\xb9\xb5\xe4\x8d\xa4\xe6\xb1\xb9'\
-                       '\xe6\xb9\xa9\xe6\x95\xa4\xe2\xb9\xb2\xe7\xa5\xb0\xe7'\
-                       '\xb0\xa0\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80'\
-                       '\xb5\xe7\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3'\
-                       '\xe2\x80\xae\xe6\x95\x84\xe6\x95\xb4\xe6\xb5\xb2\xe6'\
-                       '\xb9\xa9\xe2\x81\xa5\xe6\xa1\xb4\xe2\x81\xa5\xe6\x8d'\
-                       '\x9f\xe6\xa5\xb2\xe6\xa5\xb4\xe6\x85\xa3\xe2\x81\xac'\
-                       '\xe6\x95\x92\xe6\xb9\xb9\xe6\xb1\xaf\xe2\x81\xa4\xe7'\
-                       '\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe5\xbc\xac\xe6\xa4'\
-                       '\xa0\xe6\x94\xae\xe2\x80\xae\xe6\xa1\xb4\xe2\x81\xa5'\
-                       '\xe6\xbd\xac\xe6\x95\xb7\xe7\x91\xb3\xe5\x88\xa0\xe7'\
-                       '\xa5\xa5\xe6\xbd\xae\xe6\x91\xac\xe6\xb8\xa0\xe6\xb5'\
-                       '\xb5\xe6\x95\xa2\xe2\x81\xb2\xe6\xbd\xa6\xe2\x81\xb2'\
-                       '\xe6\xa1\xb7\xe6\x8d\xa9\xe2\x81\xa8\xe6\xa1\xb4\xe2'\
-                       '\x81\xa5\xe6\xb1\xa6\xe7\x9d\xaf\xe6\x84\xa0\xe6\xbd'\
-                       '\xb2\xe6\xb9\xb5\xe2\x81\xa4\xe6\xa1\xb4\xe2\x81\xa5'\
-                       '\xe7\xa5\xa3\xe6\xa5\xac\xe6\x91\xae\xe7\x89\xa5\xe6'\
-                       '\x94\xa0\xe7\x91\xae\xe7\x89\xa5\xe2\x81\xb3\xe6\xb9'\
-                       '\xa1\xe7\x94\xa0\xe7\x8d\xae\xe6\x95\xb4\xe6\x91\xa1'\
-                       '\xe2\x81\xb9\xe6\x95\xb2\xe6\xa5\xa7\xe6\x95\xad\xe6'\
-                       '\x84\xa0\xe7\x91\xa6\xe7\x89\xa5\xe6\x84\xa0\xe7\x8c'\
-                       '\xa0\xe6\x99\xb5\xe6\xa5\xa6\xe6\xa5\xa3\xe6\xb9\xa5'\
-                       '\xe2\x81\xb4\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe6'\
-                       '\xbc\xa0\xe2\x81\xa6\xe7\x91\xa9\xe7\x89\xa5\xe7\x91'\
-                       '\xa1\xe6\xbd\xa9\xe7\x8d\xae\xe2\x80\xae\xe0\xb5\xbc'\
-                       '\xe7\xb0\x8a\xe6\x88\xa0\xe7\x89\xa1\xe6\x95\xae\xe5'\
-                       '\xbd\xb3\xe7\x95\xa8\xe2\xb9\xb4\xe7\xa5\xb0\xe7\xb0'\
-                       '\xa0\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80\xb6'\
-                       '\xe7\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe2'\
-                       '\x80\xbb\xe4\x90\xb3\xe7\x98\xa0\xe7\x89\xa5\xe6\xa5'\
-                       '\xb3\xe6\xb9\xaf\xe6\xbc\xa0\xe2\x81\xa6\xe6\x85\x82'\
-                       '\xe6\xb9\xb2\xe7\x8d\xa5\xe4\xa0\xad\xe7\x91\xb5\xe5'\
-                       '\x8c\xa0\xe6\xb5\xa9\xe6\xb1\xb5\xe7\x91\xa1\xe6\xbd'\
-                       '\xa9\xe2\xb9\xae\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc'\
-                       '\xe6\x85\xa2\xe7\x91\xa3\xe7\x89\xa5\xe6\x85\xa9\xe7'\
-                       '\x80\xae\xe7\xb1\xb9\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81'\
-                       '\xab\xe2\x80\xb7\xe7\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3'\
-                       '\xe6\x95\xb3\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe7'\
-                       '\x89\xb4\xe6\x99\xa1\xe6\xa5\xa6\xe4\xb1\xa3\xe6\x9d'\
-                       '\xa9\xe7\x91\xa8\xe2\xb9\xb3\xe7\xa5\xb0\xe7\xb0\xa0'\
-                       '\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80\xb8\xe7'\
-                       '\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe0\xb5'\
-                       '\xbc\xe7\xb0\x8a\xe5\x9c\xa0\xe6\xb1\xaf\xe7\x89\xa6'\
-                       '\xe6\xb5\xa1\xe6\x8d\x9f\xe2\xb9\xa1\xe7\xa5\xb0\xe2'\
-                       '\x80\xa0\xe2\x80\xa0\xe2\x81\xbc\xe6\x95\x97\xe6\xad'\
-                       '\xa5\xe3\x90\xa0\xe7\x84\xa0\xe6\xa5\xb5\xe2\x81\xba'\
-                       '\xe2\x80\xad\xe7\x89\xb0\xe6\x9d\xaf\xe6\x85\xb2\xe2'\
-                       '\x81\xad\xe6\xbd\xb4\xe6\x90\xa0\xe2\x81\xaf\xe6\xbd'\
-                       '\x97\xe6\x99\xac\xe6\x85\xb2\xe2\x81\xad\xe4\x85\x83'\
-                       '\xe7\xb0\xa0\xe0\xa8\x8d',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 455L,
-          'selection_start': 0L,
-          'zoom': 0L},
-         1571635790.152],
-        [loc('bacteria.py'),
-         {'attrib-starts': [('Bacteria|0|',
-                             30),
-                            ('Bacteria|0|.update|0|',
-                             46)],
-          'code-line': '            if random.random() < ???????:\r\n',
-          'first-line': 41L,
-          'folded-linenos': [],
-          'sel-line': 51L,
-          'sel-line-start': 1436L,
-          'selection_end': 1476L,
-          'selection_start': 1469L,
-          'zoom': 0L},
-         1571635795.237],
-        [loc('README.md'),
-         {'attrib-starts': [],
-          'code-line': '\xe2\x80\xa3\xe7\xa5\x84\xe6\x85\xae\xe6\xa5\xad\xe7'\
-                       '\x8d\xa3\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe4\x8c'\
-                       '\xa0\xe6\x91\xaf\xe2\x81\xa5\xe7\x89\xb7\xe7\x91\xa9'\
-                       '\xe6\x95\xb4\xe2\x81\xae\xe6\xbd\xb4\xe6\x84\xa0\xe6'\
-                       '\x8d\xa3\xe6\xb5\xaf\xe6\x85\xb0\xe7\xa5\xae\xe2\x80'\
-                       '\xa0\xe4\x8d\x9b\xe6\x85\xa8\xe7\x8d\xaf\xe4\x88\xa0'\
-                       '\xe6\xbd\xaf\xe5\xb5\xab\xe6\xa0\xa8\xe7\x91\xb4\xe3'\
-                       '\xa9\xb0\xe2\xbc\xaf\xe6\xa1\xa3\xe6\xbd\xa1\xe6\x89'\
-                       '\xb3\xe6\xbd\xaf\xe2\xb9\xab\xe7\x89\xaf\xe2\xbd\xa7'\
-                       '\xe2\x80\xa9\xe7\xa5\xa2\xe5\x80\xa0\xe6\x95\xb2\xe7'\
-                       '\x89\xa4\xe6\x9d\xa1\xe4\x8c\xa0\xe6\xa5\xb6\xe6\x85'\
-                       '\xb4\xe6\xbd\xae\xe6\xa5\xb6\xe8\x9f\x84\xe6\x94\xa0'\
-                       '\xe2\x81\xb4\xe6\xb1\xa1\xe0\xa8\x8d\xe0\xa8\x8d\xe2'\
-                       '\x8d\xbc\xe2\x81\xbc\xe6\xa5\x86\xe6\x95\xac\xe7\xb0'\
-                       '\xa0\xe5\x88\xa0\xe6\xb5\xa5\xe7\x89\xa1\xe7\x8d\xab'\
-                       '\xe0\xb5\xbc\xe7\xb0\x8a\xe2\xb4\xad\xe2\xb5\xbc\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe0\xb5\xbc\xe7\xb0\x8a'\
-                       '\xe7\xb0\xb1\xe7\xa5\x83\xe6\xb1\xa3\xe5\x8d\xa5\xe6'\
-                       '\x85\xb4\xe6\xa5\xa2\xe6\xa5\xac\xe7\xa5\xb4\xe7\x80'\
-                       '\xae\xe7\xb1\xb9\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0\xb1'\
-                       '\xe6\x95\x8e\xe7\x91\xb7\xe6\xb9\xaf\xe7\x80\xae\xe7'\
-                       '\xb1\xb9\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0\xb1\xe6\xbd'\
-                       '\x90\xe6\xb9\xa9\xe6\x85\xa3\xe6\x95\xb2\xe7\x80\xae'\
-                       '\xe7\xb1\xb9\xe3\x85\x91\xe3\x94\xae\xe5\x80\xa0\xe6'\
-                       '\xa5\xaf\xe6\x8d\xae\xe7\x89\xa1\xea\xa7\x83\xe7\x8c'\
-                       '\xa0\xe6\x8d\xa5\xe6\xa5\xb4\xe6\xb9\xaf\xe2\x81\xb3'\
-                       '\xe6\xb9\xa1\xe2\x81\xa4\xe6\x95\xb2\xe7\x95\xb4\xe6'\
-                       '\xb9\xb2\xe6\xb4\xa0\xe7\x81\xa1\xe2\x81\xb3\xe6\x99'\
-                       '\xaf\xe7\x90\xa0\xe6\x95\xa8\xe5\x88\xa0\xeb\x9b\x83'\
-                       '\xe7\x8d\xb3\xe6\x95\xac\xe2\x81\xb2\xe7\xa5\xb3\xe7'\
-                       '\x91\xb3\xe6\xb5\xa5\xe7\xb0\xa0\xe0\xa8\x8d\xe3\x85'\
-                       '\xbc\xe5\x89\xbc\xe7\x8d\xaf\xe6\xb1\xb3\xe7\x89\xa5'\
-                       '\xe7\x80\xae\xe7\xb1\xb9\xe3\x85\x91\xe3\x90\xae\xe4'\
-                       '\xa4\xa0\xe7\x91\xae\xe6\x9d\xa5\xe6\x85\xb2\xe6\xa5'\
-                       '\xb4\xe6\x9d\xae\xe5\x88\xa0\xeb\x9b\x83\xe7\x8d\xb3'\
-                       '\xe6\x95\xac\xe2\x81\xb2\xe7\xa5\xb3\xe7\x91\xb3\xe6'\
-                       '\xb5\xa5\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0\xb1\xe7\x95'\
-                       '\x92\xe6\x9d\xae\xe4\xad\xa5\xe7\x91\xb5\xe6\x85\xb4'\
-                       '\xe7\x80\xae\xe7\xb1\xb9\xe3\x85\x91\xe3\x8c\xae\xe5'\
-                       '\x88\xa0\xe6\xb9\xb5\xe6\x95\xa7\xe4\xac\xad\xe7\x91'\
-                       '\xb5\xe6\x85\xb4\xe6\xa4\xa0\xe7\x91\xae\xe6\x9d\xa5'\
-                       '\xe6\x85\xb2\xe6\xa5\xb4\xe6\xb9\xaf\xe0\xb5\xbc\xe7'\
-                       '\xb0\x8a\xe7\xb0\xb1\xe7\x91\x93\xe6\x89\xa1\xe6\xb1'\
-                       '\xa9\xe7\x91\xa9\xe2\xb9\xb9\xe7\xa5\xb0\xe7\xb1\xbc'\
-                       '\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe5\xac\xa0\xe6'\
-                       '\xbd\x8e\xe2\x81\xae\xe6\xa5\x8c\xe6\x95\xae\xe7\x89'\
-                       '\xa1\xe4\x90\xa0\xe6\xb9\xb9\xe6\xb5\xa1\xe6\x8d\xa9'\
-                       '\xe2\x81\xb3\xe6\xb9\xa1\xe2\x81\xa4\xe6\xa1\x83\xe6'\
-                       '\xbd\xa1\xe2\x81\xb3\xe6\xa5\xb7\xe6\xa1\xb4\xe4\x84'\
-                       '\xa0\xe7\x81\xb0\xe6\xa5\xac\xe6\x85\xa3\xe6\xa5\xb4'\
-                       '\xe6\xb9\xaf\xe2\xb1\xb3\xe3\x88\xa0\xe6\x91\xae\xe4'\
-                       '\x94\xa0\xe6\xa5\xa4\xe6\xa5\xb4\xe6\xb9\xaf\xe2\xa1'\
-                       '\x9d\xe7\x91\xa8\xe7\x81\xb4\xe2\xbc\xba\xe7\x9c\xaf'\
-                       '\xe7\x9d\xb7\xe7\x8c\xae\xe6\x95\xb4\xe6\x95\xb6\xe7'\
-                       '\x8d\xae\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe2\xb9'\
-                       '\xba\xe6\xbd\xa3\xe2\xbd\xad\xe6\xbd\xa2\xe6\xad\xaf'\
-                       '\xe2\xbd\xb3\xe6\xbd\xae\xe6\xb1\xae\xe6\xb9\xa9\xe6'\
-                       '\x85\xa5\xe2\xb5\xb2\xe7\xa5\xa4\xe6\x85\xae\xe6\xa5'\
-                       '\xad\xe7\x8d\xa3\xe6\x84\xad\xe6\x91\xae\xe6\x8c\xad'\
-                       '\xe6\x85\xa8\xe7\x8d\xaf\xe7\x9c\xad\xe7\x91\xa9\xe2'\
-                       '\xb5\xa8\xe7\x81\xa1\xe6\xb1\xb0\xe6\x8d\xa9\xe7\x91'\
-                       '\xa1\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xad\xe2\xb5\xaf'\
-                       '\xe6\xa1\xb0\xe7\x8d\xb9\xe6\x8d\xa9\xe2\xb5\xb3\xe6'\
-                       '\xa5\xa2\xe6\xb1\xaf\xe6\x9d\xaf\xe2\xb5\xb9\xe6\xa1'\
-                       '\xa3\xe6\xb5\xa5\xe7\x8d\xa9\xe7\x89\xb4\xe2\xb5\xb9'\
-                       '\xe6\xb9\xa1\xe2\xb5\xa4\xe6\xb9\xa5\xe6\xa5\xa7\xe6'\
-                       '\x95\xae\xe7\x89\xa5\xe6\xb9\xa9\xe2\xa5\xa7\xe6\x88'\
-                       '\xa0\xe2\x81\xb9\xe7\x91\x93\xe7\x99\xa5\xe2\x81\xa5'\
-                       '\xe7\x91\x93\xe6\xbd\xb2\xe6\x85\xa7\xe7\xa9\xb4\xe0'\
-                       '\xb4\xae\xe0\xb4\x8a\xe7\xb0\x8a\xe4\xb8\xa0\xe6\xb5'\
-                       '\xa1\xe2\x81\xa5\xe2\x81\xbc\xe6\x95\x84\xe6\x8d\xb3'\
-                       '\xe6\xa5\xb2\xe7\x91\xb0\xe6\xbd\xa9\xe2\x81\xae\xe0'\
-                       '\xb5\xbc\xe7\xb0\x8a\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb5\xbc\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe7\xb0\xad\xe0\xb4\xa0\xe7\xb0\x8a\xe7\x8c'\
-                       '\xa0\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe5\xbd\xba'\
-                       '\xe5\xbc\xb6\xe2\xb8\xb1\xe7\xa5\xb0\xe7\xb0\xa0\xe6'\
-                       '\xb1\x90\xe7\x91\xaf\xe7\x80\xa0\xe6\x85\xa8\xe6\x95'\
-                       '\xb3\xe7\x80\xa0\xe7\x89\xaf\xe7\x89\xb4\xe6\xa5\xa1'\
-                       '\xe7\x8d\xb4\xe6\x98\xa0\xe7\x89\xaf\xe6\x84\xa0\xe6'\
-                       '\xb8\xa0\xe6\xb5\xb5\xe6\x95\xa2\xe2\x81\xb2\xe6\x99'\
-                       '\xaf\xe4\xbc\xa0\xe4\x95\x84\xe7\xb1\xb3\xe0\xa8\x8d'\
-                       '\xe2\x81\xbc\xe7\x91\xb3\xe6\xbd\xb2\xe6\x85\xa7\xe7'\
-                       '\xa9\xb4\xe3\x99\x9f\xe3\x89\x9f\xe7\x80\xae\xe2\x81'\
-                       '\xb9\xe5\x81\xbc\xe6\xbd\xac\xe2\x81\xb4\xe6\xa1\xb0'\
-                       '\xe7\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2\xe6'\
-                       '\x85\xb2\xe7\x91\xa9\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81'\
-                       '\xb2\xe2\x81\xa1\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5'\
-                       '\xe6\xbc\xa0\xe2\x81\xa6\xe4\x91\x8f\xe7\x8d\x85\xe0'\
-                       '\xb5\xbc\xe7\xb0\x8a\xe7\x8c\xa0\xe7\x89\xb4\xe6\x9d'\
-                       '\xaf\xe7\x91\xa1\xe5\xbd\xba\xe5\xbc\xb6\xe2\xb8\xb3'\
-                       '\xe7\xa5\xb0\xe7\xb0\xa0\xe6\xb1\x90\xe7\x91\xaf\xe7'\
-                       '\x80\xa0\xe6\x85\xa8\xe6\x95\xb3\xe7\x80\xa0\xe7\x89'\
-                       '\xaf\xe7\x89\xb4\xe6\xa5\xa1\xe7\x8d\xb4\xe6\x98\xa0'\
-                       '\xe7\x89\xaf\xe6\x84\xa0\xe6\xb8\xa0\xe6\xb5\xb5\xe6'\
-                       '\x95\xa2\xe2\x81\xb2\xe6\x99\xaf\xe4\xbc\xa0\xe4\x95'\
-                       '\x84\xe7\xb1\xb3\xe0\xa8\x8d\xe2\x81\xbc\xe7\x91\xb3'\
-                       '\xe6\xbd\xb2\xe6\x85\xa7\xe7\xa9\xb4\xe3\x99\x9f\xe3'\
-                       '\x91\x9f\xe7\x80\xae\xe2\x81\xb9\xe5\x81\xbc\xe6\xbd'\
-                       '\xac\xe2\x81\xb4\xe6\xa1\xb0\xe7\x8d\xa1\xe2\x81\xa5'\
-                       '\xe6\xbd\xb0\xe7\x91\xb2\xe6\x85\xb2\xe7\x91\xa9\xe2'\
-                       '\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2\xe2\x81\xa1\xe7\x95'\
-                       '\xae\xe6\x89\xad\xe7\x89\xa5\xe6\xbc\xa0\xe2\x81\xa6'\
-                       '\xe4\x91\x8f\xe7\x8d\x85\xe0\xb5\xbc\xe7\xb0\x8a\xe7'\
-                       '\x8c\xa0\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe5\xbd'\
-                       '\xba\xe5\xbc\xb5\xe3\xa4\xb1\xe7\x80\xae\xe2\x81\xb9'\
-                       '\xe5\x81\xbc\xe6\xbd\xac\xe2\x81\xb4\xe6\xa1\xb0\xe7'\
-                       '\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2\xe6\x85'\
-                       '\xb2\xe7\x91\xa9\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2'\
-                       '\xe2\x81\xa1\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe6'\
-                       '\xbc\xa0\xe2\x81\xa6\xe4\x91\x8f\xe7\x8d\x85\xe0\xb5'\
-                       '\xbc\xe7\xb0\x8a\xe7\x8c\xa0\xe7\x89\xb4\xe6\x9d\xaf'\
-                       '\xe7\x91\xa1\xe5\xbd\xba\xe3\x80\xb1\xe3\x99\x9f\xe7'\
-                       '\x80\xae\xe2\x81\xb9\xe4\x89\xbc\xe6\x99\xa9\xe7\x89'\
-                       '\xb5\xe6\x85\xa3\xe6\xa5\xb4\xe6\xb9\xaf\xe7\xb1\xb3'\
-                       '\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe4\xbc\xa0\xe6'\
-                       '\xa1\xb4\xe7\x89\xa5\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x81'\
-                       '\xbc\xe6\x85\x8e\xe6\x95\xad\xe7\xb0\xa0\xe4\x90\xa0'\
-                       '\xe7\x8d\xa5\xe7\x89\xa3\xe7\x81\xa9\xe6\xa5\xb4\xe6'\
-                       '\xb9\xaf\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe7\xb0'\
-                       '\xa0\xe2\xb4\xa0\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe7\xb0\xad\xe0\xa8'\
-                       '\x8d\xe2\x81\xbc\xe7\x95\xa4\xe6\x99\xa6\xe6\xb9\xa9'\
-                       '\xe2\xb9\xa7\xe7\xa5\xb0\xe2\x80\xa0\xe2\x81\xbc\xe6'\
-                       '\xb1\x90\xe7\x91\xaf\xe7\x8c\xa0\xe6\xb1\xaf\xe7\x91'\
-                       '\xb5\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xa0\xe2\x81\xaf'\
-                       '\xe7\x95\x84\xe6\x99\xa6\xe6\xb9\xa9\xe2\x9d\xa7\xe2'\
-                       '\x81\xb3\xe7\x85\xa5\xe6\x85\xb5\xe6\xa5\xb4\xe6\xb9'\
-                       '\xaf\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\xbd\xac'\
-                       '\xe6\x95\xb2\xe7\xa9\xae\xe7\x80\xae\xe2\x81\xb9\xe2'\
-                       '\x80\xa0\xe2\x81\xbc\xe6\xb1\x90\xe7\x91\xaf\xe7\x8c'\
-                       '\xa0\xe6\xb1\xaf\xe7\x91\xb5\xe6\xbd\xa9\xe7\x8d\xae'\
-                       '\xe7\x90\xa0\xe2\x81\xaf\xe6\xbd\x8c\xe6\x95\xb2\xe7'\
-                       '\xa9\xae\xe4\x94\xa0\xe7\x95\xb1\xe7\x91\xa1\xe6\xbd'\
-                       '\xa9\xe2\x81\xae\xe0\xb5\xbc\xe7\xb0\x8a\xe7\x80\xa0'\
-                       '\xe6\x85\xa8\xe6\x95\xb3\xe7\x80\xae\xe2\x81\xb9\xe2'\
-                       '\x80\xa0\xe7\xb0\xa0\xe4\xa0\xa0\xe6\xb1\xa5\xe6\x95'\
-                       '\xb0\xe2\x81\xb2\xe7\x95\xa6\xe6\x8d\xae\xe6\xa5\xb4'\
-                       '\xe6\xb9\xaf\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2\xe7'\
-                       '\x89\xa4\xe7\x9d\xa1\xe6\xb9\xa9\xe2\x81\xa7\xe6\xa1'\
-                       '\xb0\xe7\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2'\
-                       '\xe6\x85\xb2\xe7\x91\xa9\xe2\x81\xb3\xe0\xb5\xbc\xe7'\
-                       '\xb0\x8a\xe7\x88\xa0\xe3\x91\xab\xe7\x80\xae\xe2\x81'\
-                       '\xb9\xe2\x80\xa0\xe2\x80\xa0\xe7\xb0\xa0\xe4\x8c\xa0'\
-                       '\xe6\x85\xac\xe7\x8d\xb3\xe6\x8d\xa9\xe5\x88\xa0\xe6'\
-                       '\xb9\xb5\xe6\x95\xa7\xe4\xac\xa0\xe7\x91\xb5\xe6\x85'\
-                       '\xb4\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\xad\xb2'\
-                       '\xe2\xb9\xa9\xe7\xa5\xb0\xe2\x80\xa0\xe2\x80\xa0\xe2'\
-                       '\x80\xa0\xe2\x81\xbc\xe6\xb5\x89\xe6\xb1\xb0\xe6\x8d'\
-                       '\xa9\xe7\x91\xa9\xe5\x88\xa0\xe6\xb9\xb5\xe6\x95\xa7'\
-                       '\xe4\xac\xad\xe7\x91\xb5\xe6\x85\xb4\xe7\xb0\xa0\xe0'\
-                       '\xa8\x8d\xe2\x81\xbc\xe6\xbd\xb2\xe7\x8d\xa5\xe6\xb1'\
-                       '\xb3\xe7\x89\xa5\xe7\x80\xae\xe2\x81\xb9\xe2\x81\xbc'\
-                       '\xe6\xb1\x90\xe7\x91\xaf\xe7\x8c\xa0\xe6\xb1\xaf\xe7'\
-                       '\x91\xb5\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xa0\xe2\x81'\
-                       '\xaf\xe6\xbd\x92\xe7\x8d\xa5\xe6\xb1\xb3\xe7\x89\xa5'\
-                       '\xe4\x94\xa0\xe7\x95\xb1\xe7\x91\xa1\xe6\xbd\xa9\xe2'\
-                       '\x81\xae\xe0\xb5\xbc\xe7\xb0\x8a\xe7\x94\xa0\xe6\xa5'\
-                       '\xb4\xe6\xa5\xac\xe6\xa5\xb4\xe7\x8d\xa5\xe7\x80\xae'\
-                       '\xe2\x81\xb9\xe2\x81\xbc\xe6\xa5\x8d\xe6\x8d\xb3\xe6'\
-                       '\xb1\xa5\xe6\x85\xac\xe6\x95\xae\xe7\x95\xaf\xe2\x81'\
-                       '\xb3\xe6\x95\xa8\xe7\x81\xac\xe7\x95\xa6\xe2\x81\xac'\
-                       '\xe7\x95\xa6\xe6\x8d\xae\xe6\xa5\xb4\xe6\xb9\xaf\xe2'\
-                       '\x81\xb3\xe0\xb5\xbc\xe0\xb4\x8a\xe0\xb4\x8a\xe0\xb4'\
-                       '\x8a\xe2\x8c\x8a\xe2\x80\xa3\xe6\xa5\x93\xe7\x95\xad'\
-                       '\xe6\x85\xac\xe6\xa5\xb4\xe6\xb9\xaf\xe4\x94\xa0\xe6'\
-                       '\x95\xb8\xe6\x8d\xb2\xe7\x8d\xa9\xe7\x8d\xa5\xe6\x98'\
-                       '\xa0\xe6\xbd\xb2\xe2\x81\xad\xe5\x8d\x9b\xe6\xb5\xa9'\
-                       '\xe6\xb1\xb5\xe7\x91\xa1\xe6\xbd\xa9\xe2\x81\xae\xe6'\
-                       '\xb9\xa1\xe2\x81\xa4\xe6\xbd\xad\xe6\x95\xa4\xe6\xa5'\
-                       '\xac\xe6\x9d\xae\xe6\xbc\xa0\xe2\x81\xa6\xe6\x85\xae'\
-                       '\xe7\x95\xb4\xe6\x85\xb2\xe2\x81\xac\xe7\x89\xb0\xe6'\
-                       '\x8d\xaf\xe7\x8d\xa5\xe6\x95\xb3\xe5\xb5\xb3\xe6\xa0'\
-                       '\xa8\xe7\x91\xb4\xe7\x8d\xb0\xe2\xbc\xba\xe7\x9c\xaf'\
-                       '\xe7\x9d\xb7\xe6\x8c\xae\xe7\x95\xaf\xe7\x8d\xb2\xe7'\
-                       '\x89\xa5\xe2\xb9\xa1\xe7\x89\xaf\xe2\xbd\xa7\xe6\x95'\
-                       '\xac\xe7\x89\xa1\xe2\xbd\xae\xe6\xbd\xad\xe6\x95\xa4'\
-                       '\xe6\xa5\xac\xe6\x9d\xae\xe7\x8c\xad\xe6\xb5\xa9\xe6'\
-                       '\xb1\xb5\xe7\x91\xa1\xe6\xbd\xa9\xe2\xb5\xae\xe6\x85'\
-                       '\xae\xe7\x95\xb4\xe6\x85\xb2\xe2\xb5\xac\xe7\x89\xb0'\
-                       '\xe6\x8d\xaf\xe7\x8d\xa5\xe6\x95\xb3\xe2\xbd\xb3\xe6'\
-                       '\xbd\xa8\xe6\x95\xad\xe6\xa4\xaf\xe6\x99\xae\xe2\xa5'\
-                       '\xaf\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x81\xbc\xe6\xa5\x86'\
-                       '\xe6\x95\xac\xe7\xb0\xa0\xe4\x90\xa0\xe7\x8d\xa5\xe7'\
-                       '\x89\xa3\xe7\x81\xa9\xe6\xa5\xb4\xe6\xb9\xaf\xe7\xb0'\
-                       '\xa0\xe0\xa8\x8d\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                       '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                       '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                       '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe7'\
-                       '\xb0\xad\xe0\xa8\x8d\xe2\x81\xbc\xe7\xa1\xa5\xe5\xbc'\
-                       '\xb2\xe6\xb9\xa9\xe6\x95\xb4\xe7\x89\xa7\xe7\x91\xa1'\
-                       '\xe7\x89\xaf\xe7\x80\xae\xe2\x81\xb9\xe2\x81\xbc\xe6'\
-                       '\xb9\x89\xe6\x95\xb4\xe7\x89\xa7\xe7\x91\xa1\xe6\xbd'\
-                       '\xa9\xe2\x81\xae\xe7\xa1\xa5\xe7\x89\xa5\xe6\xa5\xa3'\
-                       '\xe6\x95\xb3\xe6\x98\xa0\xe6\xbd\xb2\xe2\x81\xad\xe6'\
-                       '\x95\xb7\xe6\xad\xa5\xe3\x88\xa0\xe7\xb0\xa0\xe0\xa8'\
-                       '\x8d\xe2\x81\xbc\xe7\xa1\xa5\xe5\xbc\xb3\xe6\xbd\x8c'\
-                       '\xe6\xad\xb4\xe5\x99\xa1\xe6\xb1\xaf\xe6\x95\xb4\xe7'\
-                       '\x89\xb2\xe2\xb9\xa1\xe7\xa5\xb0\xe7\xb0\xa0\xe4\xb0'\
-                       '\xa0\xe7\x91\xaf\xe6\x85\xab\xe5\x98\xa0\xe6\xb1\xaf'\
-                       '\xe6\x95\xb4\xe7\x89\xb2\xe2\x81\xa1\xe7\xa1\xa5\xe7'\
-                       '\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe6\x98\xa0\xe6\xbd'\
-                       '\xb2\xe2\x81\xad\xe6\x95\xb7\xe6\xad\xa5\xe3\x8c\xa0'\
-                       '\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\x85\xb0\xe6'\
-                       '\xa5\xb2\xe7\xa5\xb4\xe7\x95\x92\xe6\x95\xac\xe7\x80'\
-                       '\xae\xe2\x81\xb9\xe2\x81\xbc\xe6\x95\x97\xe6\xad\xa5'\
-                       '\xe3\x90\xa0\xe4\x94\xa0\xe6\x95\xb8\xe6\x8d\xb2\xe7'\
-                       '\x8d\xa9\xe3\xa9\xa5\xe4\x8c\xa0\xe2\x81\x81\xe6\xbd'\
-                       '\xa6\xe2\x81\xb2\xe6\x85\x90\xe6\xa5\xb2\xe7\xa5\xb4'\
-                       '\xe5\x88\xa0\xe6\xb1\xb5\xe7\xb1\xa5\xe0\xa8\x8d\xe2'\
-                       '\x81\xbc\xe6\x89\xac\xe4\x99\xad\xe6\xbd\xac\xe4\x85'\
-                       '\xb7\xe6\xbd\xb2\xe6\xb9\xb5\xe4\x8d\xa4\xe6\xb1\xb9'\
-                       '\xe6\xb9\xa9\xe6\x95\xa4\xe2\xb9\xb2\xe7\xa5\xb0\xe7'\
-                       '\xb0\xa0\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80'\
-                       '\xb5\xe7\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3'\
-                       '\xe2\x80\xae\xe6\x95\x84\xe6\x95\xb4\xe6\xb5\xb2\xe6'\
-                       '\xb9\xa9\xe2\x81\xa5\xe6\xa1\xb4\xe2\x81\xa5\xe6\x8d'\
-                       '\x9f\xe6\xa5\xb2\xe6\xa5\xb4\xe6\x85\xa3\xe2\x81\xac'\
-                       '\xe6\x95\x92\xe6\xb9\xb9\xe6\xb1\xaf\xe2\x81\xa4\xe7'\
-                       '\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe5\xbc\xac\xe6\xa4'\
-                       '\xa0\xe6\x94\xae\xe2\x80\xae\xe6\xa1\xb4\xe2\x81\xa5'\
-                       '\xe6\xbd\xac\xe6\x95\xb7\xe7\x91\xb3\xe5\x88\xa0\xe7'\
-                       '\xa5\xa5\xe6\xbd\xae\xe6\x91\xac\xe6\xb8\xa0\xe6\xb5'\
-                       '\xb5\xe6\x95\xa2\xe2\x81\xb2\xe6\xbd\xa6\xe2\x81\xb2'\
-                       '\xe6\xa1\xb7\xe6\x8d\xa9\xe2\x81\xa8\xe6\xa1\xb4\xe2'\
-                       '\x81\xa5\xe6\xb1\xa6\xe7\x9d\xaf\xe6\x84\xa0\xe6\xbd'\
-                       '\xb2\xe6\xb9\xb5\xe2\x81\xa4\xe6\xa1\xb4\xe2\x81\xa5'\
-                       '\xe7\xa5\xa3\xe6\xa5\xac\xe6\x91\xae\xe7\x89\xa5\xe6'\
-                       '\x94\xa0\xe7\x91\xae\xe7\x89\xa5\xe2\x81\xb3\xe6\xb9'\
-                       '\xa1\xe7\x94\xa0\xe7\x8d\xae\xe6\x95\xb4\xe6\x91\xa1'\
-                       '\xe2\x81\xb9\xe6\x95\xb2\xe6\xa5\xa7\xe6\x95\xad\xe6'\
-                       '\x84\xa0\xe7\x91\xa6\xe7\x89\xa5\xe6\x84\xa0\xe7\x8c'\
-                       '\xa0\xe6\x99\xb5\xe6\xa5\xa6\xe6\xa5\xa3\xe6\xb9\xa5'\
-                       '\xe2\x81\xb4\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe6'\
-                       '\xbc\xa0\xe2\x81\xa6\xe7\x91\xa9\xe7\x89\xa5\xe7\x91'\
-                       '\xa1\xe6\xbd\xa9\xe7\x8d\xae\xe2\x80\xae\xe0\xb5\xbc'\
-                       '\xe7\xb0\x8a\xe6\x88\xa0\xe7\x89\xa1\xe6\x95\xae\xe5'\
-                       '\xbd\xb3\xe7\x95\xa8\xe2\xb9\xb4\xe7\xa5\xb0\xe7\xb0'\
-                       '\xa0\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80\xb6'\
-                       '\xe7\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe2'\
-                       '\x80\xbb\xe4\x90\xb3\xe7\x98\xa0\xe7\x89\xa5\xe6\xa5'\
-                       '\xb3\xe6\xb9\xaf\xe6\xbc\xa0\xe2\x81\xa6\xe6\x85\x82'\
-                       '\xe6\xb9\xb2\xe7\x8d\xa5\xe4\xa0\xad\xe7\x91\xb5\xe5'\
-                       '\x8c\xa0\xe6\xb5\xa9\xe6\xb1\xb5\xe7\x91\xa1\xe6\xbd'\
-                       '\xa9\xe2\xb9\xae\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc'\
-                       '\xe6\x85\xa2\xe7\x91\xa3\xe7\x89\xa5\xe6\x85\xa9\xe7'\
-                       '\x80\xae\xe7\xb1\xb9\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81'\
-                       '\xab\xe2\x80\xb7\xe7\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3'\
-                       '\xe6\x95\xb3\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe7'\
-                       '\x89\xb4\xe6\x99\xa1\xe6\xa5\xa6\xe4\xb1\xa3\xe6\x9d'\
-                       '\xa9\xe7\x91\xa8\xe2\xb9\xb3\xe7\xa5\xb0\xe7\xb0\xa0'\
-                       '\xe5\x9c\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80\xb8\xe7'\
-                       '\xa1\x85\xe7\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe0\xb5'\
-                       '\xbc\xe7\xb0\x8a\xe5\x9c\xa0\xe6\xb1\xaf\xe7\x89\xa6'\
-                       '\xe6\xb5\xa1\xe6\x8d\x9f\xe2\xb9\xa1\xe7\xa5\xb0\xe2'\
-                       '\x80\xa0\xe2\x80\xa0\xe2\x81\xbc\xe6\x95\x97\xe6\xad'\
-                       '\xa5\xe3\x90\xa0\xe7\x84\xa0\xe6\xa5\xb5\xe2\x81\xba'\
-                       '\xe2\x80\xad\xe7\x89\xb0\xe6\x9d\xaf\xe6\x85\xb2\xe2'\
-                       '\x81\xad\xe6\xbd\xb4\xe6\x90\xa0\xe2\x81\xaf\xe6\xbd'\
-                       '\x97\xe6\x99\xac\xe6\x85\xb2\xe2\x81\xad\xe4\x85\x83'\
-                       '\xe7\xb0\xa0\xe0\xa8\x8d',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 0L,
-          'sel-line-start': 0L,
-          'selection_end': 455L,
-          'selection_start': 0L,
-          'zoom': 0L},
-         1571635798.373],
-        [loc('bacteria.py'),
-         {'attrib-starts': [('Bacteria|0|',
-                             30),
-                            ('Bacteria|0|.update|0|',
-                             46)],
-          'code-line': '            if random.random() < ???????:\r\n',
-          'first-line': 41L,
-          'folded-linenos': [],
-          'sel-line': 51L,
-          'sel-line-start': 1436L,
-          'selection_end': 1476L,
-          'selection_start': 1469L,
-          'zoom': 0L},
-         1571713234.82]],
+         1571957023.83]],
         20),
         'current-loc': loc('README.md'),
         'editor-state-list': [(loc('bacteria.py'),
@@ -1108,29 +532,70 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                                 'selection_end': 1476L,
                                 'selection_start': 1469L,
                                 'zoom': 0L}),
+                              (loc('strogatz/exercise_6_3_10.py'),
+                               {'attrib-starts': [],
+                                'code-line': 'ys   = np.arange(-1, 1, 0.1)\r'\
+        '\n',
+                                'first-line': 0L,
+                                'folded-linenos': [],
+                                'sel-line': 7L,
+                                'sel-line-start': 124L,
+                                'selection_end': 150L,
+                                'selection_start': 150L,
+                                'zoom': 0L}),
+                              (loc('phase.py'),
+                               {'attrib-starts': [('plot_phase_portrait|0|',
+        116)],
+                                'code-line': "def plot_phase_portrait(X,Y,U,"\
+        "V,fixed,title='',suptitle=''):\r\n",
+                                'first-line': 131L,
+                                'folded-linenos': [],
+                                'sel-line': 116L,
+                                'sel-line-start': 4236L,
+                                'selection_end': 4259L,
+                                'selection_start': 4240L,
+                                'zoom': 0L}),
                               (loc('README.md'),
                                {'attrib-starts': [],
-                                'code-line': '',
-                                'first-line': 37L,
+                                'code-line': '| exercise_10_6.py |Bifurcatio'\
+        'ns|\r\n',
+                                'first-line': 10L,
                                 'folded-linenos': [],
-                                'sel-line': 48L,
-                                'sel-line-start': 2522L,
-                                'selection_end': 2522L,
-                                'selection_start': 2522L,
+                                'sel-line': 23L,
+                                'sel-line-start': 1162L,
+                                'selection_end': 1172L,
+                                'selection_start': 1172L,
+                                'zoom': 0L}),
+                              (loc('strogatz/strogatz_6_1.py'),
+                               {'attrib-starts': [],
+                                'code-line': 'X,Y,U,V,_=phase.generate(f=lam'\
+        'bda x,y:(x*(x-y),y*(2*x-y)))\r\n',
+                                'first-line': 8L,
+                                'folded-linenos': [],
+                                'sel-line': 28L,
+                                'sel-line-start': 1210L,
+                                'selection_end': 1234L,
+                                'selection_start': 1226L,
                                 'zoom': 0L})],
         'has-focus': True,
         'locked': False},
         [loc('bacteria.py'),
-         loc('README.md')]),
+         loc('strogatz/exercise_6_3_10.py'),
+         loc('phase.py'),
+         loc('README.md'),
+         loc('strogatz/strogatz_6_1.py')]),
                                'open_files': [u'bacteria.py',
+        u'strogatz/strogatz_6_1.py',
+        u'phase.py',
+        u'strogatz/exercise_6_3_10.py',
         u'README.md']},
         'saved_notebook_display': None,
         'split_percents': {0: 0.5},
         'splits': 2,
         'tab_location': 'top',
-        'traversal_pos': ((1,
-                           0),
-                          1571193495.537),
+        'traversal_pos': ((0,
+                           3),
+                          1571956302.923),
         'user_data': {}},
                  'saved_notebook_display': None,
                  'split_percents': {},
@@ -1145,8 +610,116 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                          1378,
                          749)}]}
 guimgr.recent-documents = [loc('README.md'),
-                           loc('bacteria.py')]
-guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/nonlin.py'): {'a'\
+                           loc('strogatz/exercise_6_3_10.py'),
+                           loc('phase.py'),
+                           loc('strogatz/strogatz_6_1.py')]
+guimgr.visual-state = {loc('../Anaconda3/Lib/site-packages/numpy/_distributor_init.py'): {'a'\
+        'ttrib-starts': [],
+        'code-line': '    from . import _mklinit\n',
+        'first-line': 14L,
+        'folded-linenos': [],
+        'sel-line': 33L,
+        'sel-line-start': 996L,
+        'selection_end': 996L,
+        'selection_start': 996L,
+        'zoom': 0L},
+                       loc('../astro/make_img.py'): {'attrib-starts': [],
+        'first-line': 15L,
+        'folded-linenos': [],
+        'sel-line': 19L,
+        'sel-line-start': 776L,
+        'selection_end': 776L,
+        'selection_start': 776L,
+        'zoom': 0L},
+                       loc('../astro/plot_points.py'): {'attrib-starts': [],
+        'first-line': 0L,
+        'folded-linenos': [],
+        'sel-line': 0L,
+        'sel-line-start': 0L,
+        'selection_end': 0L,
+        'selection_start': 0L,
+        'zoom': 0L},
+                       loc('bacteria.py'): {'attrib-starts': [('Bacteria',
+        30),
+        ('Bacteria.update',
+         46)],
+        'first-line': 51L,
+        'folded-linenos': [],
+        'sel-line': 51L,
+        'sel-line-start': 1436L,
+        'selection_end': 1476L,
+        'selection_start': 1469L,
+        'zoom': 0L},
+                       loc('barnes_hut.py'): {'attrib-starts': [],
+        'first-line': 21L,
+        'folded-linenos': [],
+        'sel-line': 27L,
+        'sel-line-start': 1177L,
+        'selection_end': 1225L,
+        'selection_start': 1201L,
+        'zoom': 0L},
+                       loc('chaos_book/hw1Rossler/README.md'): {'attrib-star'\
+        'ts': [],
+        'code-line': '# Homework for week 1 -- Rossler\r\n',
+        'first-line': 0L,
+        'folded-linenos': [],
+        'sel-line': 0L,
+        'sel-line-start': 0L,
+        'selection_end': 405L,
+        'selection_start': 0L,
+        'zoom': 0L},
+                       loc('lbmFlowAroundCylinder.py'): {'attrib-starts': [('v'\
+        'isualize_velocity',
+        122)],
+        'first-line': 150L,
+        'folded-linenos': [],
+        'sel-line': 137L,
+        'sel-line-start': 4723L,
+        'selection_end': 4731L,
+        'selection_start': 4731L,
+        'zoom': 0L},
+                       loc('parityRule.py'): {'attrib-starts': [],
+        'first-line': 23L,
+        'folded-linenos': [],
+        'sel-line': 51L,
+        'sel-line-start': 1755L,
+        'selection_end': 1756L,
+        'selection_start': 1756L,
+        'zoom': 0L},
+                       loc('strogatz/README.md'): {'attrib-starts': [],
+        'code-line': '# Dynamics\r\n',
+        'first-line': 0L,
+        'folded-linenos': [],
+        'sel-line': 0L,
+        'sel-line-start': 0L,
+        'selection_end': 727L,
+        'selection_start': 0L,
+        'zoom': 0L},
+                       loc('strogatz_6_1.py'): {'attrib-starts': [],
+        'first-line': 0L,
+        'folded-linenos': [],
+        'sel-line': 16L,
+        'sel-line-start': 718L,
+        'selection_end': 735L,
+        'selection_start': 735L,
+        'zoom': 0L},
+                       loc('strogatz_6_5_19.py'): {'attrib-starts': [],
+        'first-line': 5L,
+        'folded-linenos': [],
+        'sel-line': 16L,
+        'sel-line-start': 718L,
+        'selection_end': 735L,
+        'selection_start': 735L,
+        'zoom': 0L},
+                       loc('trafficLights.py'): {'attrib-starts': [],
+        'first-line': 88L,
+        'folded-linenos': [],
+        'sel-line': 127L,
+        'sel-line-start': 3401L,
+        'selection_end': 3420L,
+        'selection_start': 3420L,
+        'zoom': 0L},
+                       loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/nonlin.py'): {'a'\
         'ttrib-starts': [('_nonlin_line_search',
                           368),
                          ('_nonlin_line_search.phi',
@@ -1328,22 +901,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'selection_start': 3388L,
         'zoom': 0L},
                        loc('../astro/galaxy/make_img.py'): {'attrib-starts': [],
-        'first-line': 0L,
-        'folded-linenos': [],
-        'sel-line': 0L,
-        'sel-line-start': 0L,
-        'selection_end': 0L,
-        'selection_start': 0L,
-        'zoom': 0L},
-                       loc('../astro/make_img.py'): {'attrib-starts': [],
-        'first-line': 15L,
-        'folded-linenos': [],
-        'sel-line': 19L,
-        'sel-line-start': 776L,
-        'selection_end': 776L,
-        'selection_start': 776L,
-        'zoom': 0L},
-                       loc('../astro/plot_points.py'): {'attrib-starts': [],
         'first-line': 0L,
         'folded-linenos': [],
         'sel-line': 0L,
@@ -1649,25 +1206,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'selection_end': 889L,
         'selection_start': 889L,
         'zoom': 0L},
-                       loc('bacteria.py'): {'attrib-starts': [('Bacteria',
-        30),
-        ('Bacteria.update',
-         46)],
-        'first-line': 51L,
-        'folded-linenos': [],
-        'sel-line': 51L,
-        'sel-line-start': 1436L,
-        'selection_end': 1476L,
-        'selection_start': 1469L,
-        'zoom': 0L},
-                       loc('barnes_hut.py'): {'attrib-starts': [],
-        'first-line': 21L,
-        'folded-linenos': [],
-        'sel-line': 27L,
-        'sel-line-start': 1177L,
-        'selection_end': 1225L,
-        'selection_start': 1201L,
-        'zoom': 0L},
                        loc('chaos_book/Rossler/CycleStability.py'): {'attrib'\
         '-starts': [],
         'first-line': 0L,
@@ -1729,16 +1267,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'selection_end': 9069L,
         'selection_start': 9059L,
         'zoom': 0L},
-                       loc('chaos_book/hw1Rossler/README.md'): {'attrib-star'\
-        'ts': [],
-        'code-line': '# Homework for week 1 -- Rossler\r\n',
-        'first-line': 0L,
-        'folded-linenos': [],
-        'sel-line': 0L,
-        'sel-line-start': 0L,
-        'selection_end': 405L,
-        'selection_start': 0L,
-        'zoom': 0L},
                        loc('duffing.py'): {'attrib-starts': [('duffing',
         22)],
         'first-line': 29L,
@@ -1763,16 +1291,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'sel-line-start': 5390L,
         'selection_end': 5412L,
         'selection_start': 5412L,
-        'zoom': 0L},
-                       loc('lbmFlowAroundCylinder.py'): {'attrib-starts': [('v'\
-        'isualize_velocity',
-        122)],
-        'first-line': 150L,
-        'folded-linenos': [],
-        'sel-line': 137L,
-        'sel-line-start': 4723L,
-        'selection_end': 4731L,
-        'selection_start': 4731L,
         'zoom': 0L},
                        loc('lorentz.py'): {'attrib-starts': [],
         'first-line': 0L,
@@ -1805,14 +1323,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'sel-line-start': 645L,
         'selection_end': 667L,
         'selection_start': 645L,
-        'zoom': 0L},
-                       loc('parityRule.py'): {'attrib-starts': [],
-        'first-line': 23L,
-        'folded-linenos': [],
-        'sel-line': 51L,
-        'sel-line-start': 1755L,
-        'selection_end': 1756L,
-        'selection_start': 1756L,
         'zoom': 0L},
                        loc('parityRuleSolution.py'): {'attrib-starts': [],
         'first-line': 0L,
@@ -1856,15 +1366,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'selection_end': 1290L,
         'selection_start': 1284L,
         'zoom': 0L},
-                       loc('strogatz/README.md'): {'attrib-starts': [],
-        'code-line': '# Dynamics\r\n',
-        'first-line': 0L,
-        'folded-linenos': [],
-        'sel-line': 0L,
-        'sel-line-start': 0L,
-        'selection_end': 727L,
-        'selection_start': 0L,
-        'zoom': 0L},
                        loc('strogatz_10_6_1.py'): {'attrib-starts': [],
         'first-line': 26L,
         'folded-linenos': [],
@@ -1872,14 +1373,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'sel-line-start': 1076L,
         'selection_end': 1101L,
         'selection_start': 1101L,
-        'zoom': 0L},
-                       loc('strogatz_6_1.py'): {'attrib-starts': [],
-        'first-line': 0L,
-        'folded-linenos': [],
-        'sel-line': 16L,
-        'sel-line-start': 718L,
-        'selection_end': 735L,
-        'selection_start': 735L,
         'zoom': 0L},
                        loc('strogatz_6_1_1.py'): {'attrib-starts': [],
         'first-line': 42L,
@@ -1913,14 +1406,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'selection_end': 735L,
         'selection_start': 735L,
         'zoom': 0L},
-                       loc('strogatz_6_5_19.py'): {'attrib-starts': [],
-        'first-line': 5L,
-        'folded-linenos': [],
-        'sel-line': 16L,
-        'sel-line-start': 718L,
-        'selection_end': 735L,
-        'selection_start': 735L,
-        'zoom': 0L},
                        loc('strogatz_6_6_1.py'): {'attrib-starts': [],
         'first-line': 0L,
         'folded-linenos': [],
@@ -1937,14 +1422,6 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'selection_end': 417L,
         'selection_start': 380L,
         'zoom': 0L},
-                       loc('trafficLights.py'): {'attrib-starts': [],
-        'first-line': 88L,
-        'folded-linenos': [],
-        'sel-line': 127L,
-        'sel-line-start': 3401L,
-        'selection_end': 3420L,
-        'selection_start': 3420L,
-        'zoom': 0L},
                        loc('utilities.py'): {'attrib-starts': [('direct_sphe'\
         're',
         17)],
@@ -1955,6 +1432,12 @@ guimgr.visual-state = {loc('../../../Anaconda3/Lib/site-packages/scipy/optimize/
         'selection_end': 744L,
         'selection_start': 713L,
         'zoom': 0L}}
+proj.build-cmd = {None: ('default',
+                         None)}
+proj.env-vars = {None: ('default',
+                        [u''])}
+proj.pyexec = {None: ('custom',
+                      u'C:\\Users\\Simon\\Anaconda3\\Scripts\\wrap_anaconda.bat')}
 search.search-history = [u'COMPL',
                          u'comple',
                          u'3',
