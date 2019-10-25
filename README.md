@@ -14,7 +14,7 @@
 ## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
 || Name | Description |
-|---|------------------|----------------------------------------------------------| 
+|--:|------------------|----------------------------------------------------------| 
 |6| exercise_6_1.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_2.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_3.py |Plot phase portraits for a number of ODEs|
