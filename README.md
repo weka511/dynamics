@@ -18,7 +18,7 @@
 | exercise_6_1.py |Plot phase portraits for a number of ODEs|
 | exercise_6_2.py |Plot phase portraits for a number of ODEs|
 | exercise_6_3.py |Plot phase portraits for a number of ODEs|
-| exercise_6_3_10.py ||
+| exercise_6_3_10.py |Phase portrait |
 | exercise_6_4.py |Plot phase portraits for a number of ODEs|
 | exercise_5_19.py |Plot phase portraits for a number of ODEs|
 | exercise_10_6.py |Bifurcations|

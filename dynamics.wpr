@@ -43,7 +43,7 @@ debug.show-args-dialog = {loc('barnes_hut.py'): False,
                           loc('rki.py'): False,
                           loc('roessler.py'): False,
                           loc('test.py'): False,
-                          loc('unknown:<untitled> #5'): False}
+                          loc('unknown:<untitled> #20'): False}
 edit.file-encoding = {loc('README.md'): 'utf_8'}
 guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                             'windows': [{'name': 'dtaAtJloNhSft7SabFzspl0xqE'\
@@ -276,127 +276,17 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                       {'last-percent': 0.8,
                        'toolbox-percent': 1.0,
                        'toolbox-tree-sel': ''})],
-        'primary_view_state': {'editor_states': ({'bookmarks': ([[loc('phase.py'),
-        {'attrib-starts': [('generate|0|',
-                            85)],
-         'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-'\
-                      '10,xmax=10,ymin=-10,ymax=10):\r\n',
-         'first-line': 84L,
+        'primary_view_state': {'editor_states': ({'bookmarks': ([[loc('strogatz/exercise_6_3_10.py'),
+        {'attrib-starts': [],
+         'code-line': 'xs   = np.arange(-1, 1, 0.1)\r\n',
+         'first-line': 0L,
          'folded-linenos': [],
-         'sel-line': 85L,
-         'sel-line-start': 3224L,
-         'selection_end': 3236L,
-         'selection_start': 3228L,
+         'sel-line': 6L,
+         'sel-line-start': 93L,
+         'selection_end': 98L,
+         'selection_start': 98L,
          'zoom': 0L},
-        1571956083.741],
-        [loc('strogatz/exercise_6_3_10.py'),
-         {'attrib-starts': [],
-          'code-line': 'X, Y = np.mashgrid(xs,ys)\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 5L,
-          'sel-line-start': 111L,
-          'selection_end': 135L,
-          'selection_start': 135L,
-          'zoom': 0L},
-         1571956103.163],
-        [loc('phase.py'),
-         {'attrib-starts': [('generate|0|',
-                             85)],
-          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
-                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
-          'first-line': 84L,
-          'folded-linenos': [],
-          'sel-line': 85L,
-          'sel-line-start': 3224L,
-          'selection_end': 3236L,
-          'selection_start': 3228L,
-          'zoom': 0L},
-         1571956116.345],
-        [loc('strogatz/exercise_6_3_10.py'),
-         {'attrib-starts': [('f|0|',
-                             3)],
-          'code-line': '    \r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 4L,
-          'sel-line-start': 68L,
-          'selection_end': 72L,
-          'selection_start': 72L,
-          'zoom': 0L},
-         1571956130.526],
-        [loc('phase.py'),
-         {'attrib-starts': [('generate|0|',
-                             85)],
-          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
-                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
-          'first-line': 84L,
-          'folded-linenos': [],
-          'sel-line': 85L,
-          'sel-line-start': 3224L,
-          'selection_end': 3236L,
-          'selection_start': 3228L,
-          'zoom': 0L},
-         1571956135.003],
-        [loc('strogatz/exercise_6_3_10.py'),
-         {'attrib-starts': [],
-          'code-line': 'import numpy as np\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 1L,
-          'sel-line-start': 33L,
-          'selection_end': 51L,
-          'selection_start': 51L,
-          'zoom': 0L},
-         1571956174.534],
-        [loc('phase.py'),
-         {'attrib-starts': [('generate|0|',
-                             85)],
-          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
-                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
-          'first-line': 84L,
-          'folded-linenos': [],
-          'sel-line': 85L,
-          'sel-line-start': 3224L,
-          'selection_end': 3236L,
-          'selection_start': 3228L,
-          'zoom': 0L},
-         1571956183.504],
-        [loc('strogatz/exercise_6_3_10.py'),
-         {'attrib-starts': [],
-          'code-line': 'import numpy as np\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 1L,
-          'sel-line-start': 33L,
-          'selection_end': 51L,
-          'selection_start': 51L,
-          'zoom': 0L},
-         1571956188.948],
-        [loc('phase.py'),
-         {'attrib-starts': [('generate|0|',
-                             85)],
-          'code-line': 'def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin='\
-                       '-10,xmax=10,ymin=-10,ymax=10):\r\n',
-          'first-line': 84L,
-          'folded-linenos': [],
-          'sel-line': 85L,
-          'sel-line-start': 3224L,
-          'selection_end': 3236L,
-          'selection_start': 3228L,
-          'zoom': 0L},
-         1571956191.413],
-        [loc('strogatz/exercise_6_3_10.py'),
-         {'attrib-starts': [],
-          'code-line': 'xs   = np.arange(-1, 1, 0.1)\r\n',
-          'first-line': 0L,
-          'folded-linenos': [],
-          'sel-line': 6L,
-          'sel-line-start': 93L,
-          'selection_end': 98L,
-          'selection_start': 98L,
-          'zoom': 0L},
-         1571956219.618],
+        1571956219.618],
         [loc('strogatz/strogatz_6_1.py'),
          {'attrib-starts': [],
           'code-line': 'X,Y,U,V,_=phase.generate(f=lambda x,y:(x*(x-y),y*(2*'\
@@ -515,87 +405,147 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
           'selection_end': 150L,
           'selection_start': 150L,
           'zoom': 0L},
-         1571957023.83]],
+         1571957023.83],
+        [loc('README.md'),
+         {'attrib-starts': [],
+          'code-line': '| exercise_10_6.py |Bifurcations|\r\n',
+          'first-line': 10L,
+          'folded-linenos': [],
+          'sel-line': 23L,
+          'sel-line-start': 1162L,
+          'selection_end': 1172L,
+          'selection_start': 1172L,
+          'zoom': 0L},
+         1571969372.225],
+        [loc('strogatz/strogatz_6_1.py'),
+         {'attrib-starts': [],
+          'code-line': '',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 0L,
+          'sel-line-start': 0L,
+          'selection_end': 0L,
+          'selection_start': 0L,
+          'zoom': 0L},
+         1571969374.206],
+        [loc('README.md'),
+         {'attrib-starts': [],
+          'code-line': '| exercise_10_6.py |Bifurcations|\r\n',
+          'first-line': 10L,
+          'folded-linenos': [],
+          'sel-line': 23L,
+          'sel-line-start': 1162L,
+          'selection_end': 1172L,
+          'selection_start': 1172L,
+          'zoom': 0L},
+         1571969375.72],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': "plt.title('Exercise 6.3.10')\r\n",
+          'first-line': 9L,
+          'folded-linenos': [],
+          'sel-line': 27L,
+          'sel-line-start': 603L,
+          'selection_end': 627L,
+          'selection_start': 627L,
+          'zoom': 0L},
+         1571971111.803],
+        [loc('README.md'),
+         {'attrib-starts': [],
+          'code-line': '|#| File | Remarks|\r\n',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 4L,
+          'sel-line-start': 112L,
+          'selection_end': 112L,
+          'selection_start': 112L,
+          'zoom': 0L},
+         1571971159.556],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': "plt.quiver(X,Y,U,V,angles='xy',units='xy',   color='"\
+                       "blue', label='Normalized derivatives')\r\n",
+          'first-line': 9L,
+          'folded-linenos': [],
+          'sel-line': 25L,
+          'sel-line-start': 602L,
+          'selection_end': 679L,
+          'selection_start': 679L,
+          'zoom': 0L},
+         1571971600.016],
+        [loc('bacteria.py'),
+         {'attrib-starts': [],
+          'code-line': '',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 0L,
+          'sel-line-start': 0L,
+          'selection_end': 0L,
+          'selection_start': 0L,
+          'zoom': 0L},
+         1571971601.888],
+        [loc('strogatz/exercise_6_3_10.py'),
+         {'attrib-starts': [],
+          'code-line': "plt.quiver(X,Y,U,V,angles='xy',units='xy',   color='"\
+                       "blue', label='Normalized derivatives')\r\n",
+          'first-line': 9L,
+          'folded-linenos': [],
+          'sel-line': 25L,
+          'sel-line-start': 602L,
+          'selection_end': 679L,
+          'selection_start': 679L,
+          'zoom': 0L},
+         1571971604.056],
+        [loc('phase.py'),
+         {'attrib-starts': [],
+          'code-line': '# Copyright (C) 2017-2018 Greenweaves Software Pty L'\
+                       'td\r\n',
+          'first-line': 0L,
+          'folded-linenos': [],
+          'sel-line': 0L,
+          'sel-line-start': 0L,
+          'selection_end': 699L,
+          'selection_start': 0L,
+          'zoom': 0L},
+         1571971615.444]],
         20),
-        'current-loc': loc('README.md'),
-        'editor-state-list': [(loc('bacteria.py'),
-                               {'attrib-starts': [('Bacteria|0|',
-        30),
-        ('Bacteria|0|.update|0|',
-         46)],
-                                'code-line': '            if random.random()'\
-        ' < ???????:\r\n',
-                                'first-line': 41L,
-                                'folded-linenos': [],
-                                'sel-line': 51L,
-                                'sel-line-start': 1436L,
-                                'selection_end': 1476L,
-                                'selection_start': 1469L,
-                                'zoom': 0L}),
-                              (loc('strogatz/exercise_6_3_10.py'),
+        'current-loc': loc('strogatz/exercise_6_3_10.py'),
+        'editor-state-list': [(loc('strogatz/exercise_6_3_10.py'),
                                {'attrib-starts': [],
-                                'code-line': 'ys   = np.arange(-1, 1, 0.1)\r'\
-        '\n',
-                                'first-line': 0L,
+                                'code-line': "plt.quiver(X,Y,U,V,angles='xy'"\
+        ",units='width',   color='blue', label='Normalized derivatives', piv"\
+        "ot='tail')\r\n",
+                                'first-line': 25L,
                                 'folded-linenos': [],
-                                'sel-line': 7L,
-                                'sel-line-start': 124L,
-                                'selection_end': 150L,
-                                'selection_start': 150L,
+                                'sel-line': 40L,
+                                'sel-line-start': 1302L,
+                                'selection_end': 1408L,
+                                'selection_start': 1408L,
                                 'zoom': 0L}),
                               (loc('phase.py'),
-                               {'attrib-starts': [('plot_phase_portrait|0|',
-        116)],
-                                'code-line': "def plot_phase_portrait(X,Y,U,"\
-        "V,fixed,title='',suptitle=''):\r\n",
-                                'first-line': 131L,
-                                'folded-linenos': [],
-                                'sel-line': 116L,
-                                'sel-line-start': 4236L,
-                                'selection_end': 4259L,
-                                'selection_start': 4240L,
-                                'zoom': 0L}),
-                              (loc('README.md'),
                                {'attrib-starts': [],
-                                'code-line': '| exercise_10_6.py |Bifurcatio'\
-        'ns|\r\n',
-                                'first-line': 10L,
+                                'code-line': '# Copyright (C) 2017-2018 Gree'\
+        'nweaves Software Pty Ltd\r\n',
+                                'first-line': 0L,
                                 'folded-linenos': [],
-                                'sel-line': 23L,
-                                'sel-line-start': 1162L,
-                                'selection_end': 1172L,
-                                'selection_start': 1172L,
-                                'zoom': 0L}),
-                              (loc('strogatz/strogatz_6_1.py'),
-                               {'attrib-starts': [],
-                                'code-line': 'X,Y,U,V,_=phase.generate(f=lam'\
-        'bda x,y:(x*(x-y),y*(2*x-y)))\r\n',
-                                'first-line': 8L,
-                                'folded-linenos': [],
-                                'sel-line': 28L,
-                                'sel-line-start': 1210L,
-                                'selection_end': 1234L,
-                                'selection_start': 1226L,
+                                'sel-line': 0L,
+                                'sel-line-start': 0L,
+                                'selection_end': 699L,
+                                'selection_start': 0L,
                                 'zoom': 0L})],
         'has-focus': True,
         'locked': False},
-        [loc('bacteria.py'),
-         loc('strogatz/exercise_6_3_10.py'),
-         loc('phase.py'),
-         loc('README.md'),
-         loc('strogatz/strogatz_6_1.py')]),
-                               'open_files': [u'bacteria.py',
-        u'strogatz/strogatz_6_1.py',
-        u'phase.py',
-        u'strogatz/exercise_6_3_10.py',
-        u'README.md']},
+        [loc('strogatz/exercise_6_3_10.py'),
+         loc('phase.py')]),
+                               'open_files': [u'phase.py',
+        u'strogatz/exercise_6_3_10.py']},
         'saved_notebook_display': None,
         'split_percents': {0: 0.5},
         'splits': 2,
         'tab_location': 'top',
         'traversal_pos': ((0,
                            3),
-                          1571956302.923),
+                          1571971149.479),
         'user_data': {}},
                  'saved_notebook_display': None,
                  'split_percents': {},
@@ -605,14 +555,12 @@ guimgr.overall-gui-state = {'windowing-policy': 'combined-window',
                                     0),
                                    1571634354.479),
                  'user_data': {}},
-        'window-alloc': (0,
+        'window-alloc': (1,
                          1,
-                         1378,
-                         749)}]}
-guimgr.recent-documents = [loc('README.md'),
-                           loc('strogatz/exercise_6_3_10.py'),
-                           loc('phase.py'),
-                           loc('strogatz/strogatz_6_1.py')]
+                         1364,
+                         736)}]}
+guimgr.recent-documents = [loc('strogatz/exercise_6_3_10.py'),
+                           loc('phase.py')]
 guimgr.visual-state = {loc('../Anaconda3/Lib/site-packages/numpy/_distributor_init.py'): {'a'\
         'ttrib-starts': [],
         'code-line': '    from . import _mklinit\n',
@@ -639,16 +587,14 @@ guimgr.visual-state = {loc('../Anaconda3/Lib/site-packages/numpy/_distributor_in
         'selection_end': 0L,
         'selection_start': 0L,
         'zoom': 0L},
-                       loc('bacteria.py'): {'attrib-starts': [('Bacteria',
-        30),
-        ('Bacteria.update',
-         46)],
-        'first-line': 51L,
+                       loc('bacteria.py'): {'attrib-starts': [],
+        'code-line': '',
+        'first-line': 0L,
         'folded-linenos': [],
-        'sel-line': 51L,
-        'sel-line-start': 1436L,
-        'selection_end': 1476L,
-        'selection_start': 1469L,
+        'sel-line': 0L,
+        'sel-line-start': 0L,
+        'selection_end': 0L,
+        'selection_start': 0L,
         'zoom': 0L},
                        loc('barnes_hut.py'): {'attrib-starts': [],
         'first-line': 21L,
@@ -917,283 +863,13 @@ guimgr.visual-state = {loc('../Anaconda3/Lib/site-packages/numpy/_distributor_in
         'selection_start': 0L,
         'zoom': 0L},
                        loc('README.md'): {'attrib-starts': [],
-        'code-line': '\xe2\x80\xa3\xe7\xa5\x84\xe6\x85\xae\xe6\xa5\xad\xe7\x8d'\
-                     '\xa3\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe4\x8c\xa0\xe6'\
-                     '\x91\xaf\xe2\x81\xa5\xe7\x89\xb7\xe7\x91\xa9\xe6\x95\xb4'\
-                     '\xe2\x81\xae\xe6\xbd\xb4\xe6\x84\xa0\xe6\x8d\xa3\xe6\xb5'\
-                     '\xaf\xe6\x85\xb0\xe7\xa5\xae\xe2\x80\xa0\xe4\x8d\x9b\xe6'\
-                     '\x85\xa8\xe7\x8d\xaf\xe4\x88\xa0\xe6\xbd\xaf\xe5\xb5\xab'\
-                     '\xe6\xa0\xa8\xe7\x91\xb4\xe3\xa9\xb0\xe2\xbc\xaf\xe6\xa1'\
-                     '\xa3\xe6\xbd\xa1\xe6\x89\xb3\xe6\xbd\xaf\xe2\xb9\xab\xe7'\
-                     '\x89\xaf\xe2\xbd\xa7\xe2\x80\xa9\xe7\xa5\xa2\xe5\x80\xa0'\
-                     '\xe6\x95\xb2\xe7\x89\xa4\xe6\x9d\xa1\xe4\x8c\xa0\xe6\xa5'\
-                     '\xb6\xe6\x85\xb4\xe6\xbd\xae\xe6\xa5\xb6\xe8\x9f\x84\xe6'\
-                     '\x94\xa0\xe2\x81\xb4\xe6\xb1\xa1\xe0\xa8\x8d\xe0\xa8\x8d'\
-                     '\xe2\x8d\xbc\xe2\x81\xbc\xe6\xa5\x86\xe6\x95\xac\xe7\xb0'\
-                     '\xa0\xe5\x88\xa0\xe6\xb5\xa5\xe7\x89\xa1\xe7\x8d\xab\xe0'\
-                     '\xb5\xbc\xe7\xb0\x8a\xe2\xb4\xad\xe2\xb5\xbc\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb5\xbc\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0'\
-                     '\xb1\xe7\xa5\x83\xe6\xb1\xa3\xe5\x8d\xa5\xe6\x85\xb4\xe6'\
-                     '\xa5\xa2\xe6\xa5\xac\xe7\xa5\xb4\xe7\x80\xae\xe7\xb1\xb9'\
-                     '\xe0\xb5\xbc\xe7\xb0\x8a\xe7\xb0\xb1\xe6\x95\x8e\xe7\x91'\
-                     '\xb7\xe6\xb9\xaf\xe7\x80\xae\xe7\xb1\xb9\xe0\xb5\xbc\xe7'\
-                     '\xb0\x8a\xe7\xb0\xb1\xe6\xbd\x90\xe6\xb9\xa9\xe6\x85\xa3'\
-                     '\xe6\x95\xb2\xe7\x80\xae\xe7\xb1\xb9\xe3\x85\x91\xe3\x94'\
-                     '\xae\xe5\x80\xa0\xe6\xa5\xaf\xe6\x8d\xae\xe7\x89\xa1\xea'\
-                     '\xa7\x83\xe7\x8c\xa0\xe6\x8d\xa5\xe6\xa5\xb4\xe6\xb9\xaf'\
-                     '\xe2\x81\xb3\xe6\xb9\xa1\xe2\x81\xa4\xe6\x95\xb2\xe7\x95'\
-                     '\xb4\xe6\xb9\xb2\xe6\xb4\xa0\xe7\x81\xa1\xe2\x81\xb3\xe6'\
-                     '\x99\xaf\xe7\x90\xa0\xe6\x95\xa8\xe5\x88\xa0\xeb\x9b\x83'\
-                     '\xe7\x8d\xb3\xe6\x95\xac\xe2\x81\xb2\xe7\xa5\xb3\xe7\x91'\
-                     '\xb3\xe6\xb5\xa5\xe7\xb0\xa0\xe0\xa8\x8d\xe3\x85\xbc\xe5'\
-                     '\x89\xbc\xe7\x8d\xaf\xe6\xb1\xb3\xe7\x89\xa5\xe7\x80\xae'\
-                     '\xe7\xb1\xb9\xe3\x85\x91\xe3\x90\xae\xe4\xa4\xa0\xe7\x91'\
-                     '\xae\xe6\x9d\xa5\xe6\x85\xb2\xe6\xa5\xb4\xe6\x9d\xae\xe5'\
-                     '\x88\xa0\xeb\x9b\x83\xe7\x8d\xb3\xe6\x95\xac\xe2\x81\xb2'\
-                     '\xe7\xa5\xb3\xe7\x91\xb3\xe6\xb5\xa5\xe0\xb5\xbc\xe7\xb0'\
-                     '\x8a\xe7\xb0\xb1\xe7\x95\x92\xe6\x9d\xae\xe4\xad\xa5\xe7'\
-                     '\x91\xb5\xe6\x85\xb4\xe7\x80\xae\xe7\xb1\xb9\xe3\x85\x91'\
-                     '\xe3\x8c\xae\xe5\x88\xa0\xe6\xb9\xb5\xe6\x95\xa7\xe4\xac'\
-                     '\xad\xe7\x91\xb5\xe6\x85\xb4\xe6\xa4\xa0\xe7\x91\xae\xe6'\
-                     '\x9d\xa5\xe6\x85\xb2\xe6\xa5\xb4\xe6\xb9\xaf\xe0\xb5\xbc'\
-                     '\xe7\xb0\x8a\xe7\xb0\xb1\xe7\x91\x93\xe6\x89\xa1\xe6\xb1'\
-                     '\xa9\xe7\x91\xa9\xe2\xb9\xb9\xe7\xa5\xb0\xe7\xb1\xbc\xe0'\
-                     '\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3\xe5\xac\xa0\xe6\xbd\x8e'\
-                     '\xe2\x81\xae\xe6\xa5\x8c\xe6\x95\xae\xe7\x89\xa1\xe4\x90'\
-                     '\xa0\xe6\xb9\xb9\xe6\xb5\xa1\xe6\x8d\xa9\xe2\x81\xb3\xe6'\
-                     '\xb9\xa1\xe2\x81\xa4\xe6\xa1\x83\xe6\xbd\xa1\xe2\x81\xb3'\
-                     '\xe6\xa5\xb7\xe6\xa1\xb4\xe4\x84\xa0\xe7\x81\xb0\xe6\xa5'\
-                     '\xac\xe6\x85\xa3\xe6\xa5\xb4\xe6\xb9\xaf\xe2\xb1\xb3\xe3'\
-                     '\x88\xa0\xe6\x91\xae\xe4\x94\xa0\xe6\xa5\xa4\xe6\xa5\xb4'\
-                     '\xe6\xb9\xaf\xe2\xa1\x9d\xe7\x91\xa8\xe7\x81\xb4\xe2\xbc'\
-                     '\xba\xe7\x9c\xaf\xe7\x9d\xb7\xe7\x8c\xae\xe6\x95\xb4\xe6'\
-                     '\x95\xb6\xe7\x8d\xae\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1'\
-                     '\xe2\xb9\xba\xe6\xbd\xa3\xe2\xbd\xad\xe6\xbd\xa2\xe6\xad'\
-                     '\xaf\xe2\xbd\xb3\xe6\xbd\xae\xe6\xb1\xae\xe6\xb9\xa9\xe6'\
-                     '\x85\xa5\xe2\xb5\xb2\xe7\xa5\xa4\xe6\x85\xae\xe6\xa5\xad'\
-                     '\xe7\x8d\xa3\xe6\x84\xad\xe6\x91\xae\xe6\x8c\xad\xe6\x85'\
-                     '\xa8\xe7\x8d\xaf\xe7\x9c\xad\xe7\x91\xa9\xe2\xb5\xa8\xe7'\
-                     '\x81\xa1\xe6\xb1\xb0\xe6\x8d\xa9\xe7\x91\xa1\xe6\xbd\xa9'\
-                     '\xe7\x8d\xae\xe7\x90\xad\xe2\xb5\xaf\xe6\xa1\xb0\xe7\x8d'\
-                     '\xb9\xe6\x8d\xa9\xe2\xb5\xb3\xe6\xa5\xa2\xe6\xb1\xaf\xe6'\
-                     '\x9d\xaf\xe2\xb5\xb9\xe6\xa1\xa3\xe6\xb5\xa5\xe7\x8d\xa9'\
-                     '\xe7\x89\xb4\xe2\xb5\xb9\xe6\xb9\xa1\xe2\xb5\xa4\xe6\xb9'\
-                     '\xa5\xe6\xa5\xa7\xe6\x95\xae\xe7\x89\xa5\xe6\xb9\xa9\xe2'\
-                     '\xa5\xa7\xe6\x88\xa0\xe2\x81\xb9\xe7\x91\x93\xe7\x99\xa5'\
-                     '\xe2\x81\xa5\xe7\x91\x93\xe6\xbd\xb2\xe6\x85\xa7\xe7\xa9'\
-                     '\xb4\xe0\xb4\xae\xe0\xb4\x8a\xe7\xb0\x8a\xe4\xb8\xa0\xe6'\
-                     '\xb5\xa1\xe2\x81\xa5\xe2\x81\xbc\xe6\x95\x84\xe6\x8d\xb3'\
-                     '\xe6\xa5\xb2\xe7\x91\xb0\xe6\xbd\xa9\xe2\x81\xae\xe0\xb5'\
-                     '\xbc\xe7\xb0\x8a\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe7\xb0\xad\xe0\xb4\xa0\xe7\xb0'\
-                     '\x8a\xe7\x8c\xa0\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe5'\
-                     '\xbd\xba\xe5\xbc\xb6\xe2\xb8\xb1\xe7\xa5\xb0\xe7\xb0\xa0'\
-                     '\xe6\xb1\x90\xe7\x91\xaf\xe7\x80\xa0\xe6\x85\xa8\xe6\x95'\
-                     '\xb3\xe7\x80\xa0\xe7\x89\xaf\xe7\x89\xb4\xe6\xa5\xa1\xe7'\
-                     '\x8d\xb4\xe6\x98\xa0\xe7\x89\xaf\xe6\x84\xa0\xe6\xb8\xa0'\
-                     '\xe6\xb5\xb5\xe6\x95\xa2\xe2\x81\xb2\xe6\x99\xaf\xe4\xbc'\
-                     '\xa0\xe4\x95\x84\xe7\xb1\xb3\xe0\xa8\x8d\xe2\x81\xbc\xe7'\
-                     '\x91\xb3\xe6\xbd\xb2\xe6\x85\xa7\xe7\xa9\xb4\xe3\x99\x9f'\
-                     '\xe3\x89\x9f\xe7\x80\xae\xe2\x81\xb9\xe5\x81\xbc\xe6\xbd'\
-                     '\xac\xe2\x81\xb4\xe6\xa1\xb0\xe7\x8d\xa1\xe2\x81\xa5\xe6'\
-                     '\xbd\xb0\xe7\x91\xb2\xe6\x85\xb2\xe7\x91\xa9\xe2\x81\xb3'\
-                     '\xe6\xbd\xa6\xe2\x81\xb2\xe2\x81\xa1\xe7\x95\xae\xe6\x89'\
-                     '\xad\xe7\x89\xa5\xe6\xbc\xa0\xe2\x81\xa6\xe4\x91\x8f\xe7'\
-                     '\x8d\x85\xe0\xb5\xbc\xe7\xb0\x8a\xe7\x8c\xa0\xe7\x89\xb4'\
-                     '\xe6\x9d\xaf\xe7\x91\xa1\xe5\xbd\xba\xe5\xbc\xb6\xe2\xb8'\
-                     '\xb3\xe7\xa5\xb0\xe7\xb0\xa0\xe6\xb1\x90\xe7\x91\xaf\xe7'\
-                     '\x80\xa0\xe6\x85\xa8\xe6\x95\xb3\xe7\x80\xa0\xe7\x89\xaf'\
-                     '\xe7\x89\xb4\xe6\xa5\xa1\xe7\x8d\xb4\xe6\x98\xa0\xe7\x89'\
-                     '\xaf\xe6\x84\xa0\xe6\xb8\xa0\xe6\xb5\xb5\xe6\x95\xa2\xe2'\
-                     '\x81\xb2\xe6\x99\xaf\xe4\xbc\xa0\xe4\x95\x84\xe7\xb1\xb3'\
-                     '\xe0\xa8\x8d\xe2\x81\xbc\xe7\x91\xb3\xe6\xbd\xb2\xe6\x85'\
-                     '\xa7\xe7\xa9\xb4\xe3\x99\x9f\xe3\x91\x9f\xe7\x80\xae\xe2'\
-                     '\x81\xb9\xe5\x81\xbc\xe6\xbd\xac\xe2\x81\xb4\xe6\xa1\xb0'\
-                     '\xe7\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2\xe6\x85'\
-                     '\xb2\xe7\x91\xa9\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2\xe2'\
-                     '\x81\xa1\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe6\xbc\xa0'\
-                     '\xe2\x81\xa6\xe4\x91\x8f\xe7\x8d\x85\xe0\xb5\xbc\xe7\xb0'\
-                     '\x8a\xe7\x8c\xa0\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe5'\
-                     '\xbd\xba\xe5\xbc\xb5\xe3\xa4\xb1\xe7\x80\xae\xe2\x81\xb9'\
-                     '\xe5\x81\xbc\xe6\xbd\xac\xe2\x81\xb4\xe6\xa1\xb0\xe7\x8d'\
-                     '\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2\xe6\x85\xb2\xe7'\
-                     '\x91\xa9\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81\xb2\xe2\x81\xa1'\
-                     '\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe6\xbc\xa0\xe2\x81'\
-                     '\xa6\xe4\x91\x8f\xe7\x8d\x85\xe0\xb5\xbc\xe7\xb0\x8a\xe7'\
-                     '\x8c\xa0\xe7\x89\xb4\xe6\x9d\xaf\xe7\x91\xa1\xe5\xbd\xba'\
-                     '\xe3\x80\xb1\xe3\x99\x9f\xe7\x80\xae\xe2\x81\xb9\xe4\x89'\
-                     '\xbc\xe6\x99\xa9\xe7\x89\xb5\xe6\x85\xa3\xe6\xa5\xb4\xe6'\
-                     '\xb9\xaf\xe7\xb1\xb3\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x8c\xa3'\
-                     '\xe4\xbc\xa0\xe6\xa1\xb4\xe7\x89\xa5\xe0\xa8\x8d\xe0\xa8'\
-                     '\x8d\xe2\x81\xbc\xe6\x85\x8e\xe6\x95\xad\xe7\xb0\xa0\xe4'\
-                     '\x90\xa0\xe7\x8d\xa5\xe7\x89\xa3\xe7\x81\xa9\xe6\xa5\xb4'\
-                     '\xe6\xb9\xaf\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe7\xb0\xa0\xe2\xb4'\
-                     '\xa0\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe7\xb0\xad\xe0\xa8\x8d\xe2\x81\xbc\xe7\x95\xa4\xe6\x99'\
-                     '\xa6\xe6\xb9\xa9\xe2\xb9\xa7\xe7\xa5\xb0\xe2\x80\xa0\xe2'\
-                     '\x81\xbc\xe6\xb1\x90\xe7\x91\xaf\xe7\x8c\xa0\xe6\xb1\xaf'\
-                     '\xe7\x91\xb5\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xa0\xe2\x81'\
-                     '\xaf\xe7\x95\x84\xe6\x99\xa6\xe6\xb9\xa9\xe2\x9d\xa7\xe2'\
-                     '\x81\xb3\xe7\x85\xa5\xe6\x85\xb5\xe6\xa5\xb4\xe6\xb9\xaf'\
-                     '\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\xbd\xac\xe6\x95'\
-                     '\xb2\xe7\xa9\xae\xe7\x80\xae\xe2\x81\xb9\xe2\x80\xa0\xe2'\
-                     '\x81\xbc\xe6\xb1\x90\xe7\x91\xaf\xe7\x8c\xa0\xe6\xb1\xaf'\
-                     '\xe7\x91\xb5\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xa0\xe2\x81'\
-                     '\xaf\xe6\xbd\x8c\xe6\x95\xb2\xe7\xa9\xae\xe4\x94\xa0\xe7'\
-                     '\x95\xb1\xe7\x91\xa1\xe6\xbd\xa9\xe2\x81\xae\xe0\xb5\xbc'\
-                     '\xe7\xb0\x8a\xe7\x80\xa0\xe6\x85\xa8\xe6\x95\xb3\xe7\x80'\
-                     '\xae\xe2\x81\xb9\xe2\x80\xa0\xe7\xb0\xa0\xe4\xa0\xa0\xe6'\
-                     '\xb1\xa5\xe6\x95\xb0\xe2\x81\xb2\xe7\x95\xa6\xe6\x8d\xae'\
-                     '\xe6\xa5\xb4\xe6\xb9\xaf\xe2\x81\xb3\xe6\xbd\xa6\xe2\x81'\
-                     '\xb2\xe7\x89\xa4\xe7\x9d\xa1\xe6\xb9\xa9\xe2\x81\xa7\xe6'\
-                     '\xa1\xb0\xe7\x8d\xa1\xe2\x81\xa5\xe6\xbd\xb0\xe7\x91\xb2'\
-                     '\xe6\x85\xb2\xe7\x91\xa9\xe2\x81\xb3\xe0\xb5\xbc\xe7\xb0'\
-                     '\x8a\xe7\x88\xa0\xe3\x91\xab\xe7\x80\xae\xe2\x81\xb9\xe2'\
-                     '\x80\xa0\xe2\x80\xa0\xe7\xb0\xa0\xe4\x8c\xa0\xe6\x85\xac'\
-                     '\xe7\x8d\xb3\xe6\x8d\xa9\xe5\x88\xa0\xe6\xb9\xb5\xe6\x95'\
-                     '\xa7\xe4\xac\xa0\xe7\x91\xb5\xe6\x85\xb4\xe7\xb0\xa0\xe0'\
-                     '\xa8\x8d\xe2\x81\xbc\xe6\xad\xb2\xe2\xb9\xa9\xe7\xa5\xb0'\
-                     '\xe2\x80\xa0\xe2\x80\xa0\xe2\x80\xa0\xe2\x81\xbc\xe6\xb5'\
-                     '\x89\xe6\xb1\xb0\xe6\x8d\xa9\xe7\x91\xa9\xe5\x88\xa0\xe6'\
-                     '\xb9\xb5\xe6\x95\xa7\xe4\xac\xad\xe7\x91\xb5\xe6\x85\xb4'\
-                     '\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6\xbd\xb2\xe7\x8d'\
-                     '\xa5\xe6\xb1\xb3\xe7\x89\xa5\xe7\x80\xae\xe2\x81\xb9\xe2'\
-                     '\x81\xbc\xe6\xb1\x90\xe7\x91\xaf\xe7\x8c\xa0\xe6\xb1\xaf'\
-                     '\xe7\x91\xb5\xe6\xbd\xa9\xe7\x8d\xae\xe7\x90\xa0\xe2\x81'\
-                     '\xaf\xe6\xbd\x92\xe7\x8d\xa5\xe6\xb1\xb3\xe7\x89\xa5\xe4'\
-                     '\x94\xa0\xe7\x95\xb1\xe7\x91\xa1\xe6\xbd\xa9\xe2\x81\xae'\
-                     '\xe0\xb5\xbc\xe7\xb0\x8a\xe7\x94\xa0\xe6\xa5\xb4\xe6\xa5'\
-                     '\xac\xe6\xa5\xb4\xe7\x8d\xa5\xe7\x80\xae\xe2\x81\xb9\xe2'\
-                     '\x81\xbc\xe6\xa5\x8d\xe6\x8d\xb3\xe6\xb1\xa5\xe6\x85\xac'\
-                     '\xe6\x95\xae\xe7\x95\xaf\xe2\x81\xb3\xe6\x95\xa8\xe7\x81'\
-                     '\xac\xe7\x95\xa6\xe2\x81\xac\xe7\x95\xa6\xe6\x8d\xae\xe6'\
-                     '\xa5\xb4\xe6\xb9\xaf\xe2\x81\xb3\xe0\xb5\xbc\xe0\xb4\x8a'\
-                     '\xe0\xb4\x8a\xe0\xb4\x8a\xe2\x8c\x8a\xe2\x80\xa3\xe6\xa5'\
-                     '\x93\xe7\x95\xad\xe6\x85\xac\xe6\xa5\xb4\xe6\xb9\xaf\xe4'\
-                     '\x94\xa0\xe6\x95\xb8\xe6\x8d\xb2\xe7\x8d\xa9\xe7\x8d\xa5'\
-                     '\xe6\x98\xa0\xe6\xbd\xb2\xe2\x81\xad\xe5\x8d\x9b\xe6\xb5'\
-                     '\xa9\xe6\xb1\xb5\xe7\x91\xa1\xe6\xbd\xa9\xe2\x81\xae\xe6'\
-                     '\xb9\xa1\xe2\x81\xa4\xe6\xbd\xad\xe6\x95\xa4\xe6\xa5\xac'\
-                     '\xe6\x9d\xae\xe6\xbc\xa0\xe2\x81\xa6\xe6\x85\xae\xe7\x95'\
-                     '\xb4\xe6\x85\xb2\xe2\x81\xac\xe7\x89\xb0\xe6\x8d\xaf\xe7'\
-                     '\x8d\xa5\xe6\x95\xb3\xe5\xb5\xb3\xe6\xa0\xa8\xe7\x91\xb4'\
-                     '\xe7\x8d\xb0\xe2\xbc\xba\xe7\x9c\xaf\xe7\x9d\xb7\xe6\x8c'\
-                     '\xae\xe7\x95\xaf\xe7\x8d\xb2\xe7\x89\xa5\xe2\xb9\xa1\xe7'\
-                     '\x89\xaf\xe2\xbd\xa7\xe6\x95\xac\xe7\x89\xa1\xe2\xbd\xae'\
-                     '\xe6\xbd\xad\xe6\x95\xa4\xe6\xa5\xac\xe6\x9d\xae\xe7\x8c'\
-                     '\xad\xe6\xb5\xa9\xe6\xb1\xb5\xe7\x91\xa1\xe6\xbd\xa9\xe2'\
-                     '\xb5\xae\xe6\x85\xae\xe7\x95\xb4\xe6\x85\xb2\xe2\xb5\xac'\
-                     '\xe7\x89\xb0\xe6\x8d\xaf\xe7\x8d\xa5\xe6\x95\xb3\xe2\xbd'\
-                     '\xb3\xe6\xbd\xa8\xe6\x95\xad\xe6\xa4\xaf\xe6\x99\xae\xe2'\
-                     '\xa5\xaf\xe0\xa8\x8d\xe0\xa8\x8d\xe2\x81\xbc\xe6\xa5\x86'\
-                     '\xe6\x95\xac\xe7\xb0\xa0\xe4\x90\xa0\xe7\x8d\xa5\xe7\x89'\
-                     '\xa3\xe7\x81\xa9\xe6\xa5\xb4\xe6\xb9\xaf\xe7\xb0\xa0\xe0'\
-                     '\xa8\x8d\xe2\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb5\xbc\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4'\
-                     '\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2'\
-                     '\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad\xe2\xb4\xad'\
-                     '\xe2\xb4\xad\xe7\xb0\xad\xe0\xa8\x8d\xe2\x81\xbc\xe7\xa1'\
-                     '\xa5\xe5\xbc\xb2\xe6\xb9\xa9\xe6\x95\xb4\xe7\x89\xa7\xe7'\
-                     '\x91\xa1\xe7\x89\xaf\xe7\x80\xae\xe2\x81\xb9\xe2\x81\xbc'\
-                     '\xe6\xb9\x89\xe6\x95\xb4\xe7\x89\xa7\xe7\x91\xa1\xe6\xbd'\
-                     '\xa9\xe2\x81\xae\xe7\xa1\xa5\xe7\x89\xa5\xe6\xa5\xa3\xe6'\
-                     '\x95\xb3\xe6\x98\xa0\xe6\xbd\xb2\xe2\x81\xad\xe6\x95\xb7'\
-                     '\xe6\xad\xa5\xe3\x88\xa0\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81'\
-                     '\xbc\xe7\xa1\xa5\xe5\xbc\xb3\xe6\xbd\x8c\xe6\xad\xb4\xe5'\
-                     '\x99\xa1\xe6\xb1\xaf\xe6\x95\xb4\xe7\x89\xb2\xe2\xb9\xa1'\
-                     '\xe7\xa5\xb0\xe7\xb0\xa0\xe4\xb0\xa0\xe7\x91\xaf\xe6\x85'\
-                     '\xab\xe5\x98\xa0\xe6\xb1\xaf\xe6\x95\xb4\xe7\x89\xb2\xe2'\
-                     '\x81\xa1\xe7\xa1\xa5\xe7\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3'\
-                     '\xe6\x98\xa0\xe6\xbd\xb2\xe2\x81\xad\xe6\x95\xb7\xe6\xad'\
-                     '\xa5\xe3\x8c\xa0\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe6'\
-                     '\x85\xb0\xe6\xa5\xb2\xe7\xa5\xb4\xe7\x95\x92\xe6\x95\xac'\
-                     '\xe7\x80\xae\xe2\x81\xb9\xe2\x81\xbc\xe6\x95\x97\xe6\xad'\
-                     '\xa5\xe3\x90\xa0\xe4\x94\xa0\xe6\x95\xb8\xe6\x8d\xb2\xe7'\
-                     '\x8d\xa9\xe3\xa9\xa5\xe4\x8c\xa0\xe2\x81\x81\xe6\xbd\xa6'\
-                     '\xe2\x81\xb2\xe6\x85\x90\xe6\xa5\xb2\xe7\xa5\xb4\xe5\x88'\
-                     '\xa0\xe6\xb1\xb5\xe7\xb1\xa5\xe0\xa8\x8d\xe2\x81\xbc\xe6'\
-                     '\x89\xac\xe4\x99\xad\xe6\xbd\xac\xe4\x85\xb7\xe6\xbd\xb2'\
-                     '\xe6\xb9\xb5\xe4\x8d\xa4\xe6\xb1\xb9\xe6\xb9\xa9\xe6\x95'\
-                     '\xa4\xe2\xb9\xb2\xe7\xa5\xb0\xe7\xb0\xa0\xe5\x9c\xa0\xe6'\
-                     '\x95\xa5\xe2\x81\xab\xe2\x80\xb5\xe7\xa1\x85\xe7\x89\xa5'\
-                     '\xe6\xa5\xa3\xe6\x95\xb3\xe2\x80\xae\xe6\x95\x84\xe6\x95'\
-                     '\xb4\xe6\xb5\xb2\xe6\xb9\xa9\xe2\x81\xa5\xe6\xa1\xb4\xe2'\
-                     '\x81\xa5\xe6\x8d\x9f\xe6\xa5\xb2\xe6\xa5\xb4\xe6\x85\xa3'\
-                     '\xe2\x81\xac\xe6\x95\x92\xe6\xb9\xb9\xe6\xb1\xaf\xe2\x81'\
-                     '\xa4\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5\xe5\xbc\xac\xe6'\
-                     '\xa4\xa0\xe6\x94\xae\xe2\x80\xae\xe6\xa1\xb4\xe2\x81\xa5'\
-                     '\xe6\xbd\xac\xe6\x95\xb7\xe7\x91\xb3\xe5\x88\xa0\xe7\xa5'\
-                     '\xa5\xe6\xbd\xae\xe6\x91\xac\xe6\xb8\xa0\xe6\xb5\xb5\xe6'\
-                     '\x95\xa2\xe2\x81\xb2\xe6\xbd\xa6\xe2\x81\xb2\xe6\xa1\xb7'\
-                     '\xe6\x8d\xa9\xe2\x81\xa8\xe6\xa1\xb4\xe2\x81\xa5\xe6\xb1'\
-                     '\xa6\xe7\x9d\xaf\xe6\x84\xa0\xe6\xbd\xb2\xe6\xb9\xb5\xe2'\
-                     '\x81\xa4\xe6\xa1\xb4\xe2\x81\xa5\xe7\xa5\xa3\xe6\xa5\xac'\
-                     '\xe6\x91\xae\xe7\x89\xa5\xe6\x94\xa0\xe7\x91\xae\xe7\x89'\
-                     '\xa5\xe2\x81\xb3\xe6\xb9\xa1\xe7\x94\xa0\xe7\x8d\xae\xe6'\
-                     '\x95\xb4\xe6\x91\xa1\xe2\x81\xb9\xe6\x95\xb2\xe6\xa5\xa7'\
-                     '\xe6\x95\xad\xe6\x84\xa0\xe7\x91\xa6\xe7\x89\xa5\xe6\x84'\
-                     '\xa0\xe7\x8c\xa0\xe6\x99\xb5\xe6\xa5\xa6\xe6\xa5\xa3\xe6'\
-                     '\xb9\xa5\xe2\x81\xb4\xe7\x95\xae\xe6\x89\xad\xe7\x89\xa5'\
-                     '\xe6\xbc\xa0\xe2\x81\xa6\xe7\x91\xa9\xe7\x89\xa5\xe7\x91'\
-                     '\xa1\xe6\xbd\xa9\xe7\x8d\xae\xe2\x80\xae\xe0\xb5\xbc\xe7'\
-                     '\xb0\x8a\xe6\x88\xa0\xe7\x89\xa1\xe6\x95\xae\xe5\xbd\xb3'\
-                     '\xe7\x95\xa8\xe2\xb9\xb4\xe7\xa5\xb0\xe7\xb0\xa0\xe5\x9c'\
-                     '\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80\xb6\xe7\xa1\x85\xe7'\
-                     '\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe2\x80\xbb\xe4\x90\xb3'\
-                     '\xe7\x98\xa0\xe7\x89\xa5\xe6\xa5\xb3\xe6\xb9\xaf\xe6\xbc'\
-                     '\xa0\xe2\x81\xa6\xe6\x85\x82\xe6\xb9\xb2\xe7\x8d\xa5\xe4'\
-                     '\xa0\xad\xe7\x91\xb5\xe5\x8c\xa0\xe6\xb5\xa9\xe6\xb1\xb5'\
-                     '\xe7\x91\xa1\xe6\xbd\xa9\xe2\xb9\xae\xe7\xb0\xa0\xe0\xa8'\
-                     '\x8d\xe2\x81\xbc\xe6\x85\xa2\xe7\x91\xa3\xe7\x89\xa5\xe6'\
-                     '\x85\xa9\xe7\x80\xae\xe7\xb1\xb9\xe5\x9c\xa0\xe6\x95\xa5'\
-                     '\xe2\x81\xab\xe2\x80\xb7\xe7\xa1\x85\xe7\x89\xa5\xe6\xa5'\
-                     '\xa3\xe6\x95\xb3\xe7\xb0\xa0\xe0\xa8\x8d\xe2\x81\xbc\xe7'\
-                     '\x89\xb4\xe6\x99\xa1\xe6\xa5\xa6\xe4\xb1\xa3\xe6\x9d\xa9'\
-                     '\xe7\x91\xa8\xe2\xb9\xb3\xe7\xa5\xb0\xe7\xb0\xa0\xe5\x9c'\
-                     '\xa0\xe6\x95\xa5\xe2\x81\xab\xe2\x80\xb8\xe7\xa1\x85\xe7'\
-                     '\x89\xa5\xe6\xa5\xa3\xe6\x95\xb3\xe0\xb5\xbc\xe7\xb0\x8a'\
-                     '\xe5\x9c\xa0\xe6\xb1\xaf\xe7\x89\xa6\xe6\xb5\xa1\xe6\x8d'\
-                     '\x9f\xe2\xb9\xa1\xe7\xa5\xb0\xe2\x80\xa0\xe2\x80\xa0\xe2'\
-                     '\x81\xbc\xe6\x95\x97\xe6\xad\xa5\xe3\x90\xa0\xe7\x84\xa0'\
-                     '\xe6\xa5\xb5\xe2\x81\xba\xe2\x80\xad\xe7\x89\xb0\xe6\x9d'\
-                     '\xaf\xe6\x85\xb2\xe2\x81\xad\xe6\xbd\xb4\xe6\x90\xa0\xe2'\
-                     '\x81\xaf\xe6\xbd\x97\xe6\x99\xac\xe6\x85\xb2\xe2\x81\xad'\
-                     '\xe4\x85\x83\xe7\xb0\xa0\xe0\xa8\x8d',
+        'code-line': '|#| File | Remarks|\r\n',
         'first-line': 0L,
         'folded-linenos': [],
-        'sel-line': 0L,
-        'sel-line-start': 0L,
-        'selection_end': 455L,
-        'selection_start': 0L,
+        'sel-line': 4L,
+        'sel-line-start': 112L,
+        'selection_end': 112L,
+        'selection_start': 112L,
         'zoom': 0L},
                        loc('Wolfram_ca.py'): {'attrib-starts': [('step',
         24),
@@ -1365,6 +1041,15 @@ guimgr.visual-state = {loc('../Anaconda3/Lib/site-packages/numpy/_distributor_in
         'sel-line-start': 1267L,
         'selection_end': 1290L,
         'selection_start': 1284L,
+        'zoom': 0L},
+                       loc('strogatz/strogatz_6_1.py'): {'attrib-starts': [],
+        'code-line': '',
+        'first-line': 0L,
+        'folded-linenos': [],
+        'sel-line': 0L,
+        'sel-line-start': 0L,
+        'selection_end': 0L,
+        'selection_start': 0L,
         'zoom': 0L},
                        loc('strogatz_10_6_1.py'): {'attrib-starts': [],
         'first-line': 26L,
