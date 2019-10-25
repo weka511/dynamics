@@ -203,6 +203,9 @@ def plot_stability(f            = lambda x,y:(x,y),
                      linestyle = linestyles[i//len(cs)],
                      label     = '({0:.3f},{1:.3f})+({2:.3f},{3:.3f})'.format(fixed_point[0],fixed_point[1],offset[0],offset[1]),
                      linewidth = 3)
+            
+    leg=plt.legend(ncol=len(linestyles),loc='best')
+    leg.set_draggable(True)    
                 
 if __name__=='__main__':
     
@@ -214,7 +217,5 @@ if __name__=='__main__':
     plot_phase_portrait(X,Y,U,V,fixed_points,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
     
     plot_stability(f=f,fixed_points=fixed_points)
-
-    plt.legend(loc='best')
     
     plt.show()
