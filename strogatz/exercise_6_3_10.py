@@ -13,11 +13,30 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
+# Stability of fixed point
+
 import sys
 sys.path.append('../')
-import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
+import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4,utilities
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y: (x*y,x*x-y),xmin=-0.25,xmax=+0.25,ymin=-0.25,ymax=+0.25)
+def f(x,y):
+    return (x*y,x*x-y)
+
+cs            = ['r','b','g','m','c','y']
+linestyles    = ['-', '--', '-.', ':']
+
+X,Y,U,V,fixed = phase.generate(f=f,xmin=-10.0,xmax=+10.0,ymin=-10.0,ymax=+10.0)
 phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=xy,\dot{y}=x^2-y$',suptitle='Example 6.3.10') 
+
+starts        = [ utilities.direct_sphere(d=2,R=1) for i in range(len(cs)*len(linestyles))]
+for xy0,i in zip(starts,range(len(starts))):
+    xy=[xy0]
+    for j in range(1000):
+        xy.append(rk4.rk4(0.1,xy[-1],phase.adapt(f=f)))
+    plt.plot([z[0] for z in xy],
+             [z[1] for z in xy],
+             c         = cs[i%len(cs)],
+             linestyle = linestyles[i//len(cs)],
+             label     = '({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
 
 plt.show()
