@@ -13,34 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-import matplotlib.pyplot as plt
-import numpy as np
+import sys
+sys.path.append('../')
+import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
 
-def f(x,y):
-    return (x*y,x*x-y)
+X,Y,U,V,fixed=phase.generate(f=lambda x,y: (x*y,x*x-y),xmin=-0.25,xmax=+0.25,ymin=-0.25,ymax=+0.25)
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=xy,\dot{y}=x^2-y$',suptitle='Example 6.3.10') 
 
-x_min = -0.25
-x_max = 0.25
-y_min = -0.25
-y_max = 0.25
-m     = 50
-n     = 50
-dx    = (x_max-x_min)/m
-dy    = (y_max-y_min)/n
-
-xs   = np.arange(x_min, x_max, dx)
-ys   = np.arange(y_min, y_max, dy)
-
-X, Y = np.meshgrid(xs,ys)
-U, V = f(X,Y)
-U    = U / np.sqrt(U**2 + V**2)
-V    = V / np.sqrt(U**2 + V**2)
-plt.plot(xs,              [0 for _ in xs],   color='red', label='Nullcline')
-plt.plot([0 for _ in ys], ys,                color='red')
-plt.plot(xs,              [x*x for x in xs], color='red')
-plt.quiver(X,Y,U,V,angles='xy',units='width',   color='blue', label='Normalized derivatives', pivot='tail')
-plt.xlim(x_min,x_max)
-plt.ylim(y_min,y_max)
-plt.legend()
-plt.title('Exercise 6.3.10')
 plt.show()
