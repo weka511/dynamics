@@ -15,7 +15,7 @@
 
 # Plot phase portrait
 
-import numpy as np, matplotlib.pyplot as plt,matplotlib.colors as colors
+import numpy as np, matplotlib.pyplot as plt,matplotlib.colors as colors,utilities,rk4
 from scipy import optimize
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
@@ -182,8 +182,28 @@ def adapt(f):
         return [u]+[v]
     return adapted 
 
+# plot_stability
+#
+# Determins stability of fixed points using a Monte Carlo method
+#
+def plot_stability(fixed_points,f,
+                   R          = 1,
+                   cs         = ['r','b','g','m','c','y','k'],
+                   linestyles = ['-', '--', '-.', ':']):
+    for fixed_point in fixed_points:
+        for i in  range(len(cs)*len(linestyles)):
+            offset = utilities.direct_sphere(d=2,R=R)
+            xy     = [tuple(x + y for x,y in zip(fixed_point, offset))]
+            for j in range(1000):
+                xy.append(rk4.rk4(0.1,xy[-1],adapt(f=f)))
+            plt.plot([z[0] for z in xy],
+                     [z[1] for z in xy],
+                     c         = cs[i%len(cs)],
+                     linestyle = linestyles[i//len(cs)],
+                     label     = '({0:.3f},{1:.3f})+({2:.3f},{3:.3f})'.format(fixed_point[0],fixed_point[1],offset[0],offset[1]),
+                     linewidth = 3)
+                
 if __name__=='__main__':
-    import utilities,rk4
     
     def f(x,y):
         return x+np.exp(-y),-y

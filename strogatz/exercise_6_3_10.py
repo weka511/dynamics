@@ -22,26 +22,9 @@ import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,r
 def f(x,y):
     return (x*y,x*x-y)
 
-def plot_stability(fixed_points,f,
-                   R          = 1,
-                   cs         = ['r','b','g','m','c','y','k'],
-                   linestyles = ['-', '--', '-.', ':']):
-    for fixed_point in fixed_points:
-        for i,offset in  [(i,utilities.direct_sphere(d=2,R=R)) for i in  range(len(cs)*len(linestyles))]:
-            xy = [tuple(x + y for x,y in zip(fixed_point, offset))]
-            for j in range(1000):
-                xy.append(rk4.rk4(0.1,xy[-1],phase.adapt(f=f)))
-            plt.plot([z[0] for z in xy],
-                     [z[1] for z in xy],
-                     c         = cs[i%len(cs)],
-                     linestyle = linestyles[i//len(cs)],
-                     label     = '({0:.3f},{1:.3f})'.format(xy[0][0],xy[0][1]),linewidth=3)
-            
-
-
 X,Y,U,V,fixed_points = phase.generate(f=f,xmin=-10.0,xmax=+10.0,ymin=-10.0,ymax=+10.0)
 phase.plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{x}=xy,\dot{y}=x^2-y$',suptitle='Example 6.3.10') 
 
-plot_stability(fixed_points,f)
-
+phase.plot_stability(fixed_points,f)
+plt.legend()
 plt.show()
