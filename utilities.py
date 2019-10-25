@@ -1,4 +1,4 @@
-# Copyright (C) 2017 Greenweaves Software Pty Ltd
+# Copyright (C) 2017-2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,8 +15,21 @@
 
 import random,math
 
+# Generate uniform random vector inside sphere, using algorithm from 
+# Statistical Mechanics: Algorithms and Computations by Werner Krauth
+#
+# Parameters:
+#     d       Dimensionality
+#     sigma   Standard deviation
+#     R       Radius
+
 def direct_sphere(d=3,sigma=1,R=1):
-    samples=[random.gauss(0,sigma) for k in range(d)]
-    Sigma=sum([x*x for x in samples])
-    upsilon=random.uniform(0,1)**(1/d)
-    return [R*upsilon*x/math.sqrt(Sigma) for x in samples]
+    xs      = [random.gauss(0,sigma) for k in range(d)]
+    Sigma   = sum([x*x for x in xs])
+    upsilon = random.uniform(0,1)**(1/d)
+    return [R * upsilon * x/math.sqrt(Sigma) for x in xs]
+
+if __name__=='__main__':
+    for i in range(25):
+        print (direct_sphere())
+        
