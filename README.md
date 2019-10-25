@@ -13,15 +13,15 @@
 
 ## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
-| Name | Description |
-|------------------|----------------------------------------------------------| 
-| exercise_6_1.py |Plot phase portraits for a number of ODEs|
-| exercise_6_2.py |Plot phase portraits for a number of ODEs|
-| exercise_6_3.py |Plot phase portraits for a number of ODEs|
-| exercise_6_3_10.py |Phase portrait |
-| exercise_6_4.py |Plot phase portraits for a number of ODEs|
-| exercise_5_19.py |Plot phase portraits for a number of ODEs|
-| exercise_10_6.py |Bifurcations|
+|| Name | Description |
+|---|------------------|----------------------------------------------------------| 
+|6| exercise_6_1.py |Plot phase portraits for a number of ODEs|
+|6| exercise_6_2.py |Plot phase portraits for a number of ODEs|
+|6| exercise_6_3.py |Plot phase portraits for a number of ODEs|
+|6| exercise_6_3_10.py |Phase portrait |
+|6| exercise_6_4.py |Plot phase portraits for a number of ODEs|
+|6| exercise_6_5_19.py |Plot phase portraits for a number of ODEs|
+|10| exercise_10_6.py |Bifurcations|
 
 ## Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
 
