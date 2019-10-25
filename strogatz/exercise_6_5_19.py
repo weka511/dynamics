@@ -1,4 +1,4 @@
-# Copyright (C) 2017 Greenweaves Software Pty Ltd
+# Copyright (C) 2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
 
 # Exercise 6.4 from Strogatz
 # Plot phase portraits for a number of ODEs
+
+import sys
+sys.path.append('../')
 
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4,utilities
 for mu in [1,2,3]:

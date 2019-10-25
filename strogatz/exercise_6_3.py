@@ -1,4 +1,4 @@
-# Copyright (C) 2017 Greenweaves Software Pty Ltd
+# Copyright (C) 2017-2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,8 @@
 # Exercise 6.3 from Strogatz
 # Plot phase portraits for a number of ODEs
 
+import sys
+sys.path.append('../')
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,x*x-4))
@@ -43,7 +45,6 @@ for xy0,i in zip(starts,range(len(starts))):
              label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
 
 leg=plt.legend(loc='best')
-if leg:
-    leg.draggable()
+
      
 plt.show()
