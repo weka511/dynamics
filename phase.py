@@ -186,10 +186,11 @@ def adapt(f):
 #
 # Determins stability of fixed points using a Monte Carlo method
 #
-def plot_stability(fixed_points,f,
-                   R          = 1,
-                   cs         = ['r','b','g','m','c','y','k'],
-                   linestyles = ['-', '--', '-.', ':']):
+def plot_stability(f            = lambda x,y:(x,y),
+                   fixed_points = [(0,0)],
+                   R            = 1,
+                   cs           = ['r','b','g','m','c','y','k'],
+                   linestyles   = ['-', '--', '-.', ':']):
     for fixed_point in fixed_points:
         for i in  range(len(cs)*len(linestyles)):
             offset = utilities.direct_sphere(d=2,R=R)
@@ -208,20 +209,11 @@ if __name__=='__main__':
     def f(x,y):
         return x+np.exp(-y),-y
     
-    X,Y,U,V,fixed=generate(f=lambda x,y:(x+np.exp(-y),-y),nx=256, ny = 256)
+    X,Y,U,V,fixed_points=generate(f=f,nx=256, ny = 256)
 
-    plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
+    plot_phase_portrait(X,Y,U,V,fixed_points,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
     
-    cs = ['r','b','g','m','c','y']    
-    starts=[ utilities.direct_sphere(d=2,R=10) for i in range(6)]
-    for xy0,i in zip(starts,range(len(starts))):
-        xy=[xy0]
-        for j in range(1000):
-            xy.append(rk4.rk4(0.1,xy[-1],adapt(f=f)))
-        plt.plot([z[0] for z in xy],
-                 [z[1] for z in xy],
-                 c=cs[i%len(cs)],
-                 label='({0:.3f},{1:.3f})'.format(xy0[0],xy0[1]),linewidth=3)
+    plot_stability(f=f,fixed_points=fixed_points)
 
     plt.legend(loc='best')
     
