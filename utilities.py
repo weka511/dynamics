@@ -15,6 +15,8 @@
 
 import random,math
 
+# direct_sphere
+#
 # Generate uniform random vector inside sphere, using algorithm from 
 # Statistical Mechanics: Algorithms and Computations by Werner Krauth
 #
@@ -29,7 +31,43 @@ def direct_sphere(d=3,sigma=1,R=1):
     upsilon = random.uniform(0,1)**(1/d)
     return [R * upsilon * x/math.sqrt(Sigma) for x in xs]
 
+# direct_surface
+#
+# Generate uniform random vector on surface of sphere, using algorithm from 
+# Statistical Mechanics: Algorithms and Computations by Werner Krauth
+#
+# Parameters:
+#     d       Dimensionality
+def direct_surface(d=3):
+    sigma = 1/math.sqrt(d)
+    xs    = [random.gauss(0,sigma) for k in range(d)]
+    Sigma = sum([x*x for x in xs])
+    return [x/math.sqrt(Sigma) for x in xs]
+
 if __name__=='__main__':
-    for i in range(25):
-        print (direct_sphere())
-        
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111, projection='3d')
+    
+    xs=[]
+    ys=[]
+    zs=[]
+    for i in range(1000):
+        pt = direct_sphere()
+
+        xs.append(pt[0])
+        ys.append(pt[1])
+        zs.append(pt[2])
+    ax1.scatter(xs,ys,zs,color='b')    
+    
+    xs=[]
+    ys=[]
+    zs=[]    
+    for i in range(1000):
+        pt = direct_surface()
+        xs.append(pt[0])
+        ys.append(pt[1])
+        zs.append(pt[2])
+    ax1.scatter(xs,ys,zs,color='r',alpha=0.5)    
+    plt.show()     
