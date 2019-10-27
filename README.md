@@ -18,7 +18,7 @@
 |6| exercise_6_1.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_2.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_3.py |Plot phase portraits for a number of ODEs|
-|6| exercise_6_3_10.py |Stability of fixed point |
+|6| exercise_6_3_10.py |Stability of fixed point: saddle or not? (tricky) |
 |6| exercise_6_4.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_5_19.py |Plot phase portraits for a number of ODEs|
 |10| exercise_10_6.py |Bifurcations|
@@ -43,7 +43,7 @@
 | duffing.py  | Plot solutions to Duffing's equation |
 | lorenz.py   | Plot solutions to Lorenz Equation |
 | phase.py    | Helper functions for drawing phase portraits |
-| rk4.py      | Classic Runge Kutta |
+| rk4.py      | Classic 4th order Runge-Kutta |
 | rki.py      | Implicit Runge-Kutta |
-| roessler.py | Plot solutions to Roessler Equation |
+| roessler.py | Plot solutions to Rössler Equation |
 | utilities.py | Miscellaneous helpful functions |
