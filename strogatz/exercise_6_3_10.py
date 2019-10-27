@@ -22,10 +22,12 @@ import  phase
 def f(x,y):
     return (x*y,x*x-y)
 
+plt.figure(figsize=(20,20))
+
 X,Y,U,V,fixed_points = phase.generate(f=f,xmin=-10.0,xmax=+10.0,ymin=-10.0,ymax=+10.0)
 
 phase.plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{x}=xy,\dot{y}=x^2-y$',suptitle='Example 6.3.10') 
 
-phase.plot_stability(f=f,fixed_points=fixed_points,R=0.05,Limit=10.0,step=0.1,S=50,N=500000,K=10)
+phase.plot_stability(f=f,fixed_points=fixed_points,R=0.05,Limit=10.0,step=0.1,S0=50,S1=55,N=500000,K=10,legend=False)
 
 plt.show()

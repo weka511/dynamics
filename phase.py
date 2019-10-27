@@ -196,9 +196,11 @@ def plot_stability(f            = lambda x,y:(x,y),
                    Limit        = 1.0E12,
                    N            = 1000,
                    step         = 0.1,
-                   S            = 5,
+                   S0           = 4,
+                   S1           = 5,
                    s            = 10,
-                   K            = 1):
+                   K            = 1,
+                   legend       = True):
     starts0=[]
     starts1=[]
     for fixed_point in fixed_points:
@@ -206,17 +208,14 @@ def plot_stability(f            = lambda x,y:(x,y),
             offset = tuple(R*z for z in utilities.direct_surface(d=2))
             xys    = [tuple(x + y for x,y in zip(fixed_point, offset))]
             
-            #try:
             for j in range(N):
                 (x,y)=rk4.rk4(0.1,xys[-1],adapt(f=f))
-                if abs(x)<Limit and abs(y)<Limit:
+                if abs(x)<1.5*Limit and abs(y)<1.5*Limit:
                     xys.append((x,y))
                 else:
                     break
-            #except RuntimeWarning:
-                #pass
             
-            if Limit==None or any([x*x+y*y > Limit*Limit for (x,y) in xys]):    
+            if abs(xys[-1][0])>Limit or abs(xys[-1][1])>Limit:    
                 plt.plot([z[0] for z in xys],
                          [z[1] for z in xys],
                          c         = cs[i%len(cs)],
@@ -227,10 +226,11 @@ def plot_stability(f            = lambda x,y:(x,y),
             else:
                 starts0.append( (xys[0]))
  
-    plt.scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
-    plt.scatter([S*x for (x,_) in starts1],[S*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')               
-    leg=plt.legend(ncol=len(linestyles),loc='best')
-    leg.set_draggable(True)
+    plt.scatter([S0*x for (x,_) in starts0],[S0*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
+    plt.scatter([S1*x for (x,_) in starts1],[S1*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
+    if legend:
+        leg=plt.legend(ncol=len(linestyles),loc='best')
+        leg.set_draggable(True)
     
 
 if __name__=='__main__':
