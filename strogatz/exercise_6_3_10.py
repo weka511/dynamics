@@ -28,6 +28,7 @@ X,Y,U,V,fixed_points = phase.generate(f=f,xmin=-10.0,xmax=+10.0,ymin=-10.0,ymax=
 
 phase.plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{x}=xy,\dot{y}=x^2-y$',suptitle='Example 6.3.10') 
 
-phase.plot_stability(f=f,fixed_points=fixed_points,R=0.05,Limit=10.0,step=0.1,S0=50,S1=55,N=500000,K=10,legend=False)
+phase.plot_stability(f=f,fixed_points=fixed_points,R=0.05,Limit=10.0,step=0.1,S0=50,S1=50,N=5000,K=100,legend=False)
 
+plt.savefig('6-3-10')
 plt.show()
