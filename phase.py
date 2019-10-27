@@ -224,7 +224,8 @@ def plot_stability(f            = lambda x,y:(x,y),
                          linewidth = 3)
                 starts1.append( (xys[0]))
             else:
-                starts0.append( (xys[0]))
+                if abs(xys[-1][0]-xys[0][0])<1 and abs(xys[-1][1]-xys[0][1])<1: 
+                    starts0.append( (xys[0]))
  
     plt.scatter([S0*x for (x,_) in starts0],[S0*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
     plt.scatter([S1*x for (x,_) in starts1],[S1*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
