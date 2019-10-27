@@ -20,6 +20,8 @@ from scipy import optimize
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
+#import warnings
+#warnings.filterwarnings('error')
 
 # get_fixed_points
 #
@@ -190,23 +192,47 @@ def plot_stability(f            = lambda x,y:(x,y),
                    fixed_points = [(0,0)],
                    R            = 1,
                    cs           = ['r','b','g','m','c','y','k'],
-                   linestyles   = ['-', '--', '-.', ':']):
+                   linestyles   = ['-', '--', '-.', ':'],
+                   Limit        = 1.0E12,
+                   N            = 1000,
+                   step         = 0.1,
+                   S            = 5,
+                   s            = 10,
+                   K            = 1):
+    starts0=[]
+    starts1=[]
     for fixed_point in fixed_points:
-        for i in  range(len(cs)*len(linestyles)):
-            offset = utilities.direct_sphere(d=2,R=R)
-            xy     = [tuple(x + y for x,y in zip(fixed_point, offset))]
-            for j in range(1000):
-                xy.append(rk4.rk4(0.1,xy[-1],adapt(f=f)))
-            plt.plot([z[0] for z in xy],
-                     [z[1] for z in xy],
-                     c         = cs[i%len(cs)],
-                     linestyle = linestyles[i//len(cs)],
-                     label     = '({0:.3f},{1:.3f})+({2:.3f},{3:.3f})'.format(fixed_point[0],fixed_point[1],offset[0],offset[1]),
-                     linewidth = 3)
+        for i in  range(K*len(cs)*len(linestyles)):
+            offset = tuple(R*z for z in utilities.direct_surface(d=2))
+            xys    = [tuple(x + y for x,y in zip(fixed_point, offset))]
             
+            #try:
+            for j in range(N):
+                (x,y)=rk4.rk4(0.1,xys[-1],adapt(f=f))
+                if abs(x)<Limit and abs(y)<Limit:
+                    xys.append((x,y))
+                else:
+                    break
+            #except RuntimeWarning:
+                #pass
+            
+            if Limit==None or any([x*x+y*y > Limit*Limit for (x,y) in xys]):    
+                plt.plot([z[0] for z in xys],
+                         [z[1] for z in xys],
+                         c         = cs[i%len(cs)],
+                         linestyle = linestyles[(i//len(cs))%len(linestyles)],
+                         label     = '({0:.3f},{1:.3f})+({2:.3f},{3:.3f})'.format(fixed_point[0],fixed_point[1],offset[0],offset[1]),
+                         linewidth = 3)
+                starts1.append( (xys[0]))
+            else:
+                starts0.append( (xys[0]))
+ 
+    plt.scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
+    plt.scatter([S*x for (x,_) in starts1],[S*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')               
     leg=plt.legend(ncol=len(linestyles),loc='best')
-    leg.set_draggable(True)    
-                
+    leg.set_draggable(True)
+    
+
 if __name__=='__main__':
     
     def f(x,y):
