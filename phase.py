@@ -20,8 +20,7 @@ from scipy import optimize
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
-#import warnings
-#warnings.filterwarnings('error')
+
 
 # get_fixed_points
 #
@@ -160,7 +159,7 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
     def apply2D(Z,f=min):
         return f(z for zrow in Z for z in zrow)
     
-    plt.pcolor(X,Y,nullclines(U,V),cmap=plt.cm.Pastel1)
+    plt.pcolormesh(X,Y,nullclines(U,V),cmap=plt.cm.Pastel1)
     plt.streamplot(X, Y, U, V, linewidth=1)
     plt.xlim(apply2D(X,f=min),apply2D(X,f=max))
     plt.ylim(apply2D(Y,f=min),apply2D(Y,f=max))
@@ -196,8 +195,7 @@ def plot_stability(f            = lambda x,y:(x,y),
                    Limit        = 1.0E12,
                    N            = 1000,
                    step         = 0.1,
-                   S0           = 4,
-                   S1           = 5,
+                   S            = 5,
                    s            = 10,
                    K            = 1,
                    legend       = True):
@@ -220,18 +218,16 @@ def plot_stability(f            = lambda x,y:(x,y),
                          [z[1] for z in xys],
                          c         = cs[i%len(cs)],
                          linestyle = linestyles[(i//len(cs))%len(linestyles)],
-                         label     = '({0:.3f},{1:.3f})+({2:.3f},{3:.3f})'.format(fixed_point[0],fixed_point[1],offset[0],offset[1]),
                          linewidth = 3)
                 starts1.append( (xys[0]))
             else:
                 if abs(xys[-1][0]-xys[0][0])<1 and abs(xys[-1][1]-xys[0][1])<1: 
                     starts0.append( (xys[0]))
  
-    plt.scatter([S0*x for (x,_) in starts0],[S0*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
-    plt.scatter([S1*x for (x,_) in starts1],[S1*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
-    if legend:
-        leg=plt.legend(ncol=len(linestyles),loc='best')
-        leg.set_draggable(True)
+    plt.scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
+    plt.scatter([S*x for (x,_) in starts1],[S*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
+    
+    plt.legend(title='Starting points, scaled by {0:3}'.format(S),loc='best').set_draggable(True)
     
 
 if __name__=='__main__':
