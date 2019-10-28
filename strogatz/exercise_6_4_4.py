@@ -20,8 +20,20 @@ import sys
 sys.path.append('../')
 import  matplotlib.pyplot as plt,phase
 
-rho = 0.5
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*(1-y),y*(rho-x)),nx=256,ny=256,xmin=0,xmax=3.5,ymin=0,ymax=3.5)
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x(1-y),\dot{y}=y(\rho-x)$',suptitle='Example 6.4.4') 
+def f(x,y):
+    return (x*(1-y),y*(rho-x))
+
+def rh(pt):
+    return pt[0]>=0 and pt[1]>=0
+
+for rho in [0.1,0.25,
+            0.5,1.0,2.0
+            ]:
+    plt.figure(figsize=(20,20))
+    X,Y,U,V,fixed_points=phase.generate(f=f,nx=256,ny=256,xmin=0,xmax=3.5,ymin=0,ymax=3.5)
+    phase.plot_phase_portrait(X,Y,U,V,fixed_points,
+                              title=r'$\dot{{x}}=x(1-y),\dot{{y}}=y(\rho-x);\rho={0}$'.format(rho),
+                              suptitle='Example 6.4.4')
+    phase.plot_stability(f=f,fixed_points=fixed_points,Limit=5,step=0.1,N=5000,accept=rh,K=10)
 
 plt.show()
