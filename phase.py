@@ -195,15 +195,19 @@ def plot_stability(f            = lambda x,y:(x,y),
                    Limit        = 1.0E12,
                    N            = 1000,
                    step         = 0.1,
-                   S            = 5,
+                   S            = 1,
                    s            = 10,
                    K            = 1,
-                   legend       = True):
+                   legend       = True,
+                   accept       = lambda _:True,
+                   eps          = 0.1):
     starts0=[]
     starts1=[]
     for fixed_point in fixed_points:
         for i in  range(K*len(cs)*len(linestyles)):
             offset = tuple(R*z for z in utilities.direct_surface(d=2))
+            while not accept(offset):
+                offset = tuple(R*z for z in utilities.direct_surface(d=2))
             xys    = [tuple(x + y for x,y in zip(fixed_point, offset))]
             
             for j in range(N):
@@ -221,7 +225,7 @@ def plot_stability(f            = lambda x,y:(x,y),
                          linewidth = 3)
                 starts1.append( (xys[0]))
             else:
-                if abs(xys[-1][0]-xys[0][0])<1 and abs(xys[-1][1]-xys[0][1])<1: 
+                if abs(xys[-1][0]-xys[0][0])<eps and abs(xys[-1][1]-xys[0][1])<eps: 
                     starts0.append( (xys[0]))
  
     plt.scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
