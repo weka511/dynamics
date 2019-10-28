@@ -19,8 +19,9 @@
 |6| exercise_6_2.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_3.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_3_10.py |Stability of fixed point: saddle or not? (tricky) |
-|6| exercise_6_4.py |Plot phase portraits for a number of ODEs|
-|6| exercise_6_5_19.py |Plot phase portraits for a number of ODEs|
+|6| exercise_6_4.py |Plot phase portraits for Competitive Lotka–Volterra equations|
+|6| exercise_6_4_4.py |Plot phase portraits for simplified Competitive Lotka–Volterra equations|
+|6| exercise_6_5_19.py |Plot phase portraits for Lotka–Volterra predator prey model|
 |10| exercise_10_6.py |Bifurcations|
 
 ## Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
