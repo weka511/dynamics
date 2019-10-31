@@ -10,6 +10,7 @@
 |1|Rossler.py|Q1.4 Integrating Rössler system|
 |1|RungeKutta.py|Q1.3 Runge-Kutta integration|
 |1|Stability.py||
+|2|Bakers map.py||
 
 ## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
