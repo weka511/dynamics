@@ -43,6 +43,7 @@
 | Name | Description |
 | -------------------------- | ------------------------------------------------|
 | duffing.py  | Plot solutions to Duffing's equation |
+| henon.py| Plot evolution of Hénon map|
 | lorenz.py   | Plot solutions to Lorenz Equation |
 | phase.py    | Helper functions for drawing phase portraits |
 | rk4.py      | Classic 4th order Runge-Kutta |
