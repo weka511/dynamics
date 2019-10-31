@@ -145,7 +145,7 @@ def nullclines(u,v):
 #            title
 #            suptitle
 
-def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
+def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle='',xlabel='$x$',ylabel='$y$'):
 
     # apply2D
     #
@@ -163,8 +163,8 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle=''):
     plt.streamplot(X, Y, U, V, linewidth=1)
     plt.xlim(apply2D(X,f=min),apply2D(X,f=max))
     plt.ylim(apply2D(Y,f=min),apply2D(Y,f=max))
-    plt.xlabel('$x$')
-    plt.ylabel('$y$')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.scatter([x for (x,_) in fixed],[y for (_,y) in fixed],marker='x',s=60,c='r')
     plt.suptitle(suptitle)
     plt.title(title)
