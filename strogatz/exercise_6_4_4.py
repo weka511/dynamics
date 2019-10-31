@@ -23,8 +23,7 @@ import  matplotlib.pyplot as plt,phase
 def f(x,y):
     return (x*(1-y),y*(rho-x))
 
-def rh(pt):
-    return pt[0]>=0 and pt[1]>=0
+
 
 for rho in [0.1,0.25,
             0.5,1.0,2.0
@@ -34,6 +33,6 @@ for rho in [0.1,0.25,
     phase.plot_phase_portrait(X,Y,U,V,fixed_points,
                               title=r'$\dot{{x}}=x(1-y),\dot{{y}}=y(\rho-x);\rho={0}$'.format(rho),
                               suptitle='Example 6.4.4')
-    phase.plot_stability(f=f,fixed_points=fixed_points,Limit=5,step=0.1,N=5000,accept=rh,K=10)
+    phase.plot_stability(f=f,fixed_points=fixed_points,Limit=5,step=0.1,N=5000,accept=phase.right_upper_quadrant,K=10)
 
 plt.show()

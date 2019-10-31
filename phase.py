@@ -233,6 +233,11 @@ def plot_stability(f            = lambda x,y:(x,y),
     
     plt.legend(title='Starting points, scaled by {0:3}'.format(S),loc='best').set_draggable(True)
     
+def right_upper_quadrant(pt):
+    return pt[0]>=0 and pt[1]>=0
+
+def strict_right_upper_quadrant(pt):
+    return pt[0]>0 and pt[1]>0
 
 if __name__=='__main__':
     

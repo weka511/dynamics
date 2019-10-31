@@ -32,4 +32,7 @@ X,Y,U,V,fixed_points=phase.generate(f=lambda x,y:f(x,y,a,b,c),nx=256,ny=256,xmin
 phase.plot_phase_portrait(X,Y,U,V,fixed_points,
                           title=r'$\dot{{x}}=ax^c-\phi x,\dot{{y}}=by^c-\phi y;\phi=ax^c + by^c,a={0},b={1},c={2}$'.format(a,b,c),
                           suptitle='Example 6.4.8')
+phase.plot_stability(f=lambda x,y:f(x,y,a,b,c),fixed_points=fixed_points,Limit=5,step=0.1,N=5000,
+                     accept=phase.strict_right_upper_quadrant,K=1)
+
 plt.show()
