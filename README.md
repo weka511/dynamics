@@ -12,7 +12,7 @@
 |1|Stability.py||
 |2|Bakers map.py|Q2.1 A contracting baker’s map|
 |2|CycleStability.py|Q1.5 Stability of a periodic orbit |
-|2|floquest.py|Q1.2 A limit cycle with analytic Floquet exponent|
+|2|floquet.py|Q1.2 A limit cycle with analytic Floquet exponent|
 |2|Rossler.py|Q1.4 Stability of an equilibrium |
 
 ## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
