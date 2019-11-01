@@ -19,12 +19,12 @@ import sys
 sys.path.append('../../')
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
 
-def floquet(p,q):
+def floquet(q,p):
     return (p+q*(1-q*q-p*p),-q+p*(1-q*q-p*p))
 
 X,Y,U,V,fixed_points=phase.generate(f=floquet,
                              nx=256, ny = 256,
-                             xmin=-1.0,xmax=1.0,ymin=-1.0,ymax=1.0)
+                             xmin=-1.2,xmax=1.2,ymin=-1.2,ymax=1.2)
 
 phase.plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{p}=p+q(1-q^2-p^2),\dot{q}=-q+p(1-q^2-p^2)$',
                           suptitle='Q1.2 A limit cycle with analytic Floquet exponent.'
@@ -32,6 +32,6 @@ phase.plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{p}=p+q(1-q^2-p^2),\
                           xlabel='$p$',
                           ylabel='$q$')
 
-phase.plot_stability(f=floquet,fixed_points=fixed_points,Limit=5,step=0.1,N=5000,K=10,R=0.01,S=50)
+phase.plot_stability(f=floquet,fixed_points=fixed_points,Limit=0.99,step=0.1,N=10000,R=0.01)
 
 plt.show()
