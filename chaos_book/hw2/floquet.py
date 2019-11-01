@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/
 
+# Q1.2 A limit cycle with analytic Floquet exponent
+
 import sys
 sys.path.append('../../')
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
@@ -20,14 +22,16 @@ import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,r
 def floquet(p,q):
     return (p+q*(1-q*q-p*p),-q+p*(1-q*q-p*p))
 
-X,Y,U,V,fixed=phase.generate(f=floquet,
+X,Y,U,V,fixed_points=phase.generate(f=floquet,
                              nx=256, ny = 256,
                              xmin=-1.0,xmax=1.0,ymin=-1.0,ymax=1.0)
 
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{p}=p+q(1-q^2-p^2),\dot{q}=-q+p(1-q^2-p^2)$',
+phase.plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{p}=p+q(1-q^2-p^2),\dot{q}=-q+p(1-q^2-p^2)$',
                           suptitle='Q1.2 A limit cycle with analytic Floquet exponent.'
                           ' (ChaosBook.org version 14.5.7, exercise 5.1)',
                           xlabel='$p$',
                           ylabel='$q$')
+
+phase.plot_stability(f=floquet,fixed_points=fixed_points,Limit=5,step=0.1,N=5000,K=10,R=0.01,S=50)
 
 plt.show()
