@@ -1,0 +1,44 @@
+\documentclass[]{article}
+\usepackage{caption,subcaption,graphicx,float,url,amsmath,amssymb,amsthm,tocloft,cancel,thmtools}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+%opening
+\title{}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{}
+
+\begin{align*}
+\frac{1}{r(1-r^2)}=&\frac{A}{r} + \frac{B}{1-r} + \frac{C}{1+R}\text{, whence}\\
+1 =& A(1-r^2) + B r(1+r) + Cr(1-r)\\
+=& A -A r^2 + B + B r^2 +Cr -Cr^2\text{. Equating coeficient of $r$}\\
+A + C =& B\\
+B + C =& 0\\
+A=& 1,\text{, whence $B=\frac{1}{2}$, and $C=\frac{-1}{2}$, so}\\
+\int_{r_0}^{r_1}\frac{dr}{r(1-r^2)}=&\int_{r_0}^{r1} \big[\frac{1}{r}-\frac{1}{2(r-1)}-\frac{1}{2(1+r)}\big] dr\\
+=&\bigg[\ln(r)-\frac{1}{2}\ln(r-1)-\frac{1}{2}\ln(r+1)\bigg]_{r_0}^{r_1}\\
+=&\bigg[\ln(\frac{r}{\sqrt{r^2-1}})\bigg]_{r_0}^{r_1}\\
+=2&\pi\text{, so that}\\
+\ln(\frac{r_1}{\sqrt{r_1^2-1}}\frac{\sqrt{r_0^2-1}}{r_0})=&2 \pi\\
+\frac{r_1}{\sqrt{r_1^2-1}}=&\frac{r_0}{\sqrt{r_0^2-1}} e^{2 \pi}\\
+\frac{r_1^2}{r_1^2-1}=&\frac{r_0^2}{r_0^2-1} e^{4 \pi}\\
+=&K^2{, say}
+\end{align*}
+\begin{align*}
+\frac{r_1^2}{r_1^2-1}=&K^2\\
+r_1^2=&K^2 r_1^2 - K^2\\
+K^2 =& (K^2-1)r_1^2\\
+r_1=&\frac{K}{\sqrt{K^2-1}}\\
+=&\frac{1}{\sqrt{1-\frac{1}{K^2}}}\\
+=&\frac{1}{\sqrt{1-\frac{1}{e^{4 \pi} \frac{r_0^2}{r_0^2-1}}}}\\
+=&\frac{1}{\sqrt{1-e^{-4\pi}(1-\frac{1}{r_0^2})}}\\
+=&\frac{1}{\sqrt{1+e^{-4\pi}(\frac{1}{r_0^2}-1)}}
+\end{align*}
+\end{document}

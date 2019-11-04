@@ -19,6 +19,7 @@
 
 || Name | Description |
 |--:|------------------|----------------------------------------------------------| 
+||exercises.tex|Theoretical Exercises from Strogatz|
 |6| exercise_6_1.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_2.py |Plot phase portraits for a number of ODEs|
 |6| exercise_6_3.py |Plot phase portraits for a number of ODEs|
