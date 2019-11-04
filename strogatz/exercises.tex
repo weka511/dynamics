@@ -1,16 +1,17 @@
 \documentclass[]{article}
 \usepackage{caption,subcaption,graphicx,float,url,amsmath,amssymb,amsthm,tocloft,cancel,thmtools}
+
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 %opening
-\title{}
-\author{}
+\title{Exercises from Strogatz}
+\author{Simon Crase}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-
+This document consists of worked exampled from \cite{strogatz:2000}.
 \end{abstract}
 
 \section{}
@@ -25,20 +26,26 @@ A=& 1,\text{, whence $B=\frac{1}{2}$, and $C=\frac{-1}{2}$, so}\\
 \int_{r_0}^{r_1}\frac{dr}{r(1-r^2)}=&\int_{r_0}^{r1} \big[\frac{1}{r}-\frac{1}{2(r-1)}-\frac{1}{2(1+r)}\big] dr\\
 =&\bigg[\ln(r)-\frac{1}{2}\ln(r-1)-\frac{1}{2}\ln(r+1)\bigg]_{r_0}^{r_1}\\
 =&\bigg[\ln(\frac{r}{\sqrt{r^2-1}})\bigg]_{r_0}^{r_1}\\
-=2&\pi\text{, so that}\\
+=2&\pi\text{, \cite[Example 8.7.1]{strogatz:2000}so that}\\
 \ln(\frac{r_1}{\sqrt{r_1^2-1}}\frac{\sqrt{r_0^2-1}}{r_0})=&2 \pi\\
 \frac{r_1}{\sqrt{r_1^2-1}}=&\frac{r_0}{\sqrt{r_0^2-1}} e^{2 \pi}\\
 \frac{r_1^2}{r_1^2-1}=&\frac{r_0^2}{r_0^2-1} e^{4 \pi}\\
-=&K^2{, say}
+=&K^2{, say}\numberthis\label{eq:exercise_8_6_1_K}
 \end{align*}
 \begin{align*}
 \frac{r_1^2}{r_1^2-1}=&K^2\\
 r_1^2=&K^2 r_1^2 - K^2\\
 K^2 =& (K^2-1)r_1^2\\
 r_1=&\frac{K}{\sqrt{K^2-1}}\\
-=&\frac{1}{\sqrt{1-\frac{1}{K^2}}}\\
+=&\frac{1}{\sqrt{1-\frac{1}{K^2}}}\text{, from (\ref{eq:exercise_8_6_1_K})}\\
 =&\frac{1}{\sqrt{1-\frac{1}{e^{4 \pi} \frac{r_0^2}{r_0^2-1}}}}\\
 =&\frac{1}{\sqrt{1-e^{-4\pi}(1-\frac{1}{r_0^2})}}\\
 =&\frac{1}{\sqrt{1+e^{-4\pi}(\frac{1}{r_0^2}-1)}}
 \end{align*}
+
+
+\bibliographystyle{unsrt}
+\addcontentsline{toc}{section}{Bibliography}
+\bibliography{../dynamics}
+
 \end{document}
