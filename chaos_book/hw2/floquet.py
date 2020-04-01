@@ -22,6 +22,7 @@ import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,r
 def floquet(q,p):
     return (p+q*(1-q*q-p*p),-q+p*(1-q*q-p*p))
 
+plt.figure(figsize=(20,20))
 X,Y,U,V,fixed_points=phase.generate(f=floquet,
                              nx=256, ny = 256,
                              xmin=-1.2,xmax=1.2,ymin=-1.2,ymax=1.2)
@@ -32,6 +33,8 @@ phase.plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{p}=p+q(1-q^2-p^2),\
                           xlabel='$p$',
                           ylabel='$q$')
 
-phase.plot_stability(f=floquet,fixed_points=fixed_points,Limit=0.99,step=0.1,N=10000,R=0.01)
+phase.plot_stability(f=floquet,fixed_points=fixed_points,Limit=0.99,step=0.1,N=50000,R=0.01)
+
+plt.savefig('floquet.png')
 
 plt.show()

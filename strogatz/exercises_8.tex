@@ -15,7 +15,10 @@ This document consists of worked exampled from \cite[Chapter 8]{strogatz:2000}.
 \end{abstract}
 
 \begin{ex}[Exercise 8.7.1]
-	Use partial fractions to evaluate the integral $\int_{r_0}^{r_1}\frac{dr}{r(1-r^2)}$ that arise in \cite[Example 8.7.1]{strogatz:2000}, and show that $r_1=P(r)\triangleq\frac{1}{\sqrt{1+e^{-4\pi}(\frac{1}{r_0^2}-1)}}$. Then confirm that $P'(r^*)=e^{-4\pi}$.
+	\begin{enumerate}
+		\item Use partial fractions to evaluate the integral $\int_{r_0}^{r_1}\frac{dr}{r(1-r^2)}$ that arise in \cite[Example 8.7.1]{strogatz:2000}, and show that $r_1=P(r)\triangleq\frac{1}{\sqrt{1+e^{-4\pi}(\frac{1}{r_0^2}-1)}}$.\label{item:8.7.1.1}
+		\item  Then confirm that $P'(r^*)=e^{-4\pi}$.\label{8.7.1.2}
+	\end{enumerate}
 \end{ex}
 
 \begin{proof}
@@ -45,7 +48,7 @@ This document consists of worked exampled from \cite[Chapter 8]{strogatz:2000}.
 	=&\frac{1}{\sqrt{1-e^{-4\pi}(1-\frac{1}{r_0^2})}}\\
 	=&\frac{1}{\sqrt{1+e^{-4\pi}(\frac{1}{r_0^2}-1)}}
 	\end{align*}
-	Now
+	Which proves Item \ref{item:8.7.1.1}. Moreover
 	\begin{align*}
 	P'(r) =& \frac{d}{dr} \frac{1}{\sqrt{1+e^{-4\pi}(\frac{1}{r^2}-1)}}\\
 	=& \frac{d}{dr} \bigg[1+e^{-4\pi}(r^{-2}-1)\bigg]^{-\frac{1}{2}}\\
@@ -53,6 +56,7 @@ This document consists of worked exampled from \cite[Chapter 8]{strogatz:2000}.
 	=&  \bigg[1+e^{-4\pi}(r^{-2}-1)\bigg]^{-\frac{3}{2}} e^{-4\pi}  r^{-3}\text{, so}\\
 	P'(1) =&  e^{-4\pi}
 	\end{align*}
+	Which proves Item \ref{8.7.1.2}.
 \end{proof}
 
 
