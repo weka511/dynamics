@@ -49,15 +49,15 @@ class Bacteria(object):
         go_forward = False
         if current_density > self.old_density:
             ######  Question 1 #########
-            if random.random() < ???????:
+            if random.random() < P1:
                 go_forward = True
         else:
             ######  Question 2 #########
-            if random.random() < ???????:
+            if random.random() < P2:
                 go_forward = True
         if not go_forward:
             ######  Question 3 #########
-            ?????????           
+            randomize_velocity()           
         self.x += self.vx * DT
         self.y += self.vy * DT
         #domain periodicity:

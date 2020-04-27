@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: latin-1 -*-
 
 from heapq import *
@@ -48,7 +49,7 @@ class State:
 ### EVENTS ###########################################
 
 Tc = 30 # Time latency to change the traffic lights from red to green once a car is found waiting in the queue
-Tp = 10 # Passage time
+Tp = 15 # Passage time
 
 class Event:
     def time(self):
@@ -73,9 +74,9 @@ class CAR(Event):
         self.name = "CAR"
     def action(self,queue,state):
         if not state.is_green():
-            # On the line 77, change the state and add a car.
+            state.add_car() # On the line 77, change the state and add a car.
             if state.waiting_cars() == 1:
-                # On the line 79, insert into the queue a R2G event at the time (self.t + Tc)
+                Q.insert(R2G(self.t+Tc)) # On the line 79, insert into the queue a R2G event at the time (self.t + Tc)
 
 class R2G(Event):
     def __init__(self,time):
@@ -83,7 +84,7 @@ class R2G(Event):
         self.name = "R2G"
     def action(self,queue,state):
         queue.insert( G2R( self.t + state.waiting_cars() * Tp ) )
-        # On the line 87, change the state and turn the light to green
+        state.turn_green() # On the line 87, change the state and turn the light to green
         state.purge_cars()
 
 class G2R(Event):
@@ -91,11 +92,9 @@ class G2R(Event):
         self.t = time
         self.name = "G2R"
     def action(self,queue,state):
-        # On the line 95, change the state and turn the light to red
-        pass
-    
-### EVENT QUEUE ##############################################
+        state.turn_red() # On the line 95, change the state and turn the light to red
 
+### EVENT QUEUE ##############################################
 
 class EventQueue:
     def __init__(self):
@@ -132,12 +131,12 @@ Q.insert( CAR(60) )
 Q.insert( CAR(75) )
 
 # To answer the second part of this project, uncomment the following lines 134 to 139 and change the passage time to 15 seconds (at line 52).
-#random.seed(1)
-#additionalNumCarInQueue=100
-#tRandom = 80
-#for i in range(1, additionalNumCarInQueue):
-#    tRandom = random.randint(tRandom+1, tRandom+10)
-#    Q.insert( CAR(tRandom) )  
+random.seed(1)
+additionalNumCarInQueue=100
+tRandom = 80
+for i in range(1, additionalNumCarInQueue):
+    tRandom = random.randint(tRandom+1, tRandom+10)
+    Q.insert( CAR(tRandom) )  
     
 
 S = State()
