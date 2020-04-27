@@ -35,12 +35,13 @@
 
 | File | Description |
 |-------------------------|----------------------------------------|
+| bacteria.py| Week 7 Exercise |
+| barnes_hut.py | Week 6 Exercise; 3D version of Barnes-Hut Simulation. |
 | ex2_integrator.py | Integration exercise from week 2 |
 | ex3_LotkaVolterra.py | Lotka Volterra exercise from week 3 |
-| parityRule.py | Week 4 Exercise: CA for Parity Rule|
 | lbmFlowAroundCylinder.py | Week 5 Exercise. Determine the _critical Reynold number,_ i.e. the lowest Reynold number for which the flow around the cylinder enters an unsteady regime after a sufficient number of iterations. |
-| barnes_hut.py | Week 6 Exercise; 3D version of Barnes-Hut Simulation. |
-| bacteria.py| Week 7 Exercise |
+| parityRule.py | Week 4 Exercise: CA for Parity Rule|
+| spheres.py |Week 7 extended example: collisions of hard spheres.|
 | trafficLights.py | Week 8 Exercise|
 | Wolfram_ca.py    | Week 4 quiz - program to do Wolfram CA |
 
