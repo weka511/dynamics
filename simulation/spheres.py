@@ -33,6 +33,8 @@ class Particle:
         self.velocity = [velocity_scale_factor*v for v in self.velocity]
     def reverse(self,index):
         self.velocity[index] = - self.velocity[index]
+    def  set_position(self,index,value):
+        self.position[index] = value
         
         
 @unique
@@ -52,7 +54,7 @@ class Event(abc.ABC):
             return self.t<other.t 
         
     @abc.abstractmethod
-    def act(self,configuration):
+    def act(self,configuration,L=[1,1,1],R=0.0625):
         pass
     
 class HitsWall(Event):
@@ -62,16 +64,28 @@ class HitsWall(Event):
         self.wall           = wall
     def __str__(self):
         return f'({self.particle_index},{self.wall})\t\t{self.t}'
-    def act(self,configuration):
-        super().act(configuration) 
+    def act(self,configuration,L=[1,1,1],R=0.0625):
+        super().act(configuration,L,R) 
         particle = configuration[self.particle_index]
         #print (self)
-        if self.wall==Wall.EAST or self.wall==Wall.WEST:
+        if self.wall==Wall.EAST:
             particle.reverse(0)
-        if self.wall==Wall.NORTH or self.wall==Wall.SOUTH:
+            particle.set_position(0,L[0]-R)
+        if self.wall==Wall.WEST:
+            particle.reverse(0)
+            particle.set_position(0,R-L[0])
+        if self.wall==Wall.NORTH:
             particle.reverse(1)
-        if self.wall==Wall.TOP or self.wall==Wall.BOTTOM:
-            particle.reverse(2)               
+            particle.set_position(1,L[1]-R)
+        if self.wall==Wall.SOUTH:
+            particle.reverse(1)
+            particle.set_position(1,R-L[1])
+        if self.wall==Wall.TOP:
+            particle.reverse(2)
+            particle.set_position(2,L[2]-R)
+        if self.wall==Wall.BOTTOM:
+            particle.reverse(2)
+            particle.set_position(2,R-L[2])
     
 class Collision(Event):
     def __init__(self,i,j,t=math.inf):
@@ -82,7 +96,7 @@ class Collision(Event):
     def __str__(self):
         return f'({self.i},{self.j})\t\t\t{self.t}'
     
-    def act(self,configuration):
+    def act(self,configuration,L=[1,1,1],R=0.0625):
         super().act(configuration)       
       
 # create_configuration
@@ -91,7 +105,7 @@ class Collision(Event):
 # Make sure that spheres don't overlap 
 def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1):
     def get_position():
-        return [random.uniform(-l,l) for l in L]
+        return [random.uniform(R-l,l-R) for l in L]
     
     # get_velocity
     def get_velocity(d=3): #Krauth Algorithm 1.21
@@ -137,7 +151,7 @@ def link_events(configuration):
         for j in range(i+1,len(configuration)):
             configuration[i].events[j]= Collision(i,j)
     
-def get_collisions_sphere_wall(i,configuration,t,L=1):
+def get_collisions_sphere_wall(i,configuration,t,L=1,R=0.0625):
     def get_collision(direction_positive,direction_negative,index):
         particle    = configuration[i]
         distance    = particle.position[index]
@@ -148,11 +162,11 @@ def get_collisions_sphere_wall(i,configuration,t,L=1):
             event_plus.t = float.inf
             return event_plus
         if velocity >0:        
-            event_plus.t = t + (L[index]-distance)/velocity
+            event_plus.t = t + (L[index]-R-distance)/velocity
             return event_plus
         if velocity <0:
             event_minus = particle.events[direction_negative]
-            event_minus.t = t + (L[index]+distance)/abs(velocity) 
+            event_minus.t = t + (L[index]-R+distance)/abs(velocity) 
             return event_minus
         
     return [get_collision(Wall.EAST,Wall.WEST,0),
@@ -199,12 +213,12 @@ if __name__ == '__main__':
      
     while t < args.T:
         events = flatten(                                                                    \
-                    [get_collisions_sphere_wall(i,configuration,t,L=L) for i in range(args.N)] + \
+                    [get_collisions_sphere_wall(i,configuration,t,L=L,R=args.R) for i in range(args.N)] + \
                     [get_collisions_sphere_sphere(i) for i in range(args.N)])
         
         heapq.heapify(events)
         next_event = events[0]
         print (f't={t:.2f}, next step={next_event.t-t}, {next_event}')
         t          = next_event.t
-        next_event.act(configuration)
+        next_event.act(configuration,L=L,R=args.R)
  
