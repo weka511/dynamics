@@ -16,6 +16,10 @@
 import heapq, random, abc,math
 from enum import Enum, unique
 
+class MolecularDynamicsError(Exception):
+    def __init__(self, message):
+        self.message = message
+        
 class Particle:
     def __init__(self,position=[0,0,0],velocity=[1,1,1],radius=1):
         self.position = [p for p in position]
@@ -139,7 +143,7 @@ def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1):
         
         product= [Particle(position=get_position(),radius=R) for _ in range(N)]
         
-    raise Exception(f'Failed to create valid configuration for R={R}, density={rho}, within {NT} attempts')
+    raise MolecularDynamicsError(f'Failed to create valid configuration for R={R}, density={rho}, within {NT} attempts')
 
 # Build dictionaries of all possible events. We will extract active events as we compute collisions
 def link_events(configuration):
@@ -209,20 +213,27 @@ if __name__ == '__main__':
     if args.seed!=None:
         random.seed(args.seed)
         
-    configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
-    link_events(configuration)
-    t  = 0
-     
-    while t < args.T:
-        events = flatten([get_collisions_sphere_wall(configuration[i],t,L=L,R=args.R) for i in range(args.N)] + \
-                         [get_collisions_sphere_sphere(i) for i in range(args.N)])
-        
-        heapq.heapify(events)
-        next_event = events[0]
-        dt         = next_event.t-t
-        print (f't={t:.2f}, next step={dt}, {next_event}')
-        t          = next_event.t
-        for particle in configuration:
-            particle.evolve(dt)
-        next_event.act(configuration,L=L,R=args.R,dt=dt)
+    try:
+        configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
+        link_events(configuration)
+        t  = 0
+         
+        while t < args.T:
+            events = flatten([get_collisions_sphere_wall(configuration[i],t,L=L,R=args.R) for i in range(args.N)] + \
+                             [get_collisions_sphere_sphere(i) for i in range(args.N)])
+            
+            heapq.heapify(events)
+            next_event = events[0]
+            dt         = next_event.t-t
+            print (f't={t:.2f}, next step={dt}, {next_event}')
+            t          = next_event.t
+            for particle in configuration:
+                particle.evolve(dt)
+            next_event.act(configuration,L=L,R=args.R,dt=dt)
+    except MolecularDynamicsError as e:
+        print (e)
+        sys.exit(1)
+    except:
+        print(f'Unexpected error: {sys.exc_info()}')
+        sys.exit(1)
  
