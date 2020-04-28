@@ -41,7 +41,7 @@
 | ex3_LotkaVolterra.py | 3|Lotka Volterra Equation |
 | lbmFlowAroundCylinder.py | 5|Determine the _critical Reynold number,_ i.e. the lowest Reynold number for which the flow around the cylinder enters an unsteady regime after a sufficient number of iterations. |
 | parityRule.py | 4|Cellular Automaton for Parity Rule|
-| spheres.py |7|Collisions of hard spheres.|
+| mol_dynamics.py |7|Molecular dynamics of hard spheres.|
 | trafficLights.py |7| Traffic Intersection|
 | Wolfram_ca.py    |4| Wolfram Cellular Automaton |
 
