@@ -16,8 +16,6 @@
 import heapq, random, abc,math
 from enum import Enum, unique
 
-L           = [1.0,1.0,1.0]   # dimensions of box
-
 class Particle:
     def __init__(self,position=[0,0,0],velocity=[1,1,1],radius=1):
         self.position = [p for p in position]
@@ -33,6 +31,9 @@ class Particle:
     def scale_energy(self,energy_scale_factor):
         velocity_scale_factor = math.sqrt(energy_scale_factor)
         self.velocity = [velocity_scale_factor*v for v in self.velocity]
+    def reverse(self,index):
+        self.velocity[index] = - self.velocity[index]
+        
         
 @unique
 class Wall(Enum):
@@ -64,13 +65,13 @@ class HitsWall(Event):
     def act(self,configuration):
         super().act(configuration) 
         particle = configuration[self.particle_index]
-        print (self)
+        #print (self)
         if self.wall==Wall.EAST or self.wall==Wall.WEST:
-            particle.velocity[0] = -particle.velocity[0]
+            particle.reverse(0)
         if self.wall==Wall.NORTH or self.wall==Wall.SOUTH:
-            particle.velocity[1] = -particle.velocity[1]
+            particle.reverse(1)
         if self.wall==Wall.TOP or self.wall==Wall.BOTTOM:
-            particle.velocity[2] = -particle.velocity[2]                
+            particle.reverse(2)               
     
 class Collision(Event):
     def __init__(self,i,j,t=math.inf):
@@ -84,27 +85,34 @@ class Collision(Event):
     def act(self,configuration):
         super().act(configuration)       
       
+# create_configuration
+#
 # Build particles for box particles
-def create_configuration(N=100,R=0.0625,NT=25,E=1):
+# Make sure that spheres don't overlap 
+def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1):
     def get_position():
         return [random.uniform(-l,l) for l in L]
     
+    # get_velocity
     def get_velocity(d=3): #Krauth Algorithm 1.21
         velocities = [random.gauss(0, 1) for _ in range(d)]
         sigma      = math.sqrt(sum([v**2 for v in velocities]))
         upsilon    = random.random()**(1/d)
         return [v*upsilon/sigma for v in velocities]
     
+    # is_valid
+    #
+    # Make sure that spheres don't overlap 
     def is_valid(configuration):
         if len(configuration)==0: return False
         for i in range(N):
             for j in range(i+1,N):
-                if configuration[i].get_distance2(configuration[j])<R**2:
+                if configuration[i].get_distance2(configuration[j])<(2*R)**2:
                     return False
         return True
     
-    product= []
-
+    product= []   # for create_configuration
+    rho = (N*(4/3)*math.pi*R**3)/(L[0]*L[1]*L[2])
     for i in range(NT):
         if is_valid(product):
             for particle in product:
@@ -112,12 +120,13 @@ def create_configuration(N=100,R=0.0625,NT=25,E=1):
                 
             actual_energy = sum([particle.get_energy() for particle in product])   
             for particle in product:
-                particle.scale_energy(E/actual_energy)        
+                particle.scale_energy(E/actual_energy)
+            print (f'Radius = {R}, Density = {rho}, {i+1} attempts')
             return product
         
         product= [Particle(position=get_position(),radius=R) for _ in range(N)]
         
-    raise Exception(f'Failed to create valid configuration for R={R} within {N_attempts} attempts')
+    raise Exception(f'Failed to create valid configuration for R={R}, density={rho}, within {NT} attempts')
 
 # Build dictionaries of all possible events. We will extract active events as we compute collisions
 def link_events(configuration):
@@ -128,7 +137,7 @@ def link_events(configuration):
         for j in range(i+1,len(configuration)):
             configuration[i].events[j]= Collision(i,j)
     
-def get_collisions_sphere_wall(i,configuration,t):
+def get_collisions_sphere_wall(i,configuration,t,L=1):
     def get_collision(direction_positive,direction_negative,index):
         particle    = configuration[i]
         distance    = particle.position[index]
@@ -143,7 +152,7 @@ def get_collisions_sphere_wall(i,configuration,t):
             return event_plus
         if velocity <0:
             event_minus = particle.events[direction_negative]
-            event_minus.t = t + (L[index]+distance)/abs(velocity)      
+            event_minus.t = t + (L[index]+distance)/abs(velocity) 
             return event_minus
         
     return [get_collision(Wall.EAST,Wall.WEST,0),
@@ -153,30 +162,49 @@ def get_collisions_sphere_wall(i,configuration,t):
 def get_collisions_sphere_sphere(i):
     return []
 
+def flatten(lists):
+    return [item for sublist in lists for item in sublist]
+
 if __name__ == '__main__':
-    import argparse
+    import argparse,sys
     
+    def get_L(args_L):
+        if type(args_L)==float:
+            return [args_L,args_L,args_L]
+        elif len(args_L)==1:
+            return [args_L[0],args_L[0],args_L[0]]
+        elif len(args_L)==3:
+            return args_L
+        else:
+            print ('--L should have length 1 or 3')
+            sys.exit(1)
+         
+        if len([l for l in L if l<=0]):
+            print ('--L should be strictly positive')
+            sys.exit(1)
+            
     parser = argparse.ArgumentParser('Molecular Dynamice simulation')
-    parser.add_argument('--N','-N', type=int,   default=25,     help='Number of particles')
-    parser.add_argument('--T','-T', type=float, default=100,    help='Maximum Time')
-    parser.add_argument('--R','-R', type=float, default=0.0625, help='Radius of spheres')
-    parser.add_argument('--NT',     type=int,   default=100,    help='Number of attempts to choose initial configuration')
-    parser.add_argument('--E',      type=float, default=1,      help='Total energy')
-   
+    parser.add_argument('--N','-N', type=int,   default=25,            help='Number of particles')
+    parser.add_argument('--T','-T', type=float, default=100,           help='Maximum Time')
+    parser.add_argument('--R','-R', type=float, default=0.0625,        help='Radius of spheres')
+    parser.add_argument('--NT',     type=int,   default=100,           help='Number of attempts to choose initial configuration')
+    parser.add_argument('--E',      type=float, default=1,             help='Total energy')
+    parser.add_argument('--L',      type=float, default=1.0, nargs='+',  help='Half widths of box: 1 value or 3')
     args = parser.parse_args()
+    L    = get_L(args.L)
     
-    configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E)
+    configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
     link_events(configuration)
-    t      = 0
+    t  = 0
      
     while t < args.T:
-        print (f't={t:.2f}')
-        event_lists = \
-            [get_collisions_sphere_wall(i,configuration,t) for i in range(args.N)] +\
-            [get_collisions_sphere_sphere(i) for i in range(args.N)] 
-        events      =  [item for sublist in event_lists for item in sublist]
+        events = flatten(                                                                    \
+                    [get_collisions_sphere_wall(i,configuration,t,L=L) for i in range(args.N)] + \
+                    [get_collisions_sphere_sphere(i) for i in range(args.N)])
+        
         heapq.heapify(events)
         next_event = events[0]
+        print (f't={t:.2f}, next step={next_event.t-t}, {next_event}')
         t          = next_event.t
         next_event.act(configuration)
  
