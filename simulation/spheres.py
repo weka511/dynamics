@@ -35,16 +35,32 @@ class Particle:
         self.velocity[index] = - self.velocity[index]
     def  set_position(self,index,value):
         self.position[index] = value
+    def evolve(self,dt):
+        for i in range(3):
+            self.position[i] += (self.velocity[i]*dt)
         
         
 @unique
 class Wall(Enum):
-    NORTH  = 0
-    EAST   = 1
-    SOUTH  = 2
-    WEST   = 3
-    TOP    = 4
-    BOTTOM = 5
+    NORTH  = 1
+    EAST   = 2
+    SOUTH  = -1
+    WEST   = -2
+    TOP    = 3
+    BOTTOM = -3
+    
+    def number(self):
+        return abs(self._value_)-1
+    
+    @classmethod
+    def get_wall_pair(self,index):
+        if index==0:
+            return(Wall.NORTH,Wall.SOUTH)
+        elif index==1:
+            return(Wall.EAST,Wall.WEST)
+        elif index==2:
+            return (Wall.TOP,Wall.BOTTOM)
+
     
 class Event(abc.ABC):
     def __init__(self,t=math.inf):
@@ -54,7 +70,7 @@ class Event(abc.ABC):
             return self.t<other.t 
         
     @abc.abstractmethod
-    def act(self,configuration,L=[1,1,1],R=0.0625):
+    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0):
         pass
     
 class HitsWall(Event):
@@ -64,28 +80,11 @@ class HitsWall(Event):
         self.wall           = wall
     def __str__(self):
         return f'({self.particle_index},{self.wall})\t\t{self.t}'
-    def act(self,configuration,L=[1,1,1],R=0.0625):
+    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0):
         super().act(configuration,L,R) 
         particle = configuration[self.particle_index]
-        #print (self)
-        if self.wall==Wall.EAST:
-            particle.reverse(0)
-            particle.set_position(0,L[0]-R)
-        if self.wall==Wall.WEST:
-            particle.reverse(0)
-            particle.set_position(0,R-L[0])
-        if self.wall==Wall.NORTH:
-            particle.reverse(1)
-            particle.set_position(1,L[1]-R)
-        if self.wall==Wall.SOUTH:
-            particle.reverse(1)
-            particle.set_position(1,R-L[1])
-        if self.wall==Wall.TOP:
-            particle.reverse(2)
-            particle.set_position(2,L[2]-R)
-        if self.wall==Wall.BOTTOM:
-            particle.reverse(2)
-            particle.set_position(2,R-L[2])
+        particle.reverse(self.wall.number())
+
     
 class Collision(Event):
     def __init__(self,i,j,t=math.inf):
@@ -96,7 +95,7 @@ class Collision(Event):
     def __str__(self):
         return f'({self.i},{self.j})\t\t\t{self.t}'
     
-    def act(self,configuration,L=[1,1,1],R=0.0625):
+    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0):
         super().act(configuration)       
       
 # create_configuration
@@ -151,12 +150,12 @@ def link_events(configuration):
         for j in range(i+1,len(configuration)):
             configuration[i].events[j]= Collision(i,j)
     
-def get_collisions_sphere_wall(i,configuration,t,L=1,R=0.0625):
-    def get_collision(direction_positive,direction_negative,index):
-        particle    = configuration[i]
-        distance    = particle.position[index]
-        velocity    = particle.velocity[index]
-        event_plus  = particle.events[direction_positive]
+def get_collisions_sphere_wall(particle,t,L=1,R=0.0625):
+    def get_collision(index):
+        direction_positive,direction_negative = Wall.get_wall_pair(index)
+        distance                              = particle.position[index]
+        velocity                              = particle.velocity[index]
+        event_plus                            = particle.events[direction_positive]
 
         if velocity ==0:
             event_plus.t = float.inf
@@ -169,9 +168,7 @@ def get_collisions_sphere_wall(i,configuration,t,L=1,R=0.0625):
             event_minus.t = t + (L[index]-R+distance)/abs(velocity) 
             return event_minus
         
-    return [get_collision(Wall.EAST,Wall.WEST,0),
-            get_collision(Wall.NORTH,Wall.SOUTH,1),
-            get_collision(Wall.TOP,Wall.BOTTOM,2)]
+    return [get_collision(index) for index in range(3)]
 
 def get_collisions_sphere_sphere(i):
     return []
@@ -204,21 +201,28 @@ if __name__ == '__main__':
     parser.add_argument('--NT',     type=int,   default=100,           help='Number of attempts to choose initial configuration')
     parser.add_argument('--E',      type=float, default=1,             help='Total energy')
     parser.add_argument('--L',      type=float, default=1.0, nargs='+',  help='Half widths of box: 1 value or 3')
+    parser.add_argument('--seed',   type=int,   default=None,          help='Seed for random number generator')
     args = parser.parse_args()
+    
     L    = get_L(args.L)
     
+    if args.seed!=None:
+        random.seed(args.seed)
+        
     configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
     link_events(configuration)
     t  = 0
      
     while t < args.T:
-        events = flatten(                                                                    \
-                    [get_collisions_sphere_wall(i,configuration,t,L=L,R=args.R) for i in range(args.N)] + \
-                    [get_collisions_sphere_sphere(i) for i in range(args.N)])
+        events = flatten([get_collisions_sphere_wall(configuration[i],t,L=L,R=args.R) for i in range(args.N)] + \
+                         [get_collisions_sphere_sphere(i) for i in range(args.N)])
         
         heapq.heapify(events)
         next_event = events[0]
-        print (f't={t:.2f}, next step={next_event.t-t}, {next_event}')
+        dt         = next_event.t-t
+        print (f't={t:.2f}, next step={dt}, {next_event}')
         t          = next_event.t
-        next_event.act(configuration,L=L,R=args.R)
+        for particle in configuration:
+            particle.evolve(dt)
+        next_event.act(configuration,L=L,R=args.R,dt=dt)
  
