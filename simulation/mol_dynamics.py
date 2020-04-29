@@ -16,8 +16,6 @@
 import heapq, random, abc,math
 from enum import Enum, unique
 
-D = 3    # We are workingin in 3D space
-
 
 # MolecularDynamicsError
 #
@@ -47,7 +45,7 @@ class Particle:
     # Squared distance between centres for some other Particle
     
     def get_distance2(self,other):
-        return sum((self.position[i]-other.position[i])**2 for i in range(D))
+        return sum((self.position[i]-other.position[i])**2 for i in range(len(self.position)))
     
     # get_energy
     #
@@ -76,7 +74,7 @@ class Particle:
     # Change position bt applying veocity for specified time
     
     def evolve(self,dt):
-        for i in range(D):
+        for i in range(len(self.position)):
             self.position[i] += (self.velocity[i]*dt)
         
 
@@ -166,7 +164,7 @@ class HitsWall(Event):
                 event_minus.t = t + (L[index]-R+distance)/abs(velocity) 
                 return event_minus
             
-        return [get_collision(index) for index in range(D)]  
+        return [get_collision(index) for index in range(len(particle.position))]  
     
     # act
     #
@@ -199,7 +197,8 @@ class Collision(Event):
         # get_next_collision
         # Determine whether two particles are on a path to collide
         # Krauth Algorithm 2.2
-        def get_next_collision(particle1,particle2):  
+        def get_next_collision(particle1,particle2):
+            D     = len(particle1.position)
             dx    = [particle1.position[k] - particle2.position[k] for k in range(D)]
             dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
             dx_dv = sum(dx[k]*dv[k] for k in range(D))
@@ -211,7 +210,7 @@ class Collision(Event):
     
         # get_collision_with
         #
-        # Get possible collision between particl and specified other particle
+        # Get possible collision between particle and specified other particle
         def get_collision_with(j):
             dt = get_next_collision(configuration[i],configuration[j])
             if dt !=None:
@@ -235,6 +234,7 @@ class Collision(Event):
         super().act(configuration)
         particle_i          = configuration[self.i]
         particle_j          = configuration[self.j]
+        D                   = len(particle_i.position)
         assert abs(math.sqrt(particle_i.get_distance2(particle_j))-2*R)<0.0001*R,'Distance should be close to R'
         delta_x             = [particle_i.position[k]-particle_j.position[k] for k in range(D)]
         delta_x_norm        = math.sqrt(sum(delta_x[k]**2 for k in range(D)))
@@ -247,14 +247,14 @@ class Collision(Event):
 # get_rho
 #
 # Density of particles
-def get_rho(N,R,L):
+def get_rho(N,R,L,D=3):
     return (N*(4/D)*math.pi*R**D)/(L[0]*L[1]*L[2])
     
 # create_configuration
 #
 # Build particles for box particles
 # Make sure that spheres don't overlap 
-def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1):
+def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1,D=3):
     def get_position():
         return [random.uniform(R-l,l-R) for l in L]
     
@@ -302,10 +302,6 @@ def link_events(configuration):
         for j in range(i+1,len(configuration)):
             configuration[i].events[j]= Collision(i,j)
  
-
-
-
-
 # flatten
 #
 # Flatten a list of lists into a simple list
