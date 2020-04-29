@@ -16,7 +16,9 @@
 import heapq, random, abc,math
 from enum import Enum, unique
 
-
+def boltzmann(E,kT=1):
+    return math.sqrt(E) * math.exp(-E/kT)
+    
 # MolecularDynamicsError
 #
 # An exception detected by the program itself
@@ -153,9 +155,9 @@ class HitsWall(Event):
             velocity                              = particle.velocity[index]
             event_plus                            = particle.events[direction_positive]
     
-            if velocity ==0:
-                event_plus.t = float.inf
-                return event_plus
+            if velocity ==0:                  # Collision will never happen
+                event_plus.t = float.inf      # We could return a None and tidy if up, 
+                return event_plus             # but this is simpler
             if velocity >0:        
                 event_plus.t = t + (L[index]-R-distance)/velocity
                 return event_plus
@@ -174,6 +176,7 @@ class HitsWall(Event):
         super().act(configuration,L,R) 
         particle = configuration[self.particle_index]
         particle.reverse(self.wall.number())
+        return 0
 
 # Collision
 #
@@ -242,6 +245,7 @@ class Collision(Event):
         delta_v_e_perp      = sum(delta_v[k]*e_perp[k] for k in range(D))
         particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(D)]
         particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(D)]
+        return 1
 
 # get_rho
 #
@@ -311,6 +315,8 @@ def flatten(lists):
 if __name__ == '__main__':
     import argparse,sys,matplotlib.pyplot as plt
     
+    kT = 1
+    
     def get_L(args_L):
         if type(args_L)==float:
             return [args_L,args_L,args_L]
@@ -344,12 +350,13 @@ if __name__ == '__main__':
     if args.seed!=None:
         random.seed(args.seed)
         
-    i = 0    
     try:
         configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
         link_events(configuration)
-        t  = 0
-         
+        t          = 0
+        i          = 0
+        collisions = 0   # Number of papritcle-partilce collisions - walls not counted
+        
         while t < args.T:
             events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
                              [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)])
@@ -363,11 +370,18 @@ if __name__ == '__main__':
             i += 1
             for particle in configuration:
                 particle.evolve(dt)
-            next_event.act(configuration,L=L,R=args.R,dt=dt)
+            collisions+=next_event.act(configuration,L=L,R=args.R,dt=dt)
+            
         plt.figure(figsize=(20,10))
-        plt.hist([particle.get_energy() for particle in configuration])
-        plt.title(f'N={args.N}, T={args.T}, rho={get_rho(args.N,args.R,L):.2f}')
+        energies = [particle.get_energy() for particle in configuration]      
+        n,bins,_ = plt.hist(energies,color='b',label='Actual')
+        xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
+        ys       = [boltzmann(E,kT=kT) for E in xs] 
+        scale    = sum(n)/sum(ys)   
+        plt.plot(xs,[y*scale for y in ys] ,color='r',label='Boltzmann')
+        plt.title(f'N={args.N}, T={args.T}, rho={get_rho(args.N,args.R,L):.2f}, collisions={collisions}')
         plt.xlabel('Energy')
+        plt.legend()
         plt.savefig(f'{args.plots}.png')
         if args.show:
             plt.show()
