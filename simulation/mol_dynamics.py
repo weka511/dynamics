@@ -327,13 +327,16 @@ if __name__ == '__main__':
             sys.exit(1)
             
     parser = argparse.ArgumentParser('Molecular Dynamice simulation')
-    parser.add_argument('--N','-N', type=int,   default=25,             help='Number of particles')
-    parser.add_argument('--T','-T', type=float, default=100,            help='Maximum Time')
-    parser.add_argument('--R','-R', type=float, default=0.0625,         help='Radius of spheres')
-    parser.add_argument('--NT',     type=int,   default=100,            help='Number of attempts to choose initial configuration')
-    parser.add_argument('--E',      type=float, default=1,              help='Total energy')
-    parser.add_argument('--L',      type=float, default=1.0, nargs='+', help='Half widths of box: one value or three.')
-    parser.add_argument('--seed',   type=int,   default=None,           help='Seed for random number generator')
+    parser.add_argument('--N','-N', type=int,   default=25,      help='Number of particles')
+    parser.add_argument('--T','-T', type=float, default=100,     help='Maximum Time')
+    parser.add_argument('--R','-R', type=float, default=0.0625,  help='Radius of spheres')
+    parser.add_argument('--NT',     type=int,   default=100,     help='Number of attempts to choose initial configuration')
+    parser.add_argument('--E',      type=float, default=1,       help='Total energy')
+    parser.add_argument('--L',      type=float, default=1.0,     help='Half widths of box: one value or three.', nargs='+',)
+    parser.add_argument('--seed',   type=int,   default=None,    help='Seed for random number generator')
+    parser.add_argument('--freq',   type=int,   default=100,     help='Frequency: number of steps between progress reports')
+    parser.add_argument('--show',               default=False,   help='Show plots at end of run',  action='store_true')
+    parser.add_argument('--plots',              default='plots', help='Name of file to store plots')
     args = parser.parse_args()
     
     L    = get_L(args.L)
@@ -341,6 +344,7 @@ if __name__ == '__main__':
     if args.seed!=None:
         random.seed(args.seed)
         
+    i = 0    
     try:
         configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
         link_events(configuration)
@@ -353,8 +357,10 @@ if __name__ == '__main__':
             heapq.heapify(events)
             next_event = events[0]
             dt         = next_event.t-t
-            print (f'{next_event}')
+            if i%args.freq==0:
+                print (f'{next_event}')
             t          = next_event.t
+            i += 1
             for particle in configuration:
                 particle.evolve(dt)
             next_event.act(configuration,L=L,R=args.R,dt=dt)
@@ -362,8 +368,9 @@ if __name__ == '__main__':
         plt.hist([particle.get_energy() for particle in configuration])
         plt.title(f'N={args.N}, T={args.T}, rho={get_rho(args.N,args.R,L):.2f}')
         plt.xlabel('Energy')
-        plt.savefig('energies.png')
-        plt.show()
+        plt.savefig(f'{args.plots}.png')
+        if args.show:
+            plt.show()
     except MolecularDynamicsError as e:
         print (e)
         sys.exit(1)
