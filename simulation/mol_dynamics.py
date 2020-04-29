@@ -16,6 +16,9 @@
 import heapq, random, abc,math
 from enum import Enum, unique
 
+D = 3    # We are workingin in 3D space
+
+
 # MolecularDynamicsError
 #
 # An exception detected by the program itself
@@ -44,7 +47,7 @@ class Particle:
     # Squared distance between centres for some other Particle
     
     def get_distance2(self,other):
-        return sum((self.position[i]-other.position[i])**2 for i in range(3))
+        return sum((self.position[i]-other.position[i])**2 for i in range(D))
     
     # get_energy
     #
@@ -73,7 +76,7 @@ class Particle:
     # Change position bt applying veocity for specified time
     
     def evolve(self,dt):
-        for i in range(3):
+        for i in range(D):
             self.position[i] += (self.velocity[i]*dt)
         
 
@@ -168,19 +171,22 @@ class Collision(Event):
         super().act(configuration)
         particle_i          = configuration[self.i]
         particle_j          = configuration[self.j]
-        delta_x             = [particle_i.position[k]-particle_j.position[k] for k in range(3)]
-        delta_x_norm        = math.sqrt(sum(delta_x[k]**2 for k in range(3)))
-        e_perp              = [delta_x[k]/delta_x_norm for k in range(3)]
-        delta_v             = [particle_i.velocity[k]-particle_j.velocity[k] for k in range(3)]
-        delta_v_e_perp      = sum(delta_v[k]*e_perp[k] for k in range(3))
-        particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(3)]
-        particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(3)]
+        assert abs(math.sqrt(particle_i.get_distance2(particle_j))-2*R)<0.0001*R,'Distance should be close to R'
+        delta_x             = [particle_i.position[k]-particle_j.position[k] for k in range(D)]
+        delta_x_norm        = math.sqrt(sum(delta_x[k]**2 for k in range(D)))
+        e_perp              = [delta_x[k]/delta_x_norm for k in range(D)]
+        delta_v             = [particle_i.velocity[k]-particle_j.velocity[k] for k in range(D)]
+        delta_v_e_perp      = sum(delta_v[k]*e_perp[k] for k in range(D))
+        particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(D)]
+        particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(D)]
+  
+
 
 # get_rho
 #
 # Density of particles
 def get_rho(N,R,L):
-    return (N*(4/3)*math.pi*R**3)/(L[0]*L[1]*L[2])
+    return (N*(4/D)*math.pi*R**D)/(L[0]*L[1]*L[2])
     
 # create_configuration
 #
@@ -191,10 +197,10 @@ def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1):
         return [random.uniform(R-l,l-R) for l in L]
     
     # get_velocity
-    def get_velocity(d=3): #Krauth Algorithm 1.21
-        velocities = [random.gauss(0, 1) for _ in range(d)]
+    def get_velocity(): #Krauth Algorithm 1.21
+        velocities = [random.gauss(0, 1) for _ in range(D)]
         sigma      = math.sqrt(sum([v**2 for v in velocities]))
-        upsilon    = random.random()**(1/d)
+        upsilon    = random.random()**(1/D)
         return [v*upsilon/sigma for v in velocities]
     
     # is_valid
@@ -259,7 +265,7 @@ def get_collisions_sphere_wall(particle,t=0,L=1,R=0.0625):
             event_minus.t = t + (L[index]-R+distance)/abs(velocity) 
             return event_minus
         
-    return [get_collision(index) for index in range(3)]
+    return [get_collision(index) for index in range(D)]
 
 # get_collisions_sphere_sphere
 #
@@ -270,12 +276,12 @@ def get_collisions_sphere_sphere(i,configuration,t=0,R=0.0625):
     # Determine whether two particles are on a path to collide
     # Krauth Algorithm 2.2
     def get_next_collision(particle1,particle2):  
-        dx    = [particle1.position[k] - particle2.position[k] for k in range(3)]
-        dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(3)]
-        dx_dv = sum(dx[k]*dv[k] for k in range(3))
-        dx_2  = sum(dx[k]*dx[k] for k in range(3))
-        dv_2  = sum(dv[k]*dv[k] for k in range(3))
-        disc  = dx_dv**2 - dv_2 * (dx_2 -R**2)
+        dx    = [particle1.position[k] - particle2.position[k] for k in range(D)]
+        dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
+        dx_dv = sum(dx[k]*dv[k] for k in range(D))
+        dx_2  = sum(dx[k]*dx[k] for k in range(D))
+        dv_2  = sum(dv[k]*dv[k] for k in range(D))
+        disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
         if disc>=0 and dx_dv<0:
             return (-dx_dv + math.sqrt(disc))/dv_2
 
