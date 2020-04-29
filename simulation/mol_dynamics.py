@@ -372,6 +372,7 @@ if __name__ == '__main__':
                 particle.evolve(dt)
             collisions+=next_event.act(configuration,L=L,R=args.R,dt=dt)
             
+        kT = 2*args.E/(3*args.N)     
         plt.figure(figsize=(20,10))
         energies = [particle.get_energy() for particle in configuration]      
         n,bins,_ = plt.hist(energies,color='b',label='Actual')
