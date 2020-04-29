@@ -218,13 +218,12 @@ class Collision(Event):
                 collision.t = t + dt
                 return collision
         
-        #  non_trivial
-        #
-        # Purge Nones from list
-        def non_trivial(list):
-            return [l for l in list if l!=None]
-        
-        return non_trivial([get_collision_with(j) for j in range(i+1,len(configuration))])
+        return [
+            collision for collision in [
+                get_collision_with(j) for j in range(i+1,len(configuration))
+            ]
+            if collision!=None
+        ]
   
     # act
     #
