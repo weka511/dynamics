@@ -26,19 +26,26 @@ class Particle:
         self.velocity = [v for v in velocity]
         self.radius   = radius
         self.events   = {}
+        
     def __str__(self):
         return f'({self.position[0],self.position[1],self.position[2]}),({self.velocity[0]},{self.velocity[1]},{self.velocity[2]})'
+    
     def get_distance2(self,other):
         return sum([(self.position[i]-other.position[i])**2 for i in range(3)])
+    
     def get_energy(self):
         return sum([v**2 for v in self.velocity])
+    
     def scale_energy(self,energy_scale_factor):
         velocity_scale_factor = math.sqrt(energy_scale_factor)
         self.velocity = [velocity_scale_factor*v for v in self.velocity]
+        
     def reverse(self,index):
         self.velocity[index] = - self.velocity[index]
-    def  set_position(self,index,value):
+        
+    def set_position(self,index,value):
         self.position[index] = value
+        
     def evolve(self,dt):
         for i in range(3):
             self.position[i] += (self.velocity[i]*dt)
@@ -46,11 +53,11 @@ class Particle:
         
 @unique
 class Wall(Enum):
-    NORTH  = 1
-    EAST   = 2
+    NORTH  =  1
+    EAST   =  2
     SOUTH  = -1
     WEST   = -2
-    TOP    = 3
+    TOP    =  3
     BOTTOM = -3
     
     def number(self):
@@ -82,8 +89,10 @@ class HitsWall(Event):
         super().__init__(t)
         self.particle_index = particle_index
         self.wall           = wall
+        
     def __str__(self):
         return f'({self.particle_index},{self.wall})\t\t{self.t}'
+    
     def act(self,configuration,L=[1,1,1],R=0.0625,dt=0):
         super().act(configuration,L,R) 
         particle = configuration[self.particle_index]
@@ -99,8 +108,17 @@ class Collision(Event):
     def __str__(self):
         return f'({self.i},{self.j})\t\t\t{self.t}'
     
-    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0):
-        super().act(configuration)       
+    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0): #TODO
+        super().act(configuration)
+        particle_i          = configuration[self.i]
+        particle_j          = configuration[self.j]
+        delta_x             = [particle_i.position[k]-particle_j.position[k] for k in range(3)]
+        delta_x_norm        = math.sqrt(sum(delta_x[k]**2 for k in range(3)))
+        e_perp              = [delta_x[k]/delta_x_norm for k in range(3)]
+        delta_v             = [particle_i.velocity[k]-particle_j.velocity[k] for k in range(3)]
+        delta_v_e_perp      = sum(delta_v[k]*e_perp[k] for k in range(3))
+        particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(3)]
+        particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(3)]
       
 # create_configuration
 #
@@ -154,7 +172,7 @@ def link_events(configuration):
         for j in range(i+1,len(configuration)):
             configuration[i].events[j]= Collision(i,j)
     
-def get_collisions_sphere_wall(particle,t,L=1,R=0.0625):
+def get_collisions_sphere_wall(particle,t=0,L=1,R=0.0625):
     def get_collision(index):
         direction_positive,direction_negative = Wall.get_wall_pair(index)
         distance                              = particle.position[index]
@@ -174,8 +192,28 @@ def get_collisions_sphere_wall(particle,t,L=1,R=0.0625):
         
     return [get_collision(index) for index in range(3)]
 
-def get_collisions_sphere_sphere(i):
-    return []
+def get_collisions_sphere_sphere(i,configuration,t=0,R=0.0625):
+    def get_next_collision(particle1,particle2):  # TODO
+        dx    = [particle1.position[k] - particle2.position[k] for k in range(3)]
+        dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(3)]
+        dx_dv = sum(dx[k]*dv[k] for k in range(3))
+        dx_2  = sum(dx[k]*dx[k] for k in range(3))
+        dv_2  = sum(dv[k]*dv[k] for k in range(3))
+        disc  = dx_dv**2 - dv_2 * (dx_2 -R**2)
+        if disc>=0 and dx_dv<0:
+            return (-dx_dv + math.sqrt(disc))/dv_2
+ 
+    def get_collision_with(j):
+        dt = get_next_collision(configuration[i],configuration[j])
+        if dt !=None:
+            collision = configuration[i].events[j]
+            collision.t = t + dt
+            return collision
+        
+    def non_trivial(list):
+        return [l for l in list if l!=None]
+    
+    return non_trivial([get_collision_with(j) for j in range(i+1,len(configuration))])
 
 def flatten(lists):
     return [item for sublist in lists for item in sublist]
@@ -199,13 +237,13 @@ if __name__ == '__main__':
             sys.exit(1)
             
     parser = argparse.ArgumentParser('Molecular Dynamice simulation')
-    parser.add_argument('--N','-N', type=int,   default=25,            help='Number of particles')
-    parser.add_argument('--T','-T', type=float, default=100,           help='Maximum Time')
-    parser.add_argument('--R','-R', type=float, default=0.0625,        help='Radius of spheres')
-    parser.add_argument('--NT',     type=int,   default=100,           help='Number of attempts to choose initial configuration')
-    parser.add_argument('--E',      type=float, default=1,             help='Total energy')
-    parser.add_argument('--L',      type=float, default=1.0, nargs='+',  help='Half widths of box: 1 value or 3')
-    parser.add_argument('--seed',   type=int,   default=None,          help='Seed for random number generator')
+    parser.add_argument('--N','-N', type=int,   default=25,             help='Number of particles')
+    parser.add_argument('--T','-T', type=float, default=100,            help='Maximum Time')
+    parser.add_argument('--R','-R', type=float, default=0.0625,         help='Radius of spheres')
+    parser.add_argument('--NT',     type=int,   default=100,            help='Number of attempts to choose initial configuration')
+    parser.add_argument('--E',      type=float, default=1,              help='Total energy')
+    parser.add_argument('--L',      type=float, default=1.0, nargs='+', help='Half widths of box: one value or three.')
+    parser.add_argument('--seed',   type=int,   default=None,           help='Seed for random number generator')
     args = parser.parse_args()
     
     L    = get_L(args.L)
@@ -219,8 +257,8 @@ if __name__ == '__main__':
         t  = 0
          
         while t < args.T:
-            events = flatten([get_collisions_sphere_wall(configuration[i],t,L=L,R=args.R) for i in range(args.N)] + \
-                             [get_collisions_sphere_sphere(i) for i in range(args.N)])
+            events = flatten([get_collisions_sphere_wall(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
+                             [get_collisions_sphere_sphere(i,configuration,t=t,R=args.R) for i in range(args.N)])
             
             heapq.heapify(events)
             next_event = events[0]
@@ -233,7 +271,7 @@ if __name__ == '__main__':
     except MolecularDynamicsError as e:
         print (e)
         sys.exit(1)
-    except:
-        print(f'Unexpected error: {sys.exc_info()}')
-        sys.exit(1)
+    #except:
+        #print(f'Unexpected error: {sys.exc_info()}')
+        #sys.exit(1)
  
