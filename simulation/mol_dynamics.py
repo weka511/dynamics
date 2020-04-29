@@ -139,6 +139,34 @@ class HitsWall(Event):
         
     def __str__(self):
         return f'{self.t:.2f}\t\t({self.particle_index},{self.wall})'
+
+        
+    # get_collisions
+    #
+    # Get collisions between specified particle and any wall
+    @classmethod
+    def get_collisions(self,particle,t=0,L=1,R=0.0625):
+        # get_collision
+        #
+        # Get collisions between particle and specified pair of opposite walls
+        def get_collision(index):
+            direction_positive,direction_negative = Wall.get_wall_pair(index)
+            distance                              = particle.position[index]
+            velocity                              = particle.velocity[index]
+            event_plus                            = particle.events[direction_positive]
+    
+            if velocity ==0:
+                event_plus.t = float.inf
+                return event_plus
+            if velocity >0:        
+                event_plus.t = t + (L[index]-R-distance)/velocity
+                return event_plus
+            if velocity <0:
+                event_minus = particle.events[direction_negative]
+                event_minus.t = t + (L[index]-R+distance)/abs(velocity) 
+                return event_minus
+            
+        return [get_collision(index) for index in range(D)]  
     
     # act
     #
@@ -148,7 +176,6 @@ class HitsWall(Event):
         super().act(configuration,L,R) 
         particle = configuration[self.particle_index]
         particle.reverse(self.wall.number())
-
 
 # Collision
 #
@@ -162,7 +189,44 @@ class Collision(Event):
         
     def __str__(self):
         return f'{self.t:.2f}\t\t({self.i},{self.j})'
-
+        
+    # get_collisions
+    #
+    # get all collisions between specifed particle and all others having index greater that specified particle
+    
+    @classmethod
+    def get_collisions(self,i,configuration,t=0,R=0.0625):
+        # get_next_collision
+        # Determine whether two particles are on a path to collide
+        # Krauth Algorithm 2.2
+        def get_next_collision(particle1,particle2):  
+            dx    = [particle1.position[k] - particle2.position[k] for k in range(D)]
+            dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
+            dx_dv = sum(dx[k]*dv[k] for k in range(D))
+            dx_2  = sum(dx[k]*dx[k] for k in range(D))
+            dv_2  = sum(dv[k]*dv[k] for k in range(D))
+            disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
+            if disc>=0 and dx_dv<0:
+                return (-dx_dv + math.sqrt(disc))/dv_2
+    
+        # get_collision_with
+        #
+        # Get possible collision between particl and specified other particle
+        def get_collision_with(j):
+            dt = get_next_collision(configuration[i],configuration[j])
+            if dt !=None:
+                collision = configuration[i].events[j]
+                collision.t = t + dt
+                return collision
+        
+        #  non_trivial
+        #
+        # Purge Nones from list
+        def non_trivial(list):
+            return [l for l in list if l!=None]
+        
+        return non_trivial([get_collision_with(j) for j in range(i+1,len(configuration))])
+  
     # act
     #
     # Reverse motion along normal at point of collision
@@ -179,8 +243,6 @@ class Collision(Event):
         delta_v_e_perp      = sum(delta_v[k]*e_perp[k] for k in range(D))
         particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(D)]
         particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(D)]
-  
-
 
 # get_rho
 #
@@ -240,68 +302,9 @@ def link_events(configuration):
         for j in range(i+1,len(configuration)):
             configuration[i].events[j]= Collision(i,j)
  
-# get_collisions_sphere_wall
-#
-# Get collisions between specified particle and any wall
 
-def get_collisions_sphere_wall(particle,t=0,L=1,R=0.0625):
-    # get_collision
-    #
-    # Get collisions between particle and specified pair of opposite walls
-    def get_collision(index):
-        direction_positive,direction_negative = Wall.get_wall_pair(index)
-        distance                              = particle.position[index]
-        velocity                              = particle.velocity[index]
-        event_plus                            = particle.events[direction_positive]
 
-        if velocity ==0:
-            event_plus.t = float.inf
-            return event_plus
-        if velocity >0:        
-            event_plus.t = t + (L[index]-R-distance)/velocity
-            return event_plus
-        if velocity <0:
-            event_minus = particle.events[direction_negative]
-            event_minus.t = t + (L[index]-R+distance)/abs(velocity) 
-            return event_minus
-        
-    return [get_collision(index) for index in range(D)]
 
-# get_collisions_sphere_sphere
-#
-# get all collisions between specifed particle and all others having index greater that specified particle
-
-def get_collisions_sphere_sphere(i,configuration,t=0,R=0.0625):
-    # get_next_collision
-    # Determine whether two particles are on a path to collide
-    # Krauth Algorithm 2.2
-    def get_next_collision(particle1,particle2):  
-        dx    = [particle1.position[k] - particle2.position[k] for k in range(D)]
-        dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
-        dx_dv = sum(dx[k]*dv[k] for k in range(D))
-        dx_2  = sum(dx[k]*dx[k] for k in range(D))
-        dv_2  = sum(dv[k]*dv[k] for k in range(D))
-        disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
-        if disc>=0 and dx_dv<0:
-            return (-dx_dv + math.sqrt(disc))/dv_2
-
-    # get_collision_with
-    #
-    # Get possible collision between particl and specified other particle
-    def get_collision_with(j):
-        dt = get_next_collision(configuration[i],configuration[j])
-        if dt !=None:
-            collision = configuration[i].events[j]
-            collision.t = t + dt
-            return collision
-    
-    #  non_trivial
-    #
-    # Purge Nones from list
-    def non_trivial(list):
-        return [l for l in list if l!=None]
-    
-    return non_trivial([get_collision_with(j) for j in range(i+1,len(configuration))])
 
 # flatten
 #
@@ -349,8 +352,8 @@ if __name__ == '__main__':
         t  = 0
          
         while t < args.T:
-            events = flatten([get_collisions_sphere_wall(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
-                             [get_collisions_sphere_sphere(i,configuration,t=t,R=args.R) for i in range(args.N)])
+            events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
+                             [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)])
             
             heapq.heapify(events)
             next_event = events[0]
