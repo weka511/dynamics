@@ -314,9 +314,9 @@ def flatten(lists):
     return [item for sublist in lists for item in sublist]
 
 if __name__ == '__main__':
-    import argparse,sys,matplotlib.pyplot as plt
+    import argparse,sys,matplotlib.pyplot as plt,time
     
-    kT = 1
+    kT = 1 # Temperature in "Boltzmann units"
     
     def get_L(args_L):
         if type(args_L)==float:
@@ -353,8 +353,12 @@ if __name__ == '__main__':
         random.seed(args.seed)
         
     try:
+        start_time = time.time()
         _,configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
         link_events(configuration)
+        
+        init_time = time.time()
+        print (f'Time to initialize: {(init_time-start_time):.1f} seconds')
         t            = 0
         step_counter = 0
         collisions   = 0   # Number of particle-particle collisions - walls not counted
@@ -373,7 +377,11 @@ if __name__ == '__main__':
             for particle in configuration:
                 particle.evolve(dt)
             collisions+=next_event.act(configuration)
-            
+       
+        end_time = time.time()
+        print (f'Time to simulate {collisions} collisions between {args.N} particles: {(end_time-init_time):.1f} seconds') 
+        print (f'Total Time: {(end_time-start_time):.1f} seconds')
+        
         plt.figure(figsize=(20,10))            
         kT       = (2/3)*args.E/args.N  # Average energy of particle is 1.5kT        
         n,bins,_ = plt.hist([particle.get_energy() for particle in configuration] , color='b', label='Actual')
