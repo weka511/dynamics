@@ -291,7 +291,7 @@ def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1,D=3):
             for particle in product:
                 particle.scale_energy(E/actual_energy)
             print (f'Radius = {R}, Density = {get_rho(N,R,L)}, {i+1} attempts')
-            return product
+            return i,product
         
         product= [Particle(position=get_position(),radius=R) for _ in range(N)]
         
@@ -352,7 +352,7 @@ if __name__ == '__main__':
         random.seed(args.seed)
         
     try:
-        configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
+        _,configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
         link_events(configuration)
         t            = 0
         step_counter = 0
