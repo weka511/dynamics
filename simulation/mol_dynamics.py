@@ -16,6 +16,10 @@
 import heapq, random, abc,math
 from enum import Enum, unique
 
+# boltzmann
+#
+# Bolzmann's distribution (to within a multiplicative constant, which will be lost when we scale)
+
 def boltzmann(E,kT=1):
     return math.sqrt(E) * math.exp(-E/kT)
     
@@ -124,7 +128,7 @@ class Event(abc.ABC):
     # This is what happens during a collission
     
     @abc.abstractmethod
-    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0):
+    def act(self,configuration):
         pass
 
 # HitsWall
@@ -172,11 +176,11 @@ class HitsWall(Event):
     #
     # Reverse motion of particles perpendicular to wall
     
-    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0):
-        super().act(configuration,L,R) 
+    def act(self,configuration):
+        super().act(configuration) 
         particle = configuration[self.particle_index]
         particle.reverse(self.wall.number())
-        return 0
+        return 0 # We don't want to count these collisions
 
 # Collision
 #
@@ -222,9 +226,7 @@ class Collision(Event):
                 return collision
         
         return [
-            collision for collision in [
-                get_collision_with(j) for j in range(i+1,len(configuration))
-            ]
+            collision for collision in [get_collision_with(j) for j in range(i+1,len(configuration))]
             if collision!=None
         ]
   
@@ -232,12 +234,11 @@ class Collision(Event):
     #
     # Reverse motion along normal at point of collision
     
-    def act(self,configuration,L=[1,1,1],R=0.0625,dt=0): #Krauth Algorithm 2.3
+    def act(self,configuration): #Krauth Algorithm 2.3
         super().act(configuration)
         particle_i          = configuration[self.i]
         particle_j          = configuration[self.j]
         D                   = len(particle_i.position)
-        assert abs(math.sqrt(particle_i.get_distance2(particle_j))-2*R)<0.0001*R,'Distance should be close to R'
         delta_x             = [particle_i.position[k]-particle_j.position[k] for k in range(D)]
         delta_x_norm        = math.sqrt(sum(delta_x[k]**2 for k in range(D)))
         e_perp              = [delta_x[k]/delta_x_norm for k in range(D)]
@@ -245,7 +246,7 @@ class Collision(Event):
         delta_v_e_perp      = sum(delta_v[k]*e_perp[k] for k in range(D))
         particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(D)]
         particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(D)]
-        return 1
+        return 1 # So we can count this collision
 
 # get_rho
 #
@@ -353,33 +354,32 @@ if __name__ == '__main__':
     try:
         configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
         link_events(configuration)
-        t          = 0
-        i          = 0
-        collisions = 0   # Number of papritcle-partilce collisions - walls not counted
+        t            = 0
+        step_counter = 0
+        collisions   = 0   # Number of papritcle-partilce collisions - walls not counted
         
         while t < args.T:
             events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
                              [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)])
             
             heapq.heapify(events)
-            next_event = events[0]
-            dt         = next_event.t-t
-            if i%args.freq==0:
-                print (f'{next_event}')
-            t          = next_event.t
-            i += 1
+            next_event    = events[0]
+            dt            = next_event.t-t
+            t             = next_event.t
+            step_counter += 1
+            if step_counter%args.freq==0:
+                print (f'{next_event}')            
             for particle in configuration:
                 particle.evolve(dt)
-            collisions+=next_event.act(configuration,L=L,R=args.R,dt=dt)
+            collisions+=next_event.act(configuration)
             
-        kT = 2*args.E/(3*args.N)     
-        plt.figure(figsize=(20,10))
-        energies = [particle.get_energy() for particle in configuration]      
-        n,bins,_ = plt.hist(energies,color='b',label='Actual')
+        plt.figure(figsize=(20,10))            
+        kT       = (2/3)*args.E/args.N  # Average energy of particle is 1.5kT        
+        n,bins,_ = plt.hist([particle.get_energy() for particle in configuration] , color='b', label='Actual')
         xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
         ys       = [boltzmann(E,kT=kT) for E in xs] 
-        scale    = sum(n)/sum(ys)   
-        plt.plot(xs,[y*scale for y in ys] ,color='r',label='Boltzmann')
+        scale_ys = sum(n)/sum(ys)   # We want area under Bolzmann to match area under energies
+        plt.plot(xs, [y*scale_ys for y in ys], color='r', label='Boltzmann')
         plt.title(f'N={args.N}, T={args.T}, rho={get_rho(args.N,args.R,L):.2f}, collisions={collisions}')
         plt.xlabel('Energy')
         plt.legend()
