@@ -338,6 +338,7 @@ if __name__ == '__main__':
     parser.add_argument('--T','-T', type=float, default=100,     help='Maximum Time')
     parser.add_argument('--R','-R', type=float, default=0.0625,  help='Radius of spheres')
     parser.add_argument('--NT',     type=int,   default=100,     help='Number of attempts to choose initial configuration')
+    parser.add_argument('--NC',     type=int,   default=0,       help='Minimum number of collisions')
     parser.add_argument('--E',      type=float, default=1,       help='Total energy')
     parser.add_argument('--L',      type=float, default=1.0,     help='Half widths of box: one value or three.', nargs='+',)
     parser.add_argument('--seed',   type=int,   default=None,    help='Seed for random number generator')
@@ -356,9 +357,9 @@ if __name__ == '__main__':
         link_events(configuration)
         t            = 0
         step_counter = 0
-        collisions   = 0   # Number of papritcle-partilce collisions - walls not counted
+        collisions   = 0   # Number of particle-particle collisions - walls not counted
         
-        while t < args.T:
+        while t < args.T or collisions < args.NC:
             events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
                              [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)])
             
