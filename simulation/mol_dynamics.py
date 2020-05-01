@@ -130,6 +130,10 @@ class Event(abc.ABC):
     @abc.abstractmethod
     def act(self,configuration):
         pass
+    
+    @abc.abstractmethod
+    def get_colliders(self):
+        pass
 
 # HitsWall
 #
@@ -181,7 +185,10 @@ class HitsWall(Event):
         particle = configuration[self.particle_index]
         particle.reverse(self.wall.number())
         return 0 # We don't want to count these collisions
-
+    
+    def get_colliders(self):
+        return [self.particle_index]
+    
 # Collision
 #
 # This class represents a collision between two particles
@@ -247,6 +254,9 @@ class Collision(Event):
         particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(D)]
         particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(D)]
         return 1 # So we can count this collision
+    
+    def get_colliders(self):
+        return [self.i,self.j]    
 
 # get_rho
 #
@@ -313,6 +323,41 @@ def link_events(configuration):
 def flatten(lists):
     return [item for sublist in lists for item in sublist]
 
+def  split(events,colliders):
+    def intersects(list1,list2):
+        for i in list1:
+            for j in list2:
+                if i==j: return True
+        return False
+    
+    events1 = []
+    events2 = []
+    for event in events:
+        if intersects(event.get_colliders(),colliders):
+            events2.append(event)
+        else:
+            events1.append(event)
+    return events1, events2
+    
+def merge(events1,events2):
+    events = []
+    i      = 0
+    j      = 0
+    while i<len(events1) and j<len(events2):
+        if events1[i]<events2[j]:
+            events.append(events1[i])
+            i+=1
+        else:
+            events.append(events2[j])
+            j+=1 
+    while i<len(events1):
+        events.append(events1[i])
+        i+=1        
+    while j<len(events2):
+        events.append(events2[j])
+        j+=1         
+    return events
+
 if __name__ == '__main__':
     import argparse,sys,matplotlib.pyplot as plt,time
     
@@ -363,20 +408,42 @@ if __name__ == '__main__':
         step_counter = 0
         collisions   = 0   # Number of particle-particle collisions - walls not counted
         
+        events = sorted(flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
+                                     [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)]))
+ 
         while t < args.T or collisions < args.NC:
-            events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
-                             [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)])
-            
-            heapq.heapify(events)
-            next_event    = events[0]
-            dt            = next_event.t-t
-            t             = next_event.t
+            event         = events[0]
+            dt            = event.t-t
+            t             = event.t
             step_counter += 1
             if step_counter%args.freq==0:
-                print (f'{next_event}')            
+                print (f'{event}')            
             for particle in configuration:
                 particle.evolve(dt)
-            collisions+=next_event.act(configuration)
+            collisions += event.act(configuration)
+            colliders   = event.get_colliders()
+            events1,_ = split(events,colliders)
+            for e in events1:
+                e.t -=dt
+            events2 = sorted(flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in colliders] + \
+                                         [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in colliders]))            
+            events = merge(events1,events2)            
+            x=0
+            
+        #while t < args.T or collisions < args.NC:
+            #events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
+                             #[Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)])
+            
+            #heapq.heapify(events)
+            #next_event    = events[0]
+            #dt            = next_event.t-t
+            #t             = next_event.t
+            #step_counter += 1
+            #if step_counter%args.freq==0:
+                #print (f'{next_event}')            
+            #for particle in configuration:
+                #particle.evolve(dt)
+            #collisions+=next_event.act(configuration)
        
         end_time = time.time()
         print (f'Time to simulate {collisions} collisions between {args.N} particles: {(end_time-init_time):.1f} seconds') 
@@ -398,7 +465,7 @@ if __name__ == '__main__':
     except MolecularDynamicsError as e:
         print (e)
         sys.exit(1)
-    except:
-        print(f'Unexpected error: {sys.exc_info()}')
-        sys.exit(1)
+    #except:
+        #print(f'Unexpected error: {sys.exc_info()}')
+        #sys.exit(1)
  
