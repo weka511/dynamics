@@ -33,18 +33,19 @@
 
 ## Simulation Exercises from [Simulation and modeling of natural processes](https://www.coursera.org/learn/modeling-simulation-natural-processes/home/info)
 
-| File | Week| Description |
-|-------------------------|------|----------------------------------------|
-| bacteria.py| 8 | Bacteria Chemotaxy |
-| barnes_hut.py | 6|3D version of Barnes-Hut Simulation. |
-| ex2_integrator.py | 2|Integration exercise |
-| ex3_LotkaVolterra.py | 3|Lotka Volterra Equation |
-| lbmFlowAroundCylinder.py | 5|Determine the _critical Reynold number,_ i.e. the lowest Reynold number for which the flow around the cylinder enters an unsteady regime after a sufficient number of iterations. |
-| parityRule.py | 4|Cellular Automaton for Parity Rule|
-| mol_create.py |7|Companion to mol_dynamics.py: work out time taken to initialize using tabula rasa|
-| mol_dynamics.py |7|Molecular dynamics of hard spheres.|
-| trafficLights.py |7| Traffic Intersection|
-| Wolfram_ca.py    |4| Wolfram Cellular Automaton |
+|Week| File | Description |
+|----|-------------------------|------|----------------------------------------|
+| 2|ex2_integrator.py | Integration exercise |
+| 3|ex3_LotkaVolterra.py | Lotka Volterra Equation |
+| 4|parityRule.py | Cellular Automaton for Parity Rule|
+| 4|Wolfram_ca.py | Wolfram Cellular Automaton |
+| 5|lbmFlowAroundCylinder.py | Determine the _critical Reynold number,_ i.e. the lowest Reynold number for which the flow around the cylinder enters an unsteady regime after a sufficient number of iterations. |
+| 6|barnes_hut.py | 3D version of Barnes-Hut Simulation. |
+|7| mol2.py|Eliminated event queue - use mechanism from Kreith|
+| 7|mol_create.py |Companion to mol_dynamics.py: work out time taken to initialize using tabula rasa|
+| 7|mol_dynamics.py |Molecular dynamics of hard spheres.|
+| 7|trafficLights.py | Traffic Intersection|
+|8| bacteria.py| Bacteria Chemotaxy |
 
 ## Other
 
