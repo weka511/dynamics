@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-import heapq, random, abc,math
+import random, abc, math
 from enum import Enum, unique
 
 # boltzmann
@@ -134,6 +134,9 @@ class Event(abc.ABC):
     @abc.abstractmethod
     def get_colliders(self):
         pass
+    
+    def age(self,dt):
+        self.t -=dt    
 
 # HitsWall
 #
@@ -256,7 +259,9 @@ class Collision(Event):
         return 1 # So we can count this collision
     
     def get_colliders(self):
-        return [self.i,self.j]    
+        return [self.i,self.j]
+    
+
 
 # get_rho
 #
@@ -323,22 +328,20 @@ def link_events(configuration):
 def flatten(lists):
     return [item for sublist in lists for item in sublist]
 
-def  split(events,colliders):
+# get_unaffected
+#
+# Get list of events that weren't affcted by collisions
+def  get_unaffected(events,affected):
     def intersects(list1,list2):
         for i in list1:
             for j in list2:
                 if i==j: return True
         return False
-    
-    events1 = []
-    events2 = []
-    for event in events:
-        if intersects(event.get_colliders(),colliders):
-            events2.append(event)
-        else:
-            events1.append(event)
-    return events1, events2
-    
+    return [event for event in events if not intersects(event.get_colliders(),affected)]
+
+# merge
+#
+# Merge two sorted lists into a single sorted list
 def merge(events1,events2):
     events = []
     i      = 0
@@ -404,14 +407,20 @@ if __name__ == '__main__':
         
         init_time = time.time()
         print (f'Time to initialize: {(init_time-start_time):.1f} seconds')
-        t            = 0
-        step_counter = 0
-        collisions   = 0   # Number of particle-particle collisions - walls not counted
+        t               = 0
+        step_counter    = 0
+        collision_count = 0   # Number of particle-particle collisions - walls not counted
         
-        events = sorted(flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
-                                     [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)]))
+        # Build a sorted list of events. After each collision we will remove all events for
+        # particles involved in the collision, and:
+        # 1. Age remining events
+        # 2. Generate new events from affected particles, and merge them with list of events.
+        
+        events = sorted(
+                   flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
+                           [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)]))
  
-        while t < args.T or collisions < args.NC:
+        while t < args.T or collision_count < args.NC:
             event         = events[0]
             dt            = event.t-t
             t             = event.t
@@ -420,33 +429,20 @@ if __name__ == '__main__':
                 print (f'{event}')            
             for particle in configuration:
                 particle.evolve(dt)
-            collisions += event.act(configuration)
-            colliders   = event.get_colliders()
-            events1,_ = split(events,colliders)
-            for e in events1:
-                e.t -=dt
-            events2 = sorted(flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in colliders] + \
-                                         [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in colliders]))            
-            events = merge(events1,events2)            
-            x=0
-            
-        #while t < args.T or collisions < args.NC:
-            #events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
-                             #[Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)])
-            
-            #heapq.heapify(events)
-            #next_event    = events[0]
-            #dt            = next_event.t-t
-            #t             = next_event.t
-            #step_counter += 1
-            #if step_counter%args.freq==0:
-                #print (f'{next_event}')            
-            #for particle in configuration:
-                #particle.evolve(dt)
-            #collisions+=next_event.act(configuration)
-       
+            collision_count += event.act(configuration)
+            affected         = event.get_colliders()
+            events_retained  = get_unaffected(events,affected)
+            for event in events_retained:
+                event.age(dt)
+             
+            events = merge(events_retained,
+                           sorted(
+                               flatten(
+                                   [HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in affected] + \
+                                   [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in affected])) )            
+ 
         end_time = time.time()
-        print (f'Time to simulate {collisions} collisions between {args.N} particles: {(end_time-init_time):.1f} seconds') 
+        print (f'Time to simulate {collision_count} collisions between {args.N} particles: {(end_time-init_time):.1f} seconds') 
         print (f'Total Time: {(end_time-start_time):.1f} seconds')
         
         plt.figure(figsize=(20,10))            
@@ -456,7 +452,7 @@ if __name__ == '__main__':
         ys       = [boltzmann(E,kT=kT) for E in xs] 
         scale_ys = sum(n)/sum(ys)   # We want area under Bolzmann to match area under energies
         plt.plot(xs, [y*scale_ys for y in ys], color='r', label='Boltzmann')
-        plt.title(f'N={args.N}, T={args.T}, rho={get_rho(args.N,args.R,L):.2f}, collisions={collisions}')
+        plt.title(f'N={args.N}, T={args.T}, rho={get_rho(args.N,args.R,L):.2f}, collisions={collision_count}')
         plt.xlabel('Energy')
         plt.legend()
         plt.savefig(f'{args.plots}.png')
