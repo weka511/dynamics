@@ -379,8 +379,8 @@ def merge(events1,events2):
     return events
 
 if __name__ == '__main__':
-    import argparse,sys,matplotlib.pyplot as plt,time,pickle
-    
+    import argparse,sys,matplotlib.pyplot as plt,time,pickle,os
+
     def get_L(args_L):
         if type(args_L)==float:
             return [args_L,args_L,args_L]
@@ -407,7 +407,8 @@ if __name__ == '__main__':
     parser.add_argument('--seed',   type=int,   default=None,    help='Seed for random number generator')
     parser.add_argument('--freq',   type=int,   default=100,     help='Frequency: number of steps between progress reports')
     parser.add_argument('--show',               default=False,   help='Show plots at end of run',  action='store_true')
-    parser.add_argument('--plots',              default='plots', help='Name of file to store plots')
+    parser.add_argument('--plots',              default=os.path.basename(__file__).split('.')[0], 
+                                                                 help='Name of file to store plots')
     parser.add_argument('--save',               default=None,    help='Save configuration at end of run')
     parser.add_argument('--load',               default=None,    help='Load configuration from saved file')
     args = parser.parse_args()
