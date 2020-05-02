@@ -131,9 +131,15 @@ class Event(abc.ABC):
     def act(self,configuration):
         pass
     
+    # List of particles that are involved in ths event.
+    # Used to cull them so their next collision can be calculated.    
     @abc.abstractmethod
     def get_colliders(self):
         pass
+    
+    # age
+    #
+    # Used to bring event forward one the first event has occurred
     
     def age(self,dt):
         self.t -=dt    
@@ -189,6 +195,8 @@ class HitsWall(Event):
         particle.reverse(self.wall.number())
         return 0 # We don't want to count these collisions
     
+    # List of particles that are involved in ths event.
+    # Used to cull them so their next collision can be calculated.
     def get_colliders(self):
         return [self.particle_index]
     
@@ -257,7 +265,9 @@ class Collision(Event):
         particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(D)]
         particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(D)]
         return 1 # So we can count this collision
-    
+
+    # List of particles that are involved in this event.
+    # Used to cull them so their next collision can be calculated.    
     def get_colliders(self):
         return [self.i,self.j]
     
@@ -330,8 +340,11 @@ def flatten(lists):
 
 # get_unaffected
 #
-# Get list of events that weren't affcted by collisions
+# Get list of events that weren't affected by collisions
 def  get_unaffected(events,affected):
+    # intersects
+    #
+    # Check to see whether two lists have an element in common
     def intersects(list1,list2):
         for i in list1:
             for j in list2:
@@ -353,18 +366,20 @@ def merge(events1,events2):
         else:
             events.append(events2[j])
             j+=1 
+            
+    # Copy left over events
     while i<len(events1):
         events.append(events1[i])
-        i+=1        
+        i+=1      
+        
     while j<len(events2):
         events.append(events2[j])
-        j+=1         
+        j+=1   
+        
     return events
 
 if __name__ == '__main__':
     import argparse,sys,matplotlib.pyplot as plt,time
-    
-    kT = 1 # Temperature in "Boltzmann units"
     
     def get_L(args_L):
         if type(args_L)==float:
@@ -426,7 +441,7 @@ if __name__ == '__main__':
             t             = event.t
             step_counter += 1
             if step_counter%args.freq==0:
-                print (f'{event}')            
+                print (f'{event}, collisions={collision_count}')            
             for particle in configuration:
                 particle.evolve(dt)
             collision_count += event.act(configuration)
@@ -461,7 +476,6 @@ if __name__ == '__main__':
     except MolecularDynamicsError as e:
         print (e)
         sys.exit(1)
-    #except:
-        #print(f'Unexpected error: {sys.exc_info()}')
-        #sys.exit(1)
- 
+    except:
+        print(f'Unexpected error: {sys.exc_info()}')
+        sys.exit(1)
