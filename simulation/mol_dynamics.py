@@ -473,9 +473,11 @@ if __name__ == '__main__':
             with open(args.save,'wb') as save_file:
                 pickle.dump((R,L,N,collision_count,configuration),save_file)
  
-        plt.figure(figsize=(20,10))            
-        kT       = (2/3)*args.E/args.N  # Average energy of particle is 1.5kT        
-        n,bins,_ = plt.hist([particle.get_energy() for particle in configuration] , color='b', label='Actual')
+        plt.figure(figsize=(20,10))
+        energies = [particle.get_energy() for particle in configuration]
+        E        = sum(energies)
+        kT       = (2/3)*E/N  # Average energy of particle is 1.5kT        
+        n,bins,_ = plt.hist(energies, color='b', label='Actual')
         xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
         ys       = [boltzmann(E,kT=kT) for E in xs] 
         scale_ys = sum(n)/sum(ys)   # We want area under Bolzmann to match area under energies
