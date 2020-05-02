@@ -434,7 +434,7 @@ if __name__ == '__main__':
         init_time = time.time()
         print (f'Time to initialize: {(init_time-start_time):.1f} seconds')
         t               = 0
-        step_counter    = 0   #Used to dwcite whther to print progress indicator
+        step_counter    = 0   #Used to decide whther to print progress indicator
         
         # Build a sorted list of events. After each collision we will remove all events for
         # particles involved in the collision, and:
@@ -467,7 +467,7 @@ if __name__ == '__main__':
                                    [Collision.get_collisions(i,configuration,t=t,R=R) for i in affected])) )            
  
         end_time = time.time()
-        print (f'Time to simulate {collision_count} collisions between {args.N} particles: {(end_time-init_time):.1f} seconds') 
+        print (f'Time to simulate {collision_count} collisions between {N} particles: {(end_time-init_time):.1f} seconds') 
         print (f'Total Time: {(end_time-start_time):.1f} seconds')
         
         if args.save!=None:
@@ -478,10 +478,10 @@ if __name__ == '__main__':
         energies = [particle.get_energy() for particle in configuration]
         E        = sum(energies)
         kT       = (2/3)*E/N  # Average energy of particle is 1.5kT        
-        n,bins,_ = plt.hist(energies, color='b', label='Actual')
+        n,bins,_ = plt.hist(energies, color='b', label='Actual', bins=int(math.sqrt(N)))
         xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
         ys       = [boltzmann(E,kT=kT) for E in xs] 
-        scale_ys = sum(n)/sum(ys)   # We want area under Bolzmann to match area under energies
+        scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
         plt.plot(xs, [y*scale_ys for y in ys], color='r', label='Boltzmann')
         plt.title(f'N={N}, T={args.T}, rho={get_rho(N,R,L):.2f}, collisions={collision_count}')
         plt.xlabel('Energy')
