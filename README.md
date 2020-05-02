@@ -41,8 +41,6 @@
 | 4|Wolfram_ca.py | Wolfram Cellular Automaton |
 | 5|lbmFlowAroundCylinder.py | Determine the _critical Reynold number,_ i.e. the lowest Reynold number for which the flow around the cylinder enters an unsteady regime after a sufficient number of iterations. |
 | 6|barnes_hut.py | 3D version of Barnes-Hut Simulation. |
-|7| mol2.py|Eliminated event queue - use mechanism from Kreith|
-| 7|mol_create.py |Work out time taken to initialize mol_dynamics.py using tabula rasa|
 | 7|mol_dynamics.py |Molecular dynamics of hard spheres.|
 | 7|trafficLights.py | Traffic Intersection|
 |8| bacteria.py| Bacteria Chemotaxy |

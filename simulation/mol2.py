@@ -70,7 +70,7 @@ class Particle:
     
     # reverse
     #
-    # used when particle hits a wall to reverse perpendiclar compoenet of energy
+    # used when particle hits a wall to reverse perpendiclar component of velocity
     
     def reverse(self,index):
         self.velocity[index] = - self.velocity[index]
@@ -91,10 +91,10 @@ class Particle:
 class Wall(Enum):
     NORTH  =  1
     EAST   =  2
-    SOUTH  = -1
-    WEST   = -2
     TOP    =  3
-    BOTTOM = -3
+    SOUTH  = -NORTH
+    WEST   = -EAST
+    BOTTOM = -TOP
     
     def number(self):
         return abs(self._value_)-1
@@ -102,11 +102,11 @@ class Wall(Enum):
     @classmethod
     def get_wall_pair(self,index):
         if index==0:
-            return(Wall.NORTH,Wall.SOUTH)
+            return(Wall.SOUTH,Wall.NORTH)
         elif index==1:
-            return(Wall.EAST,Wall.WEST)
+            return(Wall.WEST,Wall.EAST)
         elif index==2:
-            return (Wall.TOP,Wall.BOTTOM)
+            return (Wall.BOTTOM,Wall.TOP)
  
 # get_rho
 #
@@ -120,7 +120,7 @@ def get_rho(N,R,L,D=3):
 # Make sure that spheres don't overlap 
 def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1,D=3):
     def get_position():
-        return [random.uniform(R-l,l-R) for l in L]
+        return [random.uniform(R-L0,L0-R) for L0 in L]
     
     # get_velocity
     def get_velocity(): #Krauth Algorithm 1.21
@@ -164,24 +164,25 @@ def get_next_wall_collision(configuration,t=0,R=0.0625,L=[1,1,1]):
     # get_collision
     #
     # Get collisions between particle and specified pair of opposite walls
-    def get_collision_with_pair(particle,index):
+    def get_collision_with_2walls(particle,index):
         wall_positive,wall_negative = Wall.get_wall_pair(index)
-        distance                    = particle.position[index]
+        coordinate                  = particle.position[index]
+        assert abs(coordinate)<=L[index]
         velocity                    = particle.velocity[index]
     
         if velocity >0:        
-            return t + (L[index]-R-distance)/velocity,wall_positive
+            return t + (L[index]-R-coordinate)/velocity,wall_positive
         elif velocity <0:
-            return t + (L[index]-R+distance)/abs(velocity),wall_negative
+            return t + (-L[index]+R+coordinate)/velocity,wall_negative
         else:                     # Collision will never happen
             return math.inf,None  
           
     t_best,j_best,wall_best = math.inf,None,None
     for j in range(len(configuration)):
         for index in range(3):                                        #FIXME
-            t,wall = get_collision_with_pair(configuration[j],index)
-            if t<t_best:
-                t_best,j_best,wall_best  = t,j,wall
+            t0,wall = get_collision_with_2walls(configuration[j],index)
+            if t0<t_best:
+                t_best,j_best,wall_best  = t0,j,wall
     return t_best,j_best,wall_best 
 
 def wall_collision(j,wall):  
@@ -248,9 +249,10 @@ if __name__ == '__main__':
         
         for particle in configuration:
             particle.evolve(t_next-t)
+            
         if t_wall<t_pair:
             wall_collision(j,wall)
-            print (t,j,wall)
+            print (t,t_next,j,wall)
         else:
             pair_collision(k,l)
             collision+=1
