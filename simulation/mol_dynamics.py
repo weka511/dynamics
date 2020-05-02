@@ -379,7 +379,7 @@ def merge(events1,events2):
     return events
 
 if __name__ == '__main__':
-    import argparse,sys,matplotlib.pyplot as plt,time
+    import argparse,sys,matplotlib.pyplot as plt,time,pickle
     
     def get_L(args_L):
         if type(args_L)==float:
@@ -408,23 +408,32 @@ if __name__ == '__main__':
     parser.add_argument('--freq',   type=int,   default=100,     help='Frequency: number of steps between progress reports')
     parser.add_argument('--show',               default=False,   help='Show plots at end of run',  action='store_true')
     parser.add_argument('--plots',              default='plots', help='Name of file to store plots')
+    parser.add_argument('--save',               default=None,    help='Save configuration at end of run')
+    parser.add_argument('--load',               default=None,    help='Load configuration from saved file')
     args = parser.parse_args()
     
-    L    = get_L(args.L)
-    
-    if args.seed!=None:
-        random.seed(args.seed)
+    L               = get_L(args.L)
+    R               = args.R
+    N               = args.N
+    collision_count = 0   # Number of particle-particle collisions - walls not counted
+    random.seed(args.seed)
         
     try:
         start_time = time.time()
-        _,configuration = create_configuration(N=args.N, R=args.R, NT=args.NT, E=args.E, L=L )
+        configuration = None
+        if args.load==None:
+            _,configuration = create_configuration(N=N, R=R, NT=args.NT, E=args.E, L=L )
+        else:
+            with open(args.load,'rb') as f:
+                R,L,N,collision_count,configuration = pickle.load(f)
+                print (f'Restarting from {args.load}. R={R}, L={L}, N={len(configuration)}')
+                
         link_events(configuration)
         
         init_time = time.time()
         print (f'Time to initialize: {(init_time-start_time):.1f} seconds')
         t               = 0
-        step_counter    = 0
-        collision_count = 0   # Number of particle-particle collisions - walls not counted
+        step_counter    = 0   #Used to dwcite whther to print progress indicator
         
         # Build a sorted list of events. After each collision we will remove all events for
         # particles involved in the collision, and:
@@ -432,8 +441,8 @@ if __name__ == '__main__':
         # 2. Generate new events from affected particles, and merge them with list of events.
         
         events = sorted(
-                   flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in range(args.N)] + \
-                           [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in range(args.N)]))
+                   flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=R) for i in range(N)] + \
+                           [Collision.get_collisions(i,configuration,t=t,R=R) for i in range(N)]))
  
         while t < args.T or collision_count < args.NC:
             event         = events[0]
@@ -453,13 +462,17 @@ if __name__ == '__main__':
             events = merge(events_retained,
                            sorted(
                                flatten(
-                                   [HitsWall.get_collisions(configuration[i],t=t,L=L,R=args.R) for i in affected] + \
-                                   [Collision.get_collisions(i,configuration,t=t,R=args.R) for i in affected])) )            
+                                   [HitsWall.get_collisions(configuration[i],t=t,L=L,R=R) for i in affected] + \
+                                   [Collision.get_collisions(i,configuration,t=t,R=R) for i in affected])) )            
  
         end_time = time.time()
         print (f'Time to simulate {collision_count} collisions between {args.N} particles: {(end_time-init_time):.1f} seconds') 
         print (f'Total Time: {(end_time-start_time):.1f} seconds')
         
+        if args.save!=None:
+            with open(args.save,'wb') as save_file:
+                pickle.dump((R,L,N,collision_count,configuration),save_file)
+ 
         plt.figure(figsize=(20,10))            
         kT       = (2/3)*args.E/args.N  # Average energy of particle is 1.5kT        
         n,bins,_ = plt.hist([particle.get_energy() for particle in configuration] , color='b', label='Actual')
@@ -467,7 +480,7 @@ if __name__ == '__main__':
         ys       = [boltzmann(E,kT=kT) for E in xs] 
         scale_ys = sum(n)/sum(ys)   # We want area under Bolzmann to match area under energies
         plt.plot(xs, [y*scale_ys for y in ys], color='r', label='Boltzmann')
-        plt.title(f'N={args.N}, T={args.T}, rho={get_rho(args.N,args.R,L):.2f}, collisions={collision_count}')
+        plt.title(f'N={N}, T={args.T}, rho={get_rho(N,R,L):.2f}, collisions={collision_count}')
         plt.xlabel('Energy')
         plt.legend()
         plt.savefig(f'{args.plots}.png')
