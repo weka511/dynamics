@@ -380,7 +380,11 @@ def merge(events1,events2):
 
 if __name__ == '__main__':
     import argparse,sys,matplotlib.pyplot as plt,time,pickle,os
-
+    from scipy.stats import chisquare
+    from matplotlib import rc
+    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+    rc('text', usetex=True)
+    
     def get_L(args_L):
         if type(args_L)==float:
             return [args_L,args_L,args_L]
@@ -478,12 +482,16 @@ if __name__ == '__main__':
         energies = [particle.get_energy() for particle in configuration]
         E        = sum(energies)
         kT       = (2/3)*E/N  # Average energy of particle is 1.5kT        
-        n,bins,_ = plt.hist(energies, color='b', label='Actual', bins=int(math.sqrt(N)))
+        n,bins,_ = plt.hist(energies, bins=int(math.sqrt(N)), 
+                            label='Simulation', facecolor='w',
+                            hatch='/', edgecolor='k',fill=True)
         xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
         ys       = [boltzmann(E,kT=kT) for E in xs] 
         scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
-        plt.plot(xs, [y*scale_ys for y in ys], color='r', label='Boltzmann')
-        plt.title(f'N={N}, T={args.T}, rho={get_rho(N,R,L):.2f}, collisions={collision_count}')
+        y_scaled = [y*scale_ys for y in ys]
+        chisq,p  = chisquare(n,y_scaled)
+        plt.plot(xs, y_scaled, color='r', label='Boltzmann')
+        plt.title(f'N={N}, $\\rho$={get_rho(N,R,L):.2f}, collisions={collision_count}, $\\chi^2$={chisq:.2f}, p={p:.2f}')
         plt.xlabel('Energy')
         plt.legend()
         plt.savefig(f'{args.plots}.png')
