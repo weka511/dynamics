@@ -382,8 +382,28 @@ if __name__ == '__main__':
     import argparse,sys,matplotlib.pyplot as plt,time,pickle,os
     from scipy.stats import chisquare
     from matplotlib import rc
-    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-    rc('text', usetex=True)
+    
+    # create_parser
+    #
+    # Create parser for command line arguments
+    
+    def create_parser():
+        default_plot_file = os.path.basename(__file__).split('.')[0]
+        product = argparse.ArgumentParser('Molecular Dynamice simulation')
+        product.add_argument('--N',    type=int,   default=25,                help='Number of particles')
+        product.add_argument('--T',    type=float, default=100,               help='Maximum Time')
+        product.add_argument('--R',    type=float, default=0.0625,            help='Radius of spheres')
+        product.add_argument('--NT',   type=int,   default=100,               help='Number of attempts to choose initial configuration')
+        product.add_argument('--NC',   type=int,   default=0,                 help='Minimum number of collisions')
+        product.add_argument('--E',    type=float, default=1,                 help='Total energy')
+        product.add_argument('--L',    type=float, default=1.0, nargs='+',    help='Half widths of box: one value or three.')
+        product.add_argument('--seed', type=int,   default=None,              help='Seed for random number generator')
+        product.add_argument('--freq', type=int,   default=100,               help='Frequency: number of steps between progress reports')
+        product.add_argument('--show',             default=False,             help='Show plots at end of run',  action='store_true')
+        product.add_argument('--plots',            default=default_plot_file, help='Name of file to store plots')
+        product.add_argument('--save',             default=None,              help='Save configuration at end of run')
+        product.add_argument('--load',             default=None,              help='Load configuration from saved file')
+        return product     
     
     def get_L(args_L):
         if type(args_L)==float:
@@ -399,24 +419,35 @@ if __name__ == '__main__':
         if len([l for l in L if l<=0]):
             print ('--L should be strictly positive')
             sys.exit(1)
-            
-    parser = argparse.ArgumentParser('Molecular Dynamice simulation')
-    parser.add_argument('--N','-N', type=int,   default=25,      help='Number of particles')
-    parser.add_argument('--T','-T', type=float, default=100,     help='Maximum Time')
-    parser.add_argument('--R','-R', type=float, default=0.0625,  help='Radius of spheres')
-    parser.add_argument('--NT',     type=int,   default=100,     help='Number of attempts to choose initial configuration')
-    parser.add_argument('--NC',     type=int,   default=0,       help='Minimum number of collisions')
-    parser.add_argument('--E',      type=float, default=1,       help='Total energy')
-    parser.add_argument('--L',      type=float, default=1.0,     help='Half widths of box: one value or three.', nargs='+',)
-    parser.add_argument('--seed',   type=int,   default=None,    help='Seed for random number generator')
-    parser.add_argument('--freq',   type=int,   default=100,     help='Frequency: number of steps between progress reports')
-    parser.add_argument('--show',               default=False,   help='Show plots at end of run',  action='store_true')
-    parser.add_argument('--plots',              default=os.path.basename(__file__).split('.')[0], 
-                                                                 help='Name of file to store plots')
-    parser.add_argument('--save',               default=None,    help='Save configuration at end of run')
-    parser.add_argument('--load',               default=None,    help='Load configuration from saved file')
-    args = parser.parse_args()
+
+    # plot_results
+    #
+    # Produce histogram for energies, and compare with Boltzmann distrbution
     
+    def plot_results(configuration,collision_count,R=0.0625,L=[1,1,1],plots='plots'):
+        plt.figure(figsize=(20,10))
+        N        = len(configuration)
+        energies = [particle.get_energy() for particle in configuration]
+        E        = sum(energies)
+        kT       = (2/3)*E/N  # Average energy of particle is 1.5kT        
+        n,bins,_ = plt.hist(energies, bins=int(math.sqrt(N)), 
+                            label='Simulation', facecolor='w',
+                            hatch='/', edgecolor='k',fill=True)
+        xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
+        ys       = [boltzmann(E,kT=kT) for E in xs] 
+        scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
+        y_scaled = [y*scale_ys for y in ys]
+        chisq,p  = chisquare(n,y_scaled) # Null hypothesis: data has Boltzmann distribution
+        plt.plot(xs, y_scaled, color='r', label='Boltzmann')
+        plt.title(f'N={N}, $\\rho$={get_rho(N,R,L):.2f}, collisions={collision_count}, $\\chi^2$={chisq:.2f}, p={p:.3f}')
+        plt.xlabel('Energy')
+        plt.legend()
+        plt.savefig(f'{plots}.png')
+        
+    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+    rc('text', usetex=True)      
+    
+    args            = create_parser().parse_args()   
     L               = get_L(args.L)
     R               = args.R
     N               = args.N
@@ -477,24 +508,9 @@ if __name__ == '__main__':
         if args.save!=None:
             with open(args.save,'wb') as save_file:
                 pickle.dump((R,L,N,collision_count,configuration),save_file)
- 
-        plt.figure(figsize=(20,10))
-        energies = [particle.get_energy() for particle in configuration]
-        E        = sum(energies)
-        kT       = (2/3)*E/N  # Average energy of particle is 1.5kT        
-        n,bins,_ = plt.hist(energies, bins=int(math.sqrt(N)), 
-                            label='Simulation', facecolor='w',
-                            hatch='/', edgecolor='k',fill=True)
-        xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
-        ys       = [boltzmann(E,kT=kT) for E in xs] 
-        scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
-        y_scaled = [y*scale_ys for y in ys]
-        chisq,p  = chisquare(n,y_scaled)
-        plt.plot(xs, y_scaled, color='r', label='Boltzmann')
-        plt.title(f'N={N}, $\\rho$={get_rho(N,R,L):.2f}, collisions={collision_count}, $\\chi^2$={chisq:.2f}, p={p:.2f}')
-        plt.xlabel('Energy')
-        plt.legend()
-        plt.savefig(f'{args.plots}.png')
+                
+        plot_results(configuration,collision_count,R=R,L=L,plots=args.plots)
+
         if args.show:
             plt.show()
     except MolecularDynamicsError as e:
