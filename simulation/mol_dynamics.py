@@ -108,9 +108,50 @@ class Wall(Enum):
         elif index==2:
             return (Wall.TOP,Wall.BOTTOM)
 
+# This class models the topology, which can be either a somple box or a torus.
+# It decides the behaviour at a wall
+
+class Topology(abc.ABC):
+ 
+    def __init__(self):
+        pass
+    
+    @abc.abstractmethod
+    def hitsWall(self,particle,index):
+        pass
+    
+    @abc.abstractmethod
+    def name(self):
+        pass
+
+class Simple(Topology):
+    
+    def __init__(self):
+        super().__init__()
+    
+    # hitsWall
+    #
+    # Reverse motion of particles perpendicular to wall
+    
+    def hitsWall(self,particle,index):
+        particle.reverse(index)
+        
+    def name(self):
+        return "simple"    
+        
+class Torus(Topology):
+    def __init__(self,L):
+        super().__init__()
+        self.L = L
+    def hitsWall(self,particle,index):
+        position = particle.position
+        position[index] = - position[index]
+    def name(self):
+        return "torus"    
+        
 # Event
 #
-# This class represents a collission between a particles and either another particle or a wall
+# This class represents a collision between a particles and either another particle or a wall
 
 class Event(abc.ABC):
     
@@ -128,7 +169,7 @@ class Event(abc.ABC):
     # This is what happens during a collission
     
     @abc.abstractmethod
-    def act(self,configuration):
+    def act(self,configuration,topology):
         pass
     
     # List of particles that are involved in ths event.
@@ -189,10 +230,10 @@ class HitsWall(Event):
     #
     # Reverse motion of particles perpendicular to wall
     
-    def act(self,configuration):
-        super().act(configuration) 
+    def act(self,configuration,topology):
+        super().act(configuration,topology) 
         particle = configuration[self.particle_index]
-        particle.reverse(self.wall.number())
+        topology.hitsWall(particle,self.wall.number())
         return 0 # We don't want to count these collisions
     
     # List of particles that are involved in ths event.
@@ -252,8 +293,8 @@ class Collision(Event):
     #
     # Reverse motion along normal at point of collision
     
-    def act(self,configuration): #Krauth Algorithm 2.3
-        super().act(configuration)
+    def act(self,configuration,topology): #Krauth Algorithm 2.3
+        super().act(configuration,topology)
         particle_i          = configuration[self.i]
         particle_j          = configuration[self.j]
         D                   = len(particle_i.position)
@@ -403,6 +444,7 @@ if __name__ == '__main__':
         product.add_argument('--plots',            default=default_plot_file, help='Name of file to store plots')
         product.add_argument('--save',             default=None,              help='Save configuration at end of run')
         product.add_argument('--load',             default=None,              help='Load configuration from saved file')
+        product.add_argument('--topology',         default='Simple',          help='Choose between Torus or Simple topology')
         return product     
     
     def get_L(args_L):
@@ -420,6 +462,13 @@ if __name__ == '__main__':
             print ('--L should be strictly positive')
             sys.exit(1)
 
+    def create_topology(topology,L):
+        if args.topology.lower()=='simple':
+            return Simple()
+        if args.topology.lower()=='torus':
+            return Torus(L)
+        raise MolecularDynamicsError(f'Invalid topology {topology}')
+        
     # plot_results
     #
     # Produce histogram for energies, and compare with Boltzmann distrbution
@@ -453,16 +502,23 @@ if __name__ == '__main__':
     N               = args.N
     collision_count = 0   # Number of particle-particle collisions - walls not counted
     random.seed(args.seed)
-        
+    topology = create_topology(args.topology,L)
+
     try:
         start_time = time.time()
         configuration = None
         if args.load==None:
             _,configuration = create_configuration(N=N, R=R, NT=args.NT, E=args.E, L=L )
-        else:
-            with open(args.load,'rb') as f:
-                R,L,N,collision_count,configuration = pickle.load(f)
-                print (f'Restarting from {args.load}. R={R}, L={L}, N={len(configuration)}')
+        else: # restart from saved configuration
+            try:  # try new file format first
+                with open(args.load,'rb') as f:
+                    R,L,N,collision_count,topology_name,configuration = pickle.load(f)
+                    print (f'Restarting from {args.load}. R={R}, L={L}, N={len(configuration)}, topology={topology_name}')
+                    topology = create_topology(topology_name,L)
+            except ValueError: # otherwise fall back on old configuration
+                with open(args.load,'rb') as f:
+                    R,L,N,collision_count,configuration = pickle.load(f)
+                    print (f'Restarting from {args.load}. R={R}, L={L}, N={len(configuration)}')                
                 
         link_events(configuration)
         
@@ -489,7 +545,7 @@ if __name__ == '__main__':
                 print (f'{event}, collisions={collision_count}')            
             for particle in configuration:
                 particle.evolve(dt)
-            collision_count += event.act(configuration)
+            collision_count += event.act(configuration,topology)
             affected         = event.get_colliders()
             events_retained  = get_unaffected(events,affected)
             for event in events_retained:
@@ -507,7 +563,7 @@ if __name__ == '__main__':
         
         if args.save!=None:
             with open(args.save,'wb') as save_file:
-                pickle.dump((R,L,N,collision_count,configuration),save_file)
+                pickle.dump((R,L,N,collision_count,topology.name(),configuration),save_file)
                 
         plot_results(configuration,collision_count,R=R,L=L,plots=args.plots)
 
