@@ -86,7 +86,7 @@ class Particle:
 
 # Wall
 #
-# This class represents walls of box
+# This class represents boundary of space
 @unique
 class Wall(Enum):
     NORTH  =  1
@@ -113,21 +113,34 @@ class Wall(Enum):
 
 class Topology(abc.ABC):
  
-    def __init__(self):
-        pass
+    def __init__(self,name):
+        self.myName = name
     
     @abc.abstractmethod
     def hitsWall(self,particle,index):
         pass
     
-    @abc.abstractmethod
+    # name
+    #
+    # This is the name as used to create the Topology
     def name(self):
-        pass
+        return self.myName
+    
+    # pretty
+    #
+    # Name for plot title
+    
+    def pretty(self):
+        return self.myName[0].upper()+self.myName[1:].lower()
 
-class Simple(Topology):
+# Box
+#
+# This topology represent a closed box. Particles pass through walls.
+
+class Box(Topology):
     
     def __init__(self):
-        super().__init__()
+        super().__init__("box")
     
     # hitsWall
     #
@@ -136,18 +149,19 @@ class Simple(Topology):
     def hitsWall(self,particle,index):
         particle.reverse(index)
         
-    def name(self):
-        return "simple"    
-        
+  
+
+# Torus
+#
+# In this toplogy, particle wraps around when it reaches boundary
+
 class Torus(Topology):
-    def __init__(self,L):
-        super().__init__()
-        self.L = L
+    def __init__(self):
+        super().__init__("torus" )
+
     def hitsWall(self,particle,index):
         position = particle.position
-        position[index] = - position[index]
-    def name(self):
-        return "torus"    
+        position[index] = - position[index]  
         
 # Event
 #
@@ -423,6 +437,7 @@ if __name__ == '__main__':
     import argparse,sys,matplotlib.pyplot as plt,time,pickle,os
     from scipy.stats import chisquare
     from matplotlib import rc
+    from shutil import copyfile
     
     # create_parser
     #
@@ -444,7 +459,7 @@ if __name__ == '__main__':
         product.add_argument('--plots',            default=default_plot_file, help='Name of file to store plots')
         product.add_argument('--save',             default=None,              help='Save configuration at end of run')
         product.add_argument('--load',             default=None,              help='Load configuration from saved file')
-        product.add_argument('--topology',         default='Simple',          help='Choose between Torus or Simple topology')
+        product.add_argument('--topology',         default='Box',             help='Choose between Torus or Box topology')
         return product     
     
     def get_L(args_L):
@@ -462,18 +477,22 @@ if __name__ == '__main__':
             print ('--L should be strictly positive')
             sys.exit(1)
 
-    def create_topology(topology,L):
-        if args.topology.lower()=='simple':
-            return Simple()
+    # create_topology
+    #
+    # Create topology from command line or saved configuration
+    
+    def create_topology(topology):
+        if args.topology.lower()=='box':
+            return Box()
         if args.topology.lower()=='torus':
-            return Torus(L)
-        raise MolecularDynamicsError(f'Invalid topology {topology}')
+            return Torus()
+        raise MolecularDynamicsError(f'Invalid topology specified: {topology}')
         
     # plot_results
     #
     # Produce histogram for energies, and compare with Boltzmann distrbution
     
-    def plot_results(configuration,collision_count,R=0.0625,L=[1,1,1],plots='plots'):
+    def plot_results(configuration,collision_count,R=0.0625,L=[1,1,1],plots='plots',topology=None):
         plt.figure(figsize=(20,10))
         N        = len(configuration)
         energies = [particle.get_energy() for particle in configuration]
@@ -488,11 +507,36 @@ if __name__ == '__main__':
         y_scaled = [y*scale_ys for y in ys]
         chisq,p  = chisquare(n,y_scaled) # Null hypothesis: data has Boltzmann distribution
         plt.plot(xs, y_scaled, color='r', label='Boltzmann')
-        plt.title(f'N={N}, $\\rho$={get_rho(N,R,L):.2f}, collisions={collision_count}, $\\chi^2$={chisq:.2f}, p={p:.3f}')
+        plt.title(f'{topology.pretty()}: N={N}, $\\rho$={get_rho(N,R,L):.2f}, collisions={collision_count}, $\\chi^2$={chisq:.2f}, p={p:.3f}')
         plt.xlabel('Energy')
         plt.legend()
         plt.savefig(f'{plots}.png')
-        
+
+    # load_file
+    #
+    # Load a configuration that has been saved previously
+    
+    def load_file(file_name):
+        try:  # try new file format first
+            with open(file_name,'rb') as f:
+                R,L,N,collision_count,topology_name,configuration = pickle.load(f)
+                print (f'Restarting from {file_name}. R={R}, L={L}, N={len(configuration)}, topology={topology_name}')
+                return R,L,N,collision_count,create_topology(topology_name),configuration
+        except (ValueError,EOFError) : # otherwise fall back on old configuration
+            with open(file_name,'rb') as f:
+                R,L,N,collision_count,configuration = pickle.load(f)
+                print (f'Restarting from {file_name}. R={R}, L={L}, N={len(configuration)}')
+                return R,L,N,collision_count, create_topology('box'),configuration
+    
+    # save_file
+    #
+    # Save a configuration so it can be restarted later
+    def save_file(file_name):        
+        if file_name!=None:
+            if os.path.exists(file_name):
+                copyfile(file_name,'~'+file_name)
+            with open(file_name,'wb') as save_file:
+                pickle.dump((R,L,N,collision_count,topology.name(),configuration),save_file)        
     rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
     rc('text', usetex=True)      
     
@@ -500,9 +544,10 @@ if __name__ == '__main__':
     L               = get_L(args.L)
     R               = args.R
     N               = args.N
+    
     collision_count = 0   # Number of particle-particle collisions - walls not counted
     random.seed(args.seed)
-    topology = create_topology(args.topology,L)
+    topology = create_topology(args.topology)
 
     try:
         start_time = time.time()
@@ -510,26 +555,18 @@ if __name__ == '__main__':
         if args.load==None:
             _,configuration = create_configuration(N=N, R=R, NT=args.NT, E=args.E, L=L )
         else: # restart from saved configuration
-            try:  # try new file format first
-                with open(args.load,'rb') as f:
-                    R,L,N,collision_count,topology_name,configuration = pickle.load(f)
-                    print (f'Restarting from {args.load}. R={R}, L={L}, N={len(configuration)}, topology={topology_name}')
-                    topology = create_topology(topology_name,L)
-            except ValueError: # otherwise fall back on old configuration
-                with open(args.load,'rb') as f:
-                    R,L,N,collision_count,configuration = pickle.load(f)
-                    print (f'Restarting from {args.load}. R={R}, L={L}, N={len(configuration)}')                
+            R,L,N,collision_count,topology_name,configuration = load_file(args.load)               
                 
         link_events(configuration)
         
         init_time = time.time()
         print (f'Time to initialize: {(init_time-start_time):.1f} seconds')
         t               = 0
-        step_counter    = 0   #Used to decide whther to print progress indicator
+        step_counter    = 0   # Used to decide whether to print progress indicator for a particular iteration
         
         # Build a sorted list of events. After each collision we will remove all events for
         # particles involved in the collision, and:
-        # 1. Age remining events
+        # 1. Age remaining events
         # 2. Generate new events from affected particles, and merge them with list of events.
         
         events = sorted(
@@ -560,12 +597,9 @@ if __name__ == '__main__':
         end_time = time.time()
         print (f'Time to simulate {collision_count} collisions between {N} particles: {(end_time-init_time):.1f} seconds') 
         print (f'Total Time: {(end_time-start_time):.1f} seconds')
+        save_file(args.save)
         
-        if args.save!=None:
-            with open(args.save,'wb') as save_file:
-                pickle.dump((R,L,N,collision_count,topology.name(),configuration),save_file)
-                
-        plot_results(configuration,collision_count,R=R,L=L,plots=args.plots)
+        plot_results(configuration,collision_count,R=R,L=L,plots=args.plots,topology=topology)
 
         if args.show:
             plt.show()
