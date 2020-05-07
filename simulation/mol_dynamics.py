@@ -493,25 +493,34 @@ if __name__ == '__main__':
     # Produce histogram for energies, and compare with Boltzmann distrbution
     
     def plot_results(configuration,collision_count,R=0.0625,L=[1,1,1],plots='plots',topology=None):
-        plt.figure(figsize=(20,10))
-        N        = len(configuration)
-        energies = [particle.get_energy() for particle in configuration]
-        E        = sum(energies)
-        kT       = (2/3)*E/N  # Average energy of particle is 1.5kT        
-        n,bins,_ = plt.hist(energies, bins=int(math.sqrt(N)), 
-                            label='Simulation', facecolor='w',
-                            hatch='/', edgecolor='k',fill=True)
+        fig, axes = plt.subplots(2, 1, constrained_layout=True)
+        N         = len(configuration)
+        energies  = [particle.get_energy() for particle in configuration]
+        E         = sum(energies)
+        kT        = (2/3)*E/N  # Average energy of particle is 1.5kT        
+        n,bins,_  = axes[0].hist(energies, bins='fd', # Freedman Diaconis Estimator
+                                 label='Simulation', facecolor='b', edgecolor='b',fill=True)
+        n,bins   = consolidate_bins(n,bins)
         xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
         ys       = [boltzmann(E,kT=kT) for E in xs] 
         scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
         y_scaled = [y*scale_ys for y in ys]
         chisq,p  = chisquare(n,y_scaled) # Null hypothesis: data has Boltzmann distribution
-        plt.plot(xs, y_scaled, color='r', label='Boltzmann')
-        plt.title(f'{topology.pretty()}: N={N}, $\\rho$={get_rho(N,R,L):.2f}, collisions={collision_count}, $\\chi^2$={chisq:.2f}, p={p:.3f}')
-        plt.xlabel('Energy')
-        plt.legend()
-        plt.savefig(f'{plots}.png')
-
+        axes[0].plot(xs, y_scaled, color='r', label='Boltzmann')
+        axes[0].set_xlabel('Energy')
+        axes[0].set_title('Energies')
+        axes[0].legend()
+        
+        fig.suptitle(
+            f'{topology.pretty()}: N={N}, $\\rho$={get_rho(N,R,L):.4f}, collisions={collision_count:,},'
+            f' $\\chi^2$={chisq:.2f}, p={p:.3f}')        
+        
+        axes[1].hist([[particle.position[i] for particle in configuration] for i in range(3)],
+                     label=['x','y','z'])
+        axes[1].legend(loc='best')
+        axes[1].set_title('Positions')
+        fig.savefig(f'{plots}.png')
+        
     # load_file
     #
     # Load a configuration that has been saved previously
@@ -536,7 +545,29 @@ if __name__ == '__main__':
             if os.path.exists(file_name):
                 copyfile(file_name,'~'+file_name)
             with open(file_name,'wb') as save_file:
-                pickle.dump((R,L,N,collision_count,topology.name(),configuration),save_file)        
+                pickle.dump((R,L,N,collision_count,topology.name(),configuration),save_file)
+    # consolidate_bins
+    #
+    # Consolidate bins so none (except possible the last) has fewer items than a specified quota
+    
+    def consolidate_bins(n,bins,quota=5):
+        new_counts        = []
+        consolidated_bins = [bins[0]]
+        carried_over      = 0
+        
+        for i in range(len(n)):
+            carried_over+=n[i]
+            if carried_over>=quota:
+                new_counts.append(carried_over)
+                consolidated_bins.append(bins[i+1])
+                carried_over = 0
+                
+        if carried_over>=quota:
+            new_counts.append(carried_over)
+            consolidated_bins.append(bins[-1])
+            
+        return (new_counts,consolidated_bins)
+    
     rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
     rc('text', usetex=True)      
     
@@ -603,9 +634,7 @@ if __name__ == '__main__':
 
         if args.show:
             plt.show()
+            
     except MolecularDynamicsError as e:
         print (e)
-        sys.exit(1)
-    except:
-        print(f'Unexpected error: {sys.exc_info()}')
         sys.exit(1)
