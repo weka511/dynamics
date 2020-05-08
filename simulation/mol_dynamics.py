@@ -23,7 +23,7 @@ from enum import Enum, unique
 # Bolzmann's distribution (to within a multiplicative constant, which will be lost when we scale)
 
 def boltzmann(E,kT=1):
-    return math.sqrt(E) * math.exp(-E/kT)
+    return  math.exp(-E/kT)#math.sqrt(E) *
     
 # MolecularDynamicsError
 #
@@ -170,7 +170,8 @@ class Box(Topology):
 class Torus(Topology):
     def __init__(self):
         super().__init__("torus" )
-
+        
+    # wrap particle around by moving to other wall
     def hitsWall(self,particle,index):
         particle.position[index] = - particle.position[index]  
         
@@ -223,7 +224,7 @@ class HitsWall(Event):
     #
     # Get collisions between specified particle and any wall
     @classmethod
-    def get_collisions(self,particle,t=0,L=1,R=0.0625):
+    def get_collisions(self,particle,t_simulated=0,L=1,R=0.0625):
         # get_collision
         #
         # Get collisions between particle and specified pair of opposite walls
@@ -237,11 +238,11 @@ class HitsWall(Event):
                 event_plus.t_expected = float.inf      # We could return a None and tidy if up, 
                 return event_plus             # but this is simpler
             if velocity >0:        
-                event_plus.t_expected = t + (L[index]-R-distance)/velocity
+                event_plus.t_expected = t_simulated + (L[index]-R-distance)/velocity
                 return event_plus
             if velocity <0:
                 event_minus = particle.events[direction_negative]
-                event_minus.t_expected = t + (L[index]-R+distance)/abs(velocity) 
+                event_minus.t_expected = t_simulated + (L[index]-R+distance)/abs(velocity) 
                 return event_minus
             
         return [get_collision(index) for index in range(len(particle.position))]  
@@ -279,7 +280,7 @@ class Collision(Event):
     # get all collisions between specifed particle and all others having index greater that specified particle
     
     @classmethod
-    def get_collisions(self,i,configuration,t=0,R=0.0625):
+    def get_collisions(self,i,configuration,t_simulated=0,R=0.0625):
         # get_next_collision
         # Determine whether two particles are on a path to collide
         # Krauth Algorithm 2.2
@@ -304,7 +305,7 @@ class Collision(Event):
             dt = get_next_collision(configuration[i],configuration[j])
             if dt !=None:
                 collision = configuration[i].events[j]
-                collision.t_expected = t + dt
+                collision.t_expected = t_simulated + dt
                 return collision
         
         return [
@@ -518,8 +519,8 @@ if __name__ == '__main__':
         n,bins,_  = axes[0].hist(energies, bins='fd', # Freedman Diaconis Estimator
                                  label='Simulation', facecolor='b', edgecolor='b',fill=True)
         n,bins   = consolidate_bins(n,bins)
-        xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]
-        ys       = [boltzmann(E,kT=kT) for E in xs] 
+        xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]   # mid points of bins
+        ys       = [boltzmann(E,kT=kT) for E in xs]          
         scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
         y_scaled = [y*scale_ys for y in ys]
         chisq,p  = chisquare(n,y_scaled) # Null hypothesis: data has Boltzmann distribution
@@ -557,6 +558,8 @@ if __name__ == '__main__':
     # save_file
     #
     # Save a configuration so it can be restarted later
+    #
+    # Also backup previously saved file
     def save_file(file_name):        
         if file_name!=None:
             if os.path.exists(file_name):
@@ -610,28 +613,31 @@ if __name__ == '__main__':
         
         init_elapsed_time = time.time()
         print (f'Time to initialize: {(init_elapsed_time-start_elapsed_time):.1f} seconds')
-        t_simulated    = 0
-        step_counter   = 0   # Used to decide whether to print progress indicator for a particular iteration
+  
         
         # Build a sorted list of events. After each collision we will remove all events for
         # particles involved in the collision, and:
-        # 1. Age remaining events
-        # 2. Generate new events from affected particles, and merge them with list of events.
+        # 1. Evolve configuration
+        # 2. Generate new events from particles involved in collission, and merge them with list of events.
         
-        events = sorted(
-                   flatten([HitsWall.get_collisions(configuration[i],t=t_simulated,L=L,R=R) for i in range(N)] + \
-                           [Collision.get_collisions(i,configuration,t=t_simulated,R=R) for i in range(N)]))
- 
+        hits_wall         = [HitsWall.get_collisions(configuration[i],t_simulated=0,L=L,R=R) for i in range(N)] 
+        particle_particle = [Collision.get_collisions(i,configuration,t_simulated=0,R=R) for i in range(N)]
+        events            = sorted(flatten(hits_wall + particle_particle))
+        t_simulated       = 0
+        step_counter      = 0   # Used to decide whether to print progress indicator for a particular iteration
+        
         # This is the simulation, during which time moves forward
         #      A.   Simulated time
         #      B.   Particle moves depending on velocity and time step
 
         while t_simulated< args.T or collision_count < args.NC:
             event         = events[0]   # Get first event 
-            dt            = event.t_expected - t_simulated  # Time until rvent is expected
+            dt            = event.t_expected - t_simulated  # Duration until event is expected
             
             #      A.   Update global time to time when event occurs
             t_simulated   = event.t_expected
+            
+            # Update step counter and see whther it is time to print
             
             step_counter += 1
             if step_counter%args.freq==0:
@@ -652,13 +658,22 @@ if __name__ == '__main__':
                  
             # Recalculate events from  particles that were involved: no others are affected!
             # Note that we end up with lists of lists of events, so will need to flatten
-            hits_wall         = [HitsWall.get_collisions(configuration[i],t=t_simulated,L=L,R=R) for i in particled_involved]
-            particle_particle = [Collision.get_collisions(i,configuration,t=t_simulated,R=R) for i in particled_involved]
+            hits_wall         = [HitsWall.get_collisions(configuration[i],
+                                                         t_simulated=t_simulated,
+                                                         L=L,
+                                                         R=R) for i in particled_involved]
+            particle_particle = [Collision.get_collisions(i,
+                                                          configuration,
+                                                          t_simulated=t_simulated,
+                                                          R=R) for i in particled_involved]
+            
             new_events        = flatten(particle_particle + hits_wall)
             
             events            =  merge(events_retained, sorted(new_events))        
 
-        # Simulation is over: compute elapsed (compputer) time
+  
+                
+        # Simulation is over: compute elapsed (computer) time
         end_elapsed_time       = time.time()
         collision_elapsed_time = end_elapsed_time - init_elapsed_time
         total_elapsed_time     = end_elapsed_time - start_elapsed_time
