@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
+# This program models molecular dynamica, after Alder & Wainwright
+
 import random, abc, math
 from enum import Enum, unique
 
@@ -70,14 +72,15 @@ class Particle:
     
     # reverse
     #
-    # used when particle hits a wall to reverse perpendiclar compoenet of energy
+    # used when particle hits a wall to reverse perpendicular component of velocity
     
-    def reverse(self,index):
+    def reverse(self,index,L=1): # FIXME (L) 
         self.velocity[index] = - self.velocity[index]
+        self.position[index] = -L if self.velocity[index]>0 else +L   
      
     # evolve
     # 
-    # Change position bt applying veocity for specified time
+    # Change position by applying velocity for specified time
     
     def evolve(self,dt):
         for i in range(len(self.position)):
@@ -91,14 +94,20 @@ class Particle:
 class Wall(Enum):
     NORTH  =  1
     EAST   =  2
+    TOP    =  3
     SOUTH  = -1
     WEST   = -2
-    TOP    =  3
     BOTTOM = -3
     
-    def number(self):
+    # get_index
+    #
+    # Determine the index corresponding to a pair of walls
+    def get_index(self):
         return abs(self._value_)-1
-    
+
+    # get_wall_pair
+    #
+    # Look up wall pair for specific index
     @classmethod
     def get_wall_pair(self,index):
         if index==0:
@@ -108,14 +117,17 @@ class Wall(Enum):
         elif index==2:
             return (Wall.TOP,Wall.BOTTOM)
 
-# This class models the topology, which can be either a somple box or a torus.
-# It decides the behaviour at a wall
+# This class models the topology; it can be either a simple box or a torus.
+# This class decides how a particle behaves at the wall
 
 class Topology(abc.ABC):
  
     def __init__(self,name):
         self.myName = name
     
+    # hitsWall
+    #
+    # This class is called when a particle behaves at the wall
     @abc.abstractmethod
     def hitsWall(self,particle,index):
         pass
@@ -160,8 +172,7 @@ class Torus(Topology):
         super().__init__("torus" )
 
     def hitsWall(self,particle,index):
-        position = particle.position
-        position[index] = - position[index]  
+        particle.position[index] = - particle.position[index]  
         
 # Event
 #
@@ -170,7 +181,7 @@ class Torus(Topology):
 class Event(abc.ABC):
     
     def __init__(self,t=math.inf):
-        self.t = t
+        self.t = t   # Duration until event is expected to occur
      
     # __lt__
     #
@@ -197,7 +208,8 @@ class Event(abc.ABC):
     # Used to bring event forward one the first event has occurred
     
     def age(self,dt):
-        self.t -=dt    
+        self.t -=dt    # Reduce duration until next event
+        assert self.t>=0
 
 # HitsWall
 #
@@ -247,7 +259,7 @@ class HitsWall(Event):
     def act(self,configuration,topology):
         super().act(configuration,topology) 
         particle = configuration[self.particle_index]
-        topology.hitsWall(particle,self.wall.number())
+        topology.hitsWall(particle,self.wall.get_index())
         return 0 # We don't want to count these collisions
     
     # List of particles that are involved in ths event.
@@ -284,9 +296,12 @@ class Collision(Event):
             dx_dv = sum(dx[k]*dv[k] for k in range(D))
             dx_2  = sum(dx[k]*dx[k] for k in range(D))
             dv_2  = sum(dv[k]*dv[k] for k in range(D))
+            if dx_2 - 4*R**2<0: return math.inf
             disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
+ 
             if disc>=0 and dx_dv<0:
-                return (-dx_dv + math.sqrt(disc))/dv_2
+                disc_sqrt = math.sqrt(disc)
+                return (min(-dx_dv + disc_sqrt, -dx_dv - disc_sqrt))/dv_2
     
         # get_collision_with
         #
@@ -453,7 +468,7 @@ if __name__ == '__main__':
         product.add_argument('--N',    type=int,   default=25,                help='Number of particles')
         product.add_argument('--T',    type=float, default=100,               help='Maximum Time')
         product.add_argument('--R',    type=float, default=0.0625,            help='Radius of spheres')
-        product.add_argument('--rho',  type=float, default='None',            help='Density of spheres (alternative to R)')
+        product.add_argument('--rho',  type=float, default=-1,               help='Density of spheres (alternative to R)')
         product.add_argument('--NT',   type=int,   default=100,               help='Number of attempts to choose initial configuration')
         product.add_argument('--NC',   type=int,   default=0,                 help='Minimum number of collisions')
         product.add_argument('--E',    type=float, default=1,                 help='Total energy')
@@ -521,7 +536,7 @@ if __name__ == '__main__':
             f' $\\chi^2$={chisq:.2f}, p={p:.3f}')        
         
         axes[1].hist([[particle.position[i] for particle in configuration] for i in range(3)],
-                     label=['x','y','z'])
+                     label=['North-South','East-West','Top-Bottom'])
         axes[1].legend(loc='best')
         axes[1].set_title('Positions')
         fig.savefig(f'{plots}.png')
@@ -579,7 +594,7 @@ if __name__ == '__main__':
     args            = create_parser().parse_args()   
     L               = get_L(args.L)
     N               = args.N
-    R               = args.R if args.rho == None else get_R(N,args.rho)
+    R               = args.R if args.rho == -1 else get_R(N,args.rho)
       
     collision_count = 0   # Number of particle-particle collisions - walls not counted
     random.seed(args.seed)
@@ -610,26 +625,38 @@ if __name__ == '__main__':
                    flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=R) for i in range(N)] + \
                            [Collision.get_collisions(i,configuration,t=t,R=R) for i in range(N)]))
  
+        # This is the simulation, during which time moves forward
+        #      A.   Global time
+        #      B.   Particle moves depending on velocity and time step
+        #      C.   Events have their time due updated
         while t < args.T or collision_count < args.NC:
             event         = events[0]
-            dt            = event.t-t
+            dt            = event.t - t
+            
+            #      A.   Update global time
             t             = event.t
+            
             step_counter += 1
             if step_counter%args.freq==0:
-                print (f'{event}, collisions={collision_count}')            
+                print (f'{event}, collisions={collision_count}')  
+                
+            #      B.   Move all particles depending on velocity and time step   
             for particle in configuration:
                 particle.evolve(dt)
-            collision_count += event.act(configuration,topology)
-            affected         = event.get_colliders()
-            events_retained  = get_unaffected(events,affected)
+                
+            collision_count   += event.act(configuration,topology)
+            affected_particles = event.get_colliders()
+            events_retained    = get_unaffected(events,affected_particles)
+            
+            # C.   Update time due for all remaining events
             for event in events_retained:
-                event.age(dt)
-             
-            events = merge(events_retained,
-                           sorted(
-                               flatten(
-                                   [HitsWall.get_collisions(configuration[i],t=t,L=L,R=R) for i in affected] + \
-                                   [Collision.get_collisions(i,configuration,t=t,R=R) for i in affected])) )            
+                event.age(dt)  
+            
+            # Recalculate events from affected particled 
+            new_events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=R) for i in affected_particles] + \
+                                 [Collision.get_collisions(i,configuration,t=t,R=R) for i in affected_particles])
+            
+            events =  merge(events_retained, sorted(new_events))        
  
         end_time = time.time()
         print (f'Time to simulate {collision_count} collisions between {N} particles: {(end_time-init_time):.1f} seconds') 
