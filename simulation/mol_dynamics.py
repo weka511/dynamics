@@ -331,8 +331,12 @@ class Collision(Event):
 # get_rho
 #
 # Density of particles
-def get_rho(N,R,L,D=3):
+def get_rho(N,R,L=[1,1,1],D=3):
     return (N*(4/D)*math.pi*R**D)/(L[0]*L[1]*L[2])
+
+def get_R(N,rho,L=[1,1,1],D=3):
+    return ((L[0]*L[1]*L[2]*rho*D)/(4*N*math.pi))**(1/3)
+
     
 # create_configuration
 #
@@ -449,6 +453,7 @@ if __name__ == '__main__':
         product.add_argument('--N',    type=int,   default=25,                help='Number of particles')
         product.add_argument('--T',    type=float, default=100,               help='Maximum Time')
         product.add_argument('--R',    type=float, default=0.0625,            help='Radius of spheres')
+        product.add_argument('--rho',  type=float, default='None',            help='Density of spheres (alternative to R)')
         product.add_argument('--NT',   type=int,   default=100,               help='Number of attempts to choose initial configuration')
         product.add_argument('--NC',   type=int,   default=0,                 help='Minimum number of collisions')
         product.add_argument('--E',    type=float, default=1,                 help='Total energy')
@@ -573,9 +578,9 @@ if __name__ == '__main__':
     
     args            = create_parser().parse_args()   
     L               = get_L(args.L)
-    R               = args.R
     N               = args.N
-    
+    R               = args.R if args.rho == None else get_R(N,args.rho)
+      
     collision_count = 0   # Number of particle-particle collisions - walls not counted
     random.seed(args.seed)
     topology = create_topology(args.topology)
@@ -583,6 +588,7 @@ if __name__ == '__main__':
     try:
         start_time = time.time()
         configuration = None
+ 
         if args.load==None:
             _,configuration = create_configuration(N=N, R=R, NT=args.NT, E=args.E, L=L )
         else: # restart from saved configuration
