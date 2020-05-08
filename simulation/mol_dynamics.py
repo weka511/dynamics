@@ -177,18 +177,19 @@ class Torus(Topology):
 # Event
 #
 # This class represents a collision between a particles and either another particle or a wall
+# It encapsulates time, which is zero when the simulation starts, and increases thereafter.
 
 class Event(abc.ABC):
     
-    def __init__(self,t=math.inf):
-        self.t = t   # Duration until event is expected to occur
+    def __init__(self,t_expected=math.inf):
+        self.t_expected = t_expected   # Time when event is expected to occur
      
     # __lt__
     #
-    # Enables us to store events in a priority queue, ordered by time
+    # Enables us to store events in a priority queue, ordered by expected time
     
     def __lt__(self,other):
-            return self.t<other.t 
+            return self.t_expected<other.t_expected 
     # act
     #
     # This is what happens during a collission
@@ -203,26 +204,19 @@ class Event(abc.ABC):
     def get_colliders(self):
         pass
     
-    # age
-    #
-    # Used to bring event forward one the first event has occurred
-    
-    def age(self,dt):
-        self.t -=dt    # Reduce duration until next event
-        assert self.t>=0
 
 # HitsWall
 #
 # This class represents the event of a particle hitting a wall
 
 class HitsWall(Event):
-    def __init__(self,particle_index,wall,t=math.inf):
-        super().__init__(t)
+    def __init__(self,particle_index,wall,t_expected=math.inf):
+        super().__init__(t_expected)
         self.particle_index = particle_index
         self.wall           = wall
         
     def __str__(self):
-        return f'{self.t:.2f}\t\t({self.particle_index},{self.wall})'
+        return f'{self.t_expected:.2f}\t\t({self.particle_index},{self.wall})'
 
         
     # get_collisions
@@ -240,14 +234,14 @@ class HitsWall(Event):
             event_plus                            = particle.events[direction_positive]
     
             if velocity ==0:                  # Collision will never happen
-                event_plus.t = float.inf      # We could return a None and tidy if up, 
+                event_plus.t_expected = float.inf      # We could return a None and tidy if up, 
                 return event_plus             # but this is simpler
             if velocity >0:        
-                event_plus.t = t + (L[index]-R-distance)/velocity
+                event_plus.t_expected = t + (L[index]-R-distance)/velocity
                 return event_plus
             if velocity <0:
                 event_minus = particle.events[direction_negative]
-                event_minus.t = t + (L[index]-R+distance)/abs(velocity) 
+                event_minus.t_expected = t + (L[index]-R+distance)/abs(velocity) 
                 return event_minus
             
         return [get_collision(index) for index in range(len(particle.position))]  
@@ -278,7 +272,7 @@ class Collision(Event):
         self.j = j     # Other particle: j>i
         
     def __str__(self):
-        return f'{self.t:.2f}\t\t({self.i},{self.j})'
+        return f'{self.t_expected:.2f}\t\t({self.i},{self.j})'
         
     # get_collisions
     #
@@ -310,7 +304,7 @@ class Collision(Event):
             dt = get_next_collision(configuration[i],configuration[j])
             if dt !=None:
                 collision = configuration[i].events[j]
-                collision.t = t + dt
+                collision.t_expected = t + dt
                 return collision
         
         return [
@@ -415,7 +409,9 @@ def flatten(lists):
 # get_unaffected
 #
 # Get list of events that weren't affected by collisions
-def  get_unaffected(events,affected):
+# i.e. particles that were not involved in collision
+
+def  get_unaffected(events,particles_involved):
     # intersects
     #
     # Check to see whether two lists have an element in common
@@ -424,7 +420,8 @@ def  get_unaffected(events,affected):
             for j in list2:
                 if i==j: return True
         return False
-    return [event for event in events if not intersects(event.get_colliders(),affected)]
+    
+    return [event for event in events if not intersects(event.get_colliders(),particles_involved)]
 
 # merge
 #
@@ -601,7 +598,7 @@ if __name__ == '__main__':
     topology = create_topology(args.topology)
 
     try:
-        start_time = time.time()
+        start_elapsed_time = time.time()
         configuration = None
  
         if args.load==None:
@@ -611,10 +608,10 @@ if __name__ == '__main__':
                 
         link_events(configuration)
         
-        init_time = time.time()
-        print (f'Time to initialize: {(init_time-start_time):.1f} seconds')
-        t               = 0
-        step_counter    = 0   # Used to decide whether to print progress indicator for a particular iteration
+        init_elapsed_time = time.time()
+        print (f'Time to initialize: {(init_elapsed_time-start_elapsed_time):.1f} seconds')
+        t_simulated    = 0
+        step_counter   = 0   # Used to decide whether to print progress indicator for a particular iteration
         
         # Build a sorted list of events. After each collision we will remove all events for
         # particles involved in the collision, and:
@@ -622,45 +619,52 @@ if __name__ == '__main__':
         # 2. Generate new events from affected particles, and merge them with list of events.
         
         events = sorted(
-                   flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=R) for i in range(N)] + \
-                           [Collision.get_collisions(i,configuration,t=t,R=R) for i in range(N)]))
+                   flatten([HitsWall.get_collisions(configuration[i],t=t_simulated,L=L,R=R) for i in range(N)] + \
+                           [Collision.get_collisions(i,configuration,t=t_simulated,R=R) for i in range(N)]))
  
         # This is the simulation, during which time moves forward
-        #      A.   Global time
+        #      A.   Simulated time
         #      B.   Particle moves depending on velocity and time step
-        #      C.   Events have their time due updated
-        while t < args.T or collision_count < args.NC:
-            event         = events[0]
-            dt            = event.t - t
+
+        while t_simulated< args.T or collision_count < args.NC:
+            event         = events[0]   # Get first event 
+            dt            = event.t_expected - t_simulated  # Time until rvent is expected
             
-            #      A.   Update global time
-            t             = event.t
+            #      A.   Update global time to time when event occurs
+            t_simulated   = event.t_expected
             
             step_counter += 1
             if step_counter%args.freq==0:
                 print (f'{event}, collisions={collision_count}')  
                 
-            #      B.   Move all particles depending on velocity and time step   
+            #      B.   Move all particles to their estimated positions when event occurs
             for particle in configuration:
                 particle.evolve(dt)
-                
+             
+            # Perform event and update collision count   
             collision_count   += event.act(configuration,topology)
-            affected_particles = event.get_colliders()
-            events_retained    = get_unaffected(events,affected_particles)
             
-            # C.   Update time due for all remaining events
-            for event in events_retained:
-                event.age(dt)  
+            # Find out which particles were involved - one for a wall collition, 2 for particle-particles
+            particled_involved = event.get_colliders()
             
-            # Recalculate events from affected particled 
-            new_events = flatten([HitsWall.get_collisions(configuration[i],t=t,L=L,R=R) for i in affected_particles] + \
-                                 [Collision.get_collisions(i,configuration,t=t,R=R) for i in affected_particles])
+            # Remove the those who were involved
+            events_retained    = get_unaffected(events,particled_involved)
+                 
+            # Recalculate events from  particles that were involved: no others are affected!
+            # Note that we end up with lists of lists of events, so will need to flatten
+            hits_wall         = [HitsWall.get_collisions(configuration[i],t=t_simulated,L=L,R=R) for i in particled_involved]
+            particle_particle = [Collision.get_collisions(i,configuration,t=t_simulated,R=R) for i in particled_involved]
+            new_events        = flatten(particle_particle + hits_wall)
             
-            events =  merge(events_retained, sorted(new_events))        
- 
-        end_time = time.time()
-        print (f'Time to simulate {collision_count} collisions between {N} particles: {(end_time-init_time):.1f} seconds') 
-        print (f'Total Time: {(end_time-start_time):.1f} seconds')
+            events            =  merge(events_retained, sorted(new_events))        
+
+        # Simulation is over: compute elapsed (compputer) time
+        end_elapsed_time       = time.time()
+        collision_elapsed_time = end_elapsed_time - init_elapsed_time
+        total_elapsed_time     = end_elapsed_time - start_elapsed_time
+        print (f'Time to simulate {collision_count} collisions between {N} particles: {collision_elapsed_time:.1f} seconds') 
+        print (f'Total Time: {total_elapsed_time:.1f} seconds')
+        
         save_file(args.save)
         
         plot_results(configuration,collision_count,R=R,L=L,plots=args.plots,topology=topology)
