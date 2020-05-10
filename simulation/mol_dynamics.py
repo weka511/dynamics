@@ -21,9 +21,10 @@ from enum import Enum, unique
 # boltzmann
 #
 # Bolzmann's distribution (to within a multiplicative constant, which will be lost when we scale)
-
+#
+# See https://en.wikipedia.org/wiki/Boltzmann_distribution
 def boltzmann(E,kT=1):
-    return  math.exp(-E/kT)#math.sqrt(E) *
+    return  math.exp(-E/kT)
     
 # MolecularDynamicsError
 #
@@ -255,8 +256,9 @@ class HitsWall(Event):
         super().act(configuration,topology) 
         particle = configuration[self.particle_index]
         index    = self.wall.get_index()
+        # Collision should be at a distance of R from wall, butthis may be affected by roundoff
+        # Fixup here
         if abs( particle.position[index])!=topology.L[index]-topology.R:
-  #          print (abs(particle.position[index])-(topology.L[index]-topology.R))
             particle.position[index] = math.copysign(topology.L[index]-topology.R, particle.position[index])
         topology.hitsWall(particle,index)
         return 0 # We don't want to count these collisions
@@ -296,12 +298,11 @@ class Collision(Event):
             # If so, return expected time to next collision.
             # Krauth Algorithm 2.2
             def get_next_collision(particle1,particle2):
-                D     = len(particle1.position)
-                dx    = [particle1.position[k] - particle2.position[k] for k in range(D)]
-                dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
-                dx_dv = sum(dx[k]*dv[k] for k in range(D))
-                dx_2  = sum(dx[k]*dx[k] for k in range(D))
-                dv_2  = sum(dv[k]*dv[k] for k in range(D))
+                dx    = [pos1 - pos2  for (pos1,pos2) in zip(particle1.position, particle2.position)] #[particle1.position[k] - particle2.position[k] for k in range(D)]
+                dv    = [vel1 - vel2  for (vel1,vel2) in zip(particle1.velocity,particle2.velocity)] #[particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
+                dx_dv = sum(dx*dv     for (dx,dv)     in zip (dx,dv))# for k in range(D))
+                dx_2  = sum(dx_i*dx_i for dx_i        in dx)#for k in range(D))
+                dv_2  = sum(dv_i*dv_i for dv_i        in dv)
                 #assert dx_2 - 4*R**2>=0, f'Improper configuration t={t_simulated}, i={particle_index}, j={other}, anomaly={-dx_2 + 4*R**2}'
                 disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
      
