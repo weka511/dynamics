@@ -524,32 +524,48 @@ if __name__ == '__main__':
     # Produce histogram for energies, and compare with Boltzmann distrbution
     
     def plot_results(configuration,collision_count,R=0.0625,L=[1,1,1],plots='plots',topology=None):
+        
+        def plot_energies(axis=None,N=0):
+            energies  = [particle.get_energy() for particle in configuration]
+            E         = sum(energies)
+            kT        = (2/3)*E/N  # Average energy of particle is 1.5kT        
+            n,bins,_  = axis.hist(energies, bins='fd', # Freedman Diaconis Estimator
+                                     label='Simulation', facecolor='b', edgecolor='b',fill=True)
+            n,bins   = consolidate_bins(n,bins)
+            xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]   # mid points of bins
+            ys       = [boltzmann(E,kT=kT) for E in xs]          
+            scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
+            y_scaled = [y*scale_ys for y in ys]
+            chisq,p  = chisquare(n,y_scaled) # Null hypothesis: data has Boltzmann distribution
+            axis.plot(xs, y_scaled, color='r', label='Boltzmann')
+            axis.set_xlabel('Energy')
+            axis.set_title(f'Energies: $\\chi^2$={chisq:.2f}, p={p:.3f}')
+            axis.legend() 
+            
+        def plot_positions(axis=None,N=0):
+            def get_chi_sq(n,bins,i):
+                bin_widths = [b-a for (a,b) in zip(bins[:-1],bins[1:])]
+                uniform = [N*w/2*L[i] for w in bin_widths]
+                return chisquare(n[i],uniform)
+        
+            def get_title(n,bins):
+                chisq_s= [get_chi_sq(n,bins,i) for i in range(len(n))]       
+                chs    = ', '.join([f'{chi:.2f}' for (chi,_) in chisq_s])
+                ps     = ', '.join([f'{p:.2f}' for (_,p) in chisq_s])
+                return f'Positions $\\chi^2$=({chs}), p=({ps})'
+            
+            n,bins,_ = axis.hist([[particle.position[i] for particle in configuration] for i in range(len(L))],
+                         label=['North-South','East-West','Top-Bottom'])    
+            ys       = [N/(len(bins)-1) for _ in bins]
+            axis.plot(bins, ys, '--', linewidth=1,color='r', label='Uniform')
+            axis.legend(loc='best')  
+            axis.set_title(get_title(n,bins))
+            
         fig, axes = plt.subplots(2, 1, constrained_layout=True)
         N         = len(configuration)
-        energies  = [particle.get_energy() for particle in configuration]
-        E         = sum(energies)
-        kT        = (2/3)*E/N  # Average energy of particle is 1.5kT        
-        n,bins,_  = axes[0].hist(energies, bins='fd', # Freedman Diaconis Estimator
-                                 label='Simulation', facecolor='b', edgecolor='b',fill=True)
-        n,bins   = consolidate_bins(n,bins)
-        xs       = [0.5*(a+b) for a,b in zip(bins[:-1],bins[1:])]   # mid points of bins
-        ys       = [boltzmann(E,kT=kT) for E in xs]          
-        scale_ys = sum(n)/sum(ys)   # We want area under Boltzmann to match area under energies
-        y_scaled = [y*scale_ys for y in ys]
-        chisq,p  = chisquare(n,y_scaled) # Null hypothesis: data has Boltzmann distribution
-        axes[0].plot(xs, y_scaled, color='r', label='Boltzmann')
-        axes[0].set_xlabel('Energy')
-        axes[0].set_title('Energies')
-        axes[0].legend()
-        
-        fig.suptitle(
-            f'{topology.pretty()}: N={N}, $\\eta$={get_eta(N,R,L):.4f}, collisions={collision_count:,},'
-            f' $\\chi^2$={chisq:.2f}, p={p:.3f}')        
-        
-        axes[1].hist([[particle.position[i] for particle in configuration] for i in range(3)],
-                     label=['North-South','East-West','Top-Bottom'])
-        axes[1].legend(loc='best')
-        axes[1].set_title('Positions')
+        fig.suptitle(f'{topology.pretty()}: N={N}, $\\eta$={get_eta(N,R,L):.4f}, collisions={collision_count:,}')     
+        plot_energies(axis=axes[0],N=N)
+        plot_positions(axis=axes[1],N=N)
         fig.savefig(f'{plots}.png')
         
     # load_file
