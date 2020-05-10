@@ -298,10 +298,10 @@ class Collision(Event):
             # If so, return expected time to next collision.
             # Krauth Algorithm 2.2
             def get_next_collision(particle1,particle2):
-                dx    = [pos1 - pos2  for (pos1,pos2) in zip(particle1.position, particle2.position)] #[particle1.position[k] - particle2.position[k] for k in range(D)]
-                dv    = [vel1 - vel2  for (vel1,vel2) in zip(particle1.velocity,particle2.velocity)] #[particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
-                dx_dv = sum(dx*dv     for (dx,dv)     in zip (dx,dv))# for k in range(D))
-                dx_2  = sum(dx_i*dx_i for dx_i        in dx)#for k in range(D))
+                dx    = [pos1 - pos2  for (pos1,pos2) in zip(particle1.position, particle2.position)]
+                dv    = [vel1 - vel2  for (vel1,vel2) in zip(particle1.velocity,particle2.velocity)]
+                dx_dv = sum(dx*dv     for (dx,dv)     in zip (dx,dv))
+                dx_2  = sum(dx_i*dx_i for dx_i        in dx)
                 dv_2  = sum(dv_i*dv_i for dv_i        in dv)
                 #assert dx_2 - 4*R**2>=0, f'Improper configuration t={t_simulated}, i={particle_index}, j={other}, anomaly={-dx_2 + 4*R**2}'
                 disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
@@ -341,7 +341,7 @@ class Collision(Event):
             l.position   = [p - e*delta for (p,e) in zip(l.position,e_perp)] 
             delta_x      = [(pos_k -pos_l) for (pos_k,pos_l) in zip(k.position,l.position)]
             delta_x_norm = math.sqrt(sum(delta**2 for delta in delta_x ))            
-        assert delta_x_norm>=2*R
+        #assert delta_x_norm>=2*R
         return 1 # So we can count this collision
 
     # List of particles that are involved in this event.
@@ -513,9 +513,9 @@ if __name__ == '__main__':
     # Create topology from command line or saved configuration
     
     def create_topology(topology,L,R):
-        if args.topology.lower()=='box':
+        if topology.lower()=='box':
             return Box(L,R)
-        if args.topology.lower()=='torus':
+        if topology.lower()=='torus':
             return Torus(L,R)
         raise MolecularDynamicsError(f'Invalid topology specified: {topology}')
         
@@ -561,12 +561,12 @@ if __name__ == '__main__':
             with open(file_name,'rb') as f:
                 R,L,N,collision_count,topology_name,configuration = pickle.load(f)
                 print (f'Restarting from {file_name}. R={R}, L={L}, N={len(configuration)}, topology={topology_name}')
-                return R,L,N,collision_count,create_topology(topology_name),configuration
+                return R,L,N,collision_count,create_topology(topology_name,L,R),configuration
         except (ValueError,EOFError) : # otherwise fall back on old configuration
             with open(file_name,'rb') as f:
                 R,L,N,collision_count,configuration = pickle.load(f)
                 print (f'Restarting from {file_name}. R={R}, L={L}, N={len(configuration)}')
-                return R,L,N,collision_count, create_topology('box'),configuration
+                return R,L,N,collision_count, create_topology('box',L,R),configuration
     
     # save_file
     #
@@ -620,7 +620,7 @@ if __name__ == '__main__':
         if args.load==None:
             _,configuration = create_configuration(N=N, R=R, NT=args.NT, E=args.E, L=L )
         else: # restart from saved configuration
-            R,L,N,collision_count,topology_name,configuration = load_file(args.load)               
+            R,L,N,collision_count,topology,configuration = load_file(args.load)               
                 
         link_events(configuration)
         
