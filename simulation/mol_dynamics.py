@@ -351,14 +351,14 @@ class Collision(Event):
     
 
 
-# get_rho
+# get_eta
 #
 # Density of particles
-def get_rho(N,R,L=[1,1,1],D=3):
+def get_eta(N,R,L=[1,1,1],D=3):
     return (N*(4/D)*math.pi*R**D)/(L[0]*L[1]*L[2])
 
-def get_R(N,rho,L=[1,1,1],D=3):
-    return ((L[0]*L[1]*L[2]*rho*D)/(4*N*math.pi))**(1/3)
+def get_R(N,eta,L=[1,1,1],D=3):
+    return ((L[0]*L[1]*L[2]*eta*D)/(4*N*math.pi))**(1/3)
 
     
 # create_configuration
@@ -397,12 +397,12 @@ def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1,D=3):
             actual_energy = sum([particle.get_energy() for particle in product])   
             for particle in product:
                 particle.scale_energy(E/actual_energy)
-            print (f'Radius = {R}, Density = {get_rho(N,R,L)}, {i+1} attempts')
+            print (f'Radius = {R}, Density = {get_eta(N,R,L)}, {i+1} attempts')
             return i,product
         
         product= [Particle(position=get_position(),radius=R) for _ in range(N)]
         
-    raise MolecularDynamicsError(f'Failed to create valid configuration for R={R}, density={get_rho(N,R,L)}, within {NT} attempts')
+    raise MolecularDynamicsError(f'Failed to create valid configuration for R={R}, density={get_eta(N,R,L)}, within {NT} attempts')
 
 # Build dictionaries of all possible events. We will extract active events as we compute collisions
 def link_events(configuration):
@@ -479,7 +479,7 @@ if __name__ == '__main__':
         product.add_argument('--N',    type=int,   default=25,                help='Number of particles')
         product.add_argument('--T',    type=float, default=100,               help='Maximum Time')
         product.add_argument('--R',    type=float, default=0.0625,            help='Radius of spheres')
-        product.add_argument('--rho',  type=float, default=-1,               help='Density of spheres (alternative to R)')
+        product.add_argument('--eta',  type=float, default=-1,               help='Density of spheres (alternative to R)')
         product.add_argument('--NT',   type=int,   default=100,               help='Number of attempts to choose initial configuration')
         product.add_argument('--NC',   type=int,   default=0,                 help='Minimum number of collisions')
         product.add_argument('--E',    type=float, default=1,                 help='Total energy')
@@ -543,7 +543,7 @@ if __name__ == '__main__':
         axes[0].legend()
         
         fig.suptitle(
-            f'{topology.pretty()}: N={N}, $\\rho$={get_rho(N,R,L):.4f}, collisions={collision_count:,},'
+            f'{topology.pretty()}: N={N}, $\\eta$={get_eta(N,R,L):.4f}, collisions={collision_count:,},'
             f' $\\chi^2$={chisq:.2f}, p={p:.3f}')        
         
         axes[1].hist([[particle.position[i] for particle in configuration] for i in range(3)],
@@ -607,7 +607,7 @@ if __name__ == '__main__':
     args            = create_parser().parse_args()   
     L               = get_L(args.L)
     N               = args.N
-    R               = args.R if args.rho == -1 else get_R(N,args.rho)
+    R               = args.R if args.eta == -1 else get_R(N,args.eta)
       
     collision_count = 0   # Number of particle-particle collisions - walls not counted
     random.seed(args.seed)
