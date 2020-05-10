@@ -15,7 +15,7 @@
 
 # This program models molecular dynamica, after Alder & Wainwright
 
-import random, abc, math
+import random, abc, math, numpy as np
 from enum import Enum, unique
 
 # boltzmann
@@ -89,7 +89,7 @@ class Particle:
 
 # Wall
 #
-# This class represents boundary of space
+# This class represents boundary of space. Walls are organized into pairs, e.g. NORTH-SOUTH
 @unique
 class Wall(Enum):
     NORTH  =  1
@@ -122,8 +122,10 @@ class Wall(Enum):
 
 class Topology(abc.ABC):
  
-    def __init__(self,name):
+    def __init__(self,name,L,R):
         self.myName = name
+        self.L      = L
+        self.R      = R
     
     # hitsWall
     #
@@ -151,8 +153,8 @@ class Topology(abc.ABC):
 
 class Box(Topology):
     
-    def __init__(self):
-        super().__init__("box")
+    def __init__(self,L,R):
+        super().__init__("box",L,R)
     
     # hitsWall
     #
@@ -161,15 +163,13 @@ class Box(Topology):
     def hitsWall(self,particle,index):
         particle.reverse(index)
         
-  
-
 # Torus
 #
 # In this toplogy, particle wraps around when it reaches boundary
 
 class Torus(Topology):
-    def __init__(self):
-        super().__init__("torus" )
+    def __init__(self,L,R):
+        super().__init__("torus",L,R)
         
     # wrap particle around by moving to other wall
     def hitsWall(self,particle,index):
@@ -199,7 +199,7 @@ class Event(abc.ABC):
     def act(self,configuration,topology):
         pass
     
-    # List of particles that are involved in ths event.
+    # List of particles that are involved in the event.
     # Used to cull them so their next collision can be calculated.    
     @abc.abstractmethod
     def get_colliders(self):
@@ -254,7 +254,11 @@ class HitsWall(Event):
     def act(self,configuration,topology):
         super().act(configuration,topology) 
         particle = configuration[self.particle_index]
-        topology.hitsWall(particle,self.wall.get_index())
+        index    = self.wall.get_index()
+        if abs( particle.position[index])!=topology.L[index]-topology.R:
+  #          print (abs(particle.position[index])-(topology.L[index]-topology.R))
+            particle.position[index] = math.copysign(topology.L[index]-topology.R, particle.position[index])
+        topology.hitsWall(particle,index)
         return 0 # We don't want to count these collisions
     
     # List of particles that are involved in ths event.
@@ -266,50 +270,51 @@ class HitsWall(Event):
 #
 # This class represents a collision between two particles
 class Collision(Event):
-    def __init__(self,i,j,t=math.inf):
+    def __init__(self,particle_index,other_particle,t=math.inf):
         super().__init__(t)
-        assert i<j,f'Particle indices not in correct order -- we expect {i} < {j}'
-        self.i = i     # Primary particle
-        self.j = j     # Other particle: j>i
+        assert particle_index<other_particle,\
+               f'Particle indices not in correct order -- we expect {particle_index} < {other_particle}'
+        self.particle_index = particle_index     # Primary particle
+        self.other_particle = other_particle     # Other particle: j>i
         
     def __str__(self):
-        return f'{self.t_expected:.2f}\t\t({self.i},{self.j})'
+        return f'{self.t_expected:.2f}\t\t({self.particle_index},{self.other_particle})'
         
     # get_collisions
     #
     # get all collisions between specifed particle and all others having index greater that specified particle
     
     @classmethod
-    def get_collisions(self,i,configuration,t_simulated=0,R=0.0625):
-        # get_next_collision
-        # Determine whether two particles are on a path to collide
-        # Krauth Algorithm 2.2
-        def get_next_collision(particle1,particle2):
-            D     = len(particle1.position)
-            dx    = [particle1.position[k] - particle2.position[k] for k in range(D)]
-            dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
-            dx_dv = sum(dx[k]*dv[k] for k in range(D))
-            dx_2  = sum(dx[k]*dx[k] for k in range(D))
-            dv_2  = sum(dv[k]*dv[k] for k in range(D))
-            if dx_2 - 4*R**2<0: return math.inf
-            disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
- 
-            if disc>=0 and dx_dv<0:
-                disc_sqrt = math.sqrt(disc)
-                return (min(-dx_dv + disc_sqrt, -dx_dv - disc_sqrt))/dv_2
-    
+    def get_collisions(self,particle_index,configuration,t_simulated=0,R=0.0625):
+  
         # get_collision_with
         #
         # Get possible collision between particle and specified other particle
-        def get_collision_with(j):
-            dt = get_next_collision(configuration[i],configuration[j])
+        def get_collision_with(other):
+            # get_next_collision
+            # Determine whether two particles are on a path to collide.
+            # If so, return expected time to next collision.
+            # Krauth Algorithm 2.2
+            def get_next_collision(particle1,particle2):
+                D     = len(particle1.position)
+                dx    = [particle1.position[k] - particle2.position[k] for k in range(D)]
+                dv    = [particle1.velocity[k] - particle2.velocity[k] for k in range(D)]
+                dx_dv = sum(dx[k]*dv[k] for k in range(D))
+                dx_2  = sum(dx[k]*dx[k] for k in range(D))
+                dv_2  = sum(dv[k]*dv[k] for k in range(D))
+                #assert dx_2 - 4*R**2>=0, f'Improper configuration t={t_simulated}, i={particle_index}, j={other}, anomaly={-dx_2 + 4*R**2}'
+                disc  = dx_dv**2 - dv_2 * (dx_2 - 4*R**2)
+     
+                if disc>=0 and dx_dv<0:
+                    return -( dx_dv +math.sqrt(disc))/dv_2   # FIXME            
+            dt = get_next_collision(configuration[particle_index],configuration[other])
             if dt !=None:
-                collision = configuration[i].events[j]
+                collision = configuration[particle_index].events[other]
                 collision.t_expected = t_simulated + dt
                 return collision
         
         return [
-            collision for collision in [get_collision_with(j) for j in range(i+1,len(configuration))]
+            collision for collision in [get_collision_with(other) for other in range(particle_index+1,len(configuration))]
             if collision!=None
         ]
   
@@ -319,22 +324,29 @@ class Collision(Event):
     
     def act(self,configuration,topology): #Krauth Algorithm 2.3
         super().act(configuration,topology)
-        particle_i          = configuration[self.i]
-        particle_j          = configuration[self.j]
-        D                   = len(particle_i.position)
-        delta_x             = [particle_i.position[k]-particle_j.position[k] for k in range(D)]
-        delta_x_norm        = math.sqrt(sum(delta_x[k]**2 for k in range(D)))
-        e_perp              = [delta_x[k]/delta_x_norm for k in range(D)]
-        delta_v             = [particle_i.velocity[k]-particle_j.velocity[k] for k in range(D)]
-        delta_v_e_perp      = sum(delta_v[k]*e_perp[k] for k in range(D))
-        particle_i.velocity = [particle_i.velocity[k] - e_perp[k]*delta_v_e_perp for k in range(D)]
-        particle_j.velocity = [particle_j.velocity[k] + e_perp[k]*delta_v_e_perp for k in range(D)]
+        k              = configuration[self.particle_index]
+        l              = configuration[self.other_particle]
+        delta_x        = [(pos_k -pos_l)         for (pos_k,pos_l) in zip(k.position,l.position)]
+        delta_x_norm   = math.sqrt(sum(delta**2  for delta in delta_x ))
+        e_perp         = [dx/delta_x_norm        for dx in delta_x]
+        delta_v        = [(vel_k-vel_l)          for (vel_k,vel_l) in zip(k.velocity,l.velocity)]
+        delta_v_e_perp = sum([v*e                for (v,e) in zip(delta_v,e_perp)])
+        k.velocity     = [v - e* delta_v_e_perp  for (v,e)in zip(k.velocity,e_perp) ] 
+        l.velocity     = [v +  e* delta_v_e_perp for (v,e)in zip(l.velocity,e_perp)]
+        if delta_x_norm<2*topology.R:
+            diff         = 2 * topology.R -delta_x_norm
+            delta        = 0.5*diff + np.finfo(float).eps
+            k.position   = [p + e*delta for (p,e) in zip(k.position,e_perp)]
+            l.position   = [p - e*delta for (p,e) in zip(l.position,e_perp)] 
+            delta_x      = [(pos_k -pos_l) for (pos_k,pos_l) in zip(k.position,l.position)]
+            delta_x_norm = math.sqrt(sum(delta**2 for delta in delta_x ))            
+        assert delta_x_norm>=2*R
         return 1 # So we can count this collision
 
     # List of particles that are involved in this event.
     # Used to cull them so their next collision can be calculated.    
     def get_colliders(self):
-        return [self.i,self.j]
+        return [self.particle_index,self.other_particle]
     
 
 
@@ -499,11 +511,11 @@ if __name__ == '__main__':
     #
     # Create topology from command line or saved configuration
     
-    def create_topology(topology):
+    def create_topology(topology,L,R):
         if args.topology.lower()=='box':
-            return Box()
+            return Box(L,R)
         if args.topology.lower()=='torus':
-            return Torus()
+            return Torus(L,R)
         raise MolecularDynamicsError(f'Invalid topology specified: {topology}')
         
     # plot_results
@@ -598,7 +610,7 @@ if __name__ == '__main__':
       
     collision_count = 0   # Number of particle-particle collisions - walls not counted
     random.seed(args.seed)
-    topology = create_topology(args.topology)
+    topology = create_topology(args.topology,L,R)
 
     try:
         start_elapsed_time = time.time()
@@ -634,16 +646,16 @@ if __name__ == '__main__':
             event         = events[0]   # Get first event 
             dt            = event.t_expected - t_simulated  # Duration until event is expected
             
-            #      A.   Update global time to time when event occurs
+            #      A.   Update simulated time to time when event occurs
             t_simulated   = event.t_expected
             
-            # Update step counter and see whther it is time to print
+            # Update step counter and see whether it is time to print
             
             step_counter += 1
             if step_counter%args.freq==0:
                 print (f'{event}, collisions={collision_count}')  
                 
-            #      B.   Move all particles to their estimated positions when event occurs
+            #      B.   Move all particles to their estimated positions at time event occurs
             for particle in configuration:
                 particle.evolve(dt)
              
@@ -651,21 +663,21 @@ if __name__ == '__main__':
             collision_count   += event.act(configuration,topology)
             
             # Find out which particles were involved - one for a wall collition, 2 for particle-particles
-            particled_involved = event.get_colliders()
+            particles_involved = event.get_colliders()
             
-            # Remove the those who were involved
-            events_retained    = get_unaffected(events,particled_involved)
+            # Remove those who were involved
+            events_retained    = get_unaffected(events,particles_involved)
                  
             # Recalculate events from  particles that were involved: no others are affected!
             # Note that we end up with lists of lists of events, so will need to flatten
             hits_wall         = [HitsWall.get_collisions(configuration[i],
                                                          t_simulated=t_simulated,
                                                          L=L,
-                                                         R=R) for i in particled_involved]
+                                                         R=R) for i in particles_involved]
             particle_particle = [Collision.get_collisions(i,
                                                           configuration,
                                                           t_simulated=t_simulated,
-                                                          R=R) for i in particled_involved]
+                                                          R=R) for i in particles_involved]
             
             new_events        = flatten(particle_particle + hits_wall)
             
