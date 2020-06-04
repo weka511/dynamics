@@ -365,15 +365,15 @@ def get_R(N,eta,L=[1,1,1],D=3):
 #
 # Build particles for box particles
 # Make sure that spheres don't overlap 
-def create_configuration(N=100,R=0.0625,NT=25,E=1,L=1,D=3):
+def create_configuration(N=100,R=0.0625,NT=25,E=1,L=[1,1,1]):
     def get_position():
         return [random.uniform(R-l,l-R) for l in L]
     
     # get_velocity
     def get_velocity(): #Krauth Algorithm 1.21
-        velocities = [random.gauss(0, 1) for _ in range(D)]
+        velocities = [random.gauss(0, 1) for _ in L]
         sigma      = math.sqrt(sum([v**2 for v in velocities]))
-        upsilon    = random.random()**(1/D)
+        upsilon    = random.random()**(1/len(L))
         return [v*upsilon/sigma for v in velocities]
     
     # is_valid
@@ -594,7 +594,8 @@ if __name__ == '__main__':
             if os.path.exists(file_name):
                 copyfile(file_name,'~'+file_name)
             with open(file_name,'wb') as save_file:
-                pickle.dump((R,L,N,collision_count,topology.name(),configuration),save_file)
+                pickle.dump((R,L,N,collision_count,topology.name(),configuration),save_file)
+
     # consolidate_bins
     #
     # Consolidate bins so none (except possible the last) has fewer items than a specified quota
