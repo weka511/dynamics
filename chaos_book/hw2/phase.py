@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2019 Greenweaves Software Limited
+# Copyright (C) 2017-2022 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,9 +15,12 @@
 
 # Plot phase portrait
 
-import numpy as np, matplotlib.pyplot as plt,matplotlib.colors as colors,utilities,rk4
-from scipy import optimize
-from matplotlib import rc
+from numpy             import exp, linspace, meshgrid, vectorize
+from matplotlib.pyplot import legend, pcolormesh, plot, scatter, show, streamplot, suptitle, title, xlabel, xlim, ylabel, ylim
+from utilities         import direct_surface
+from rk4               import rk4
+from scipy             import optimize
+from matplotlib        import rc, cm
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
@@ -25,7 +28,7 @@ rc('text', usetex=True)
 # get_fixed_points
 #
 # Determine fixed points of differential equation
-#    
+#
 # Parameters:
 #     f                        Function - dx,dy=f(x,y)
 #     xs                       x values from grid
@@ -55,22 +58,22 @@ def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0
     #     w1
     def crosses(w0,w1):
         return (w0<=0 and w1>=0) or (w0>=0 and w1<=0)
- 
+
     # is_near_zero
     #
-    # Establish whether a point is near the origin 
+    # Establish whether a point is near the origin
     #
     # Parameters:
     #      u
     #      v
-    
+
     def is_near_zero(u,v):
         return abs(u)<tolerance_near_zero and abs(v)<tolerance_near_zero
 
     # find_crossings
-    # 
-    # Find all position in rectangle where value is near zero  
-    
+    #
+    # Find all position in rectangle where value is near zero
+
     def find_crossings():
         crossings = []
         for x0,x1 in zip(xs[:-1],xs[1:]):
@@ -87,18 +90,18 @@ def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0
                     crossings.append((x1,y0))
                 elif is_near_zero(u1,v1):
                     crossings.append((x1,y1))
-                
+
         return crossings
-    
+
     zeroes=[]
     #  Levenberg-Marquardt gives the best results for strogatz_6_1
     #  Still having problems with exercise 6.1.3, though.
-    
+
     for result in [optimize.root(adapt(f),crossing,tol=tolerance_root_finder,method='lm') for crossing in find_crossings()]:
         if result.success:
             if not already_found(result.x,zeroes):
                 zeroes.append(result.x)
-            
+
     return zeroes
 
 # generate
@@ -113,29 +116,29 @@ def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0
 #     ymin     Minimum y value
 #     ymax     Maximum y value
 def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-10,xmax=10,ymin=-10,ymax=10):
-    xs   = np.linspace(xmin, xmax,nx)
-    ys   = np.linspace(ymin, ymax, ny)
-    X, Y = np.meshgrid(xs, ys)
+    xs   = linspace(xmin, xmax,nx)
+    ys   = linspace(ymin, ymax, ny)
+    X, Y = meshgrid(xs, ys)
     U,V  = f(X,Y)
     return X,Y,U,V,get_fixed_points(f,xs,ys)
 
 # nullclines
 #
 # Used to plot nullclines. Forgets everyting except sign of u and v
-#    
+#
 # Parameters:
 #     u
 #     v
-@np.vectorize
+@vectorize
 def nullclines(u,v):
     def setnum_offset(v,offset=0):
-        return offset if v<0 else offset+1        
+        return offset if v<0 else offset+1
     return setnum_offset(v) if u<0 else setnum_offset(v,offset=2)
 
 # plot_phase_portrait
 #
 # Plot nullclines, stream lines, and fixed points
-#    
+#
 #   Parameters:
 #            X
 #            Y
@@ -145,7 +148,11 @@ def nullclines(u,v):
 #            title
 #            suptitle
 
-def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle='',xlabel='$x$',ylabel='$y$'):
+def plot_phase_portrait(X,Y,U,V,fixed,
+                        main_title = '',
+                        supertitle = '',
+                        xname      = '$x$',
+                        yname      = '$y$'):
 
     # apply2D
     #
@@ -155,23 +162,24 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',suptitle='',xlabel='$x$',ylabel='
     #    Parameters:
     #        Z     The matrix
     #        f     The function to be applied
-            
+
     def apply2D(Z,f=min):
         return f(z for zrow in Z for z in zrow)
-    
-    plt.pcolormesh(X,Y,nullclines(U,V),cmap=plt.cm.Pastel1)
-    plt.streamplot(X, Y, U, V, linewidth=1)
-    plt.xlim(apply2D(X,f=min),apply2D(X,f=max))
-    plt.ylim(apply2D(Y,f=min),apply2D(Y,f=max))
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.scatter([x for (x,_) in fixed],[y for (_,y) in fixed],marker='x',s=60,c='r')
-    plt.suptitle(suptitle)
-    plt.title(title)
+
+    pcolormesh(X,Y,nullclines(U,V),
+               cmap = cm.Pastel1)
+    streamplot(X, Y, U, V, linewidth=1)
+    xlim(apply2D(X,f=min),apply2D(X,f=max))
+    ylim(apply2D(Y,f=min),apply2D(Y,f=max))
+    xlabel(xname)
+    ylabel(yname)
+    scatter([x for (x,_) in fixed],[y for (_,y) in fixed],marker='x',s=60,c='r')
+    suptitle(supertitle)
+    title(main_title)
 
 # adapt
 
-#  Adapt a 2D function so it is in the form that rk4.rk4 requires, i.e.:
+#  Adapt a 2D function so it is in the form that rk4 requires, i.e.:
 #  ((x,y)->(dx,dy))->(([x])->[dx])
 #
 #    Parameters:
@@ -181,7 +189,7 @@ def adapt(f):
     def adapted(x):
         u,v=f(x[0],x[1])
         return [u]+[v]
-    return adapted 
+    return adapted
 
 # plot_stability
 #
@@ -198,41 +206,40 @@ def plot_stability(f            = lambda x,y:(x,y),
                    S            = 1,
                    s            = 10,
                    K            = 1,
-                   legend       = True,
                    accept       = lambda _:True,
                    eps          = 0.1):
     starts0=[]
     starts1=[]
     for fixed_point in fixed_points:
         for i in  range(K*len(cs)*len(linestyles)):
-            offset = tuple(R*z for z in utilities.direct_surface(d=2))
+            offset = tuple(R*z for z in direct_surface(d=2))
             while not accept(offset):
-                offset = tuple(R*z for z in utilities.direct_surface(d=2))
+                offset = tuple(R*z for z in direct_surface(d=2))
             xys    = [tuple(x + y for x,y in zip(fixed_point, offset))]
-            
+
             for j in range(N):
-                (x,y)=rk4.rk4(0.1,xys[-1],adapt(f=f))
+                (x,y) = rk4(0.1,xys[-1],adapt(f=f))
                 if abs(x)<1.5*Limit and abs(y)<1.5*Limit:
                     xys.append((x,y))
                 else:
                     break
-            
-            if abs(xys[-1][0])>Limit or abs(xys[-1][1])>Limit:    
-                plt.plot([z[0] for z in xys],
+
+            if abs(xys[-1][0])>Limit or abs(xys[-1][1])>Limit:
+                plot([z[0] for z in xys],
                          [z[1] for z in xys],
                          c         = cs[i%len(cs)],
                          linestyle = linestyles[(i//len(cs))%len(linestyles)],
                          linewidth = 3)
                 starts1.append( (xys[0]))
             else:
-                if abs(xys[-1][0]-xys[0][0])<eps and abs(xys[-1][1]-xys[0][1])<eps: 
+                if abs(xys[-1][0]-xys[0][0])<eps and abs(xys[-1][1]-xys[0][1])<eps:
                     starts0.append( (xys[0]))
- 
-    plt.scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
-    plt.scatter([S*x for (x,_) in starts1],[S*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
-    
-    plt.legend(title='Starting points, scaled by {0:3}'.format(S),loc='best').set_draggable(True)
-    
+
+    scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
+    scatter([S*x for (x,_) in starts1],[S*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
+
+    legend(title='Starting points, scaled by {0:3}'.format(S),loc='best').set_draggable(True)
+
 def right_upper_quadrant(pt):
     return pt[0]>=0 and pt[1]>=0
 
@@ -240,14 +247,17 @@ def strict_right_upper_quadrant(pt):
     return pt[0]>0 and pt[1]>0
 
 if __name__=='__main__':
-    
+
     def f(x,y):
-        return x+np.exp(-y),-y
-    
+        return x+exp(-y),-y
+
     X,Y,U,V,fixed_points=generate(f=f,nx=256, ny = 256)
 
-    plot_phase_portrait(X,Y,U,V,fixed_points,title='$\dot{x}=x+e^{-y},\dot{y}=-y$',suptitle='Example 6.1.1')
-    
-    plot_stability(f=f,fixed_points=fixed_points)
-    
-    plt.show()
+    plot_phase_portrait(X,Y,U,V,fixed_points,
+                        main_title = '$\dot{x}=x+e^{-y},\dot{y}=-y$',
+                        supertitle = 'Example 6.1.1')
+
+    plot_stability(f            = f,
+                   fixed_points = fixed_points)
+
+    show()
