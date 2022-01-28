@@ -15,9 +15,9 @@
 
 ''' Q1.2 A limit cycle with analytic Floquet exponent'''
 
-from sys import path
+from sys               import path
 from matplotlib.pyplot import figure, savefig,show
-from phase import generate,plot_phase_portrait,plot_stability
+from phase             import generate,plot_phase_portrait,plot_stability
 
 
 def floquet(q,p):
@@ -32,13 +32,19 @@ X,Y,U,V,fixed_points = generate(f=floquet,
                                 ymin = -1.2,
                                 ymax = 1.2)
 
-plot_phase_portrait(X,Y,U,V,fixed_points,title=r'$\dot{p}=p+q(1-q^2-p^2),\dot{q}=-q+p(1-q^2-p^2)$',
-                          suptitle='Q1.2 A limit cycle with analytic Floquet exponent.'
-                          ' (ChaosBook.org version 14.5.7, exercise 5.1)',
-                          xlabel='$p$',
-                          ylabel='$q$')
+plot_phase_portrait(X,Y,U,V,fixed_points,
+                    main_title = r'$\dot{p}=p+q(1-q^2-p^2),\dot{q}=-q+p(1-q^2-p^2)$',
+                    supertitle = 'Q1.2 A limit cycle with analytic Floquet exponent.'
+                                ' (ChaosBook.org version 14.5.7, exercise 5.1)',
+                    xname      = '$p$',
+                    yname      = '$q$')
 
-plot_stability(f=floquet,fixed_points=fixed_points,Limit=0.99,step=0.1,N=50000,R=0.01)
+plot_stability(f            = floquet,
+               fixed_points = fixed_points,
+               Limit        = 0.99,
+               step         = 0.1,
+               N            = 50000,
+               R            = 0.01)
 
 savefig('floquet.png')
 
