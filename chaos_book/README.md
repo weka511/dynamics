@@ -13,6 +13,7 @@
 |2|BakersMap.py|Q2.1| A contracting baker’s map|
 |2|CycleStability.py|Q1.5| Stability of a periodic orbit |
 |2|floquet.py|Q1.2| A limit cycle with analytic Floquet exponent|
+|2|phase.py||Used by floquet.py
 |2|Rossler.py|Q1.4| Stability of an equilibrium |
 
 
