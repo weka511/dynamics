@@ -1,8 +1,10 @@
-# Q1.4  Integrating Roessler system 
-import numpy as np  # Import NumPy
-from scipy.integrate import odeint  # Import odeint
+# Q1.4  Integrating Roessler system
+from numpy             import array, linspace
+from scipy.integrate   import odeint
+from matplotlib.pyplot import figure, show
+from RungeKutta        import RK4
 
-#Define Rossler flow velocity function:
+
 
 #Parameters:
 a = 0.2
@@ -30,7 +32,7 @@ def Velocity(ssp, t):
     dydt = x + a * y
     dzdt = b + z * (x - c)
     # Collect Rossler flow equations in a single NumPy array:
-    vel = np.array([dxdt, dydt, dzdt], float)  # Velocity vector
+    vel = array([dxdt, dydt, dzdt], float)  # Velocity vector
     return vel
 
 
@@ -127,17 +129,15 @@ def Jacobian(ssp, t):
     return J
 
 if __name__ == "__main__":
-    #This block will be evaluated if this script is called as the main routine
-    #and will be ignored if this file is imported from another script.
 
-    import RungeKutta as rk
+
 
     tInitial = 0  # Initial time
     tFinal = 2.0 # 5.881088455554846384  # Final time
     Nt = 10000  # Number of time points to be used in the integration
 
-    tArray = np.linspace(tInitial, tFinal, Nt)  # Time array for solution
-    ssp0 = np.array([9.269083709793489945,
+    tArray = linspace(tInitial, tFinal, Nt)  # Time array for solution
+    ssp0 = array([9.269083709793489945,
                      0.0,
                      2.581592405683282632], float)  # Initial condition for the solution
 
@@ -150,15 +150,12 @@ if __name__ == "__main__":
 
     print((xt[-1], yt[-1], zt[-1]))  # Print final point
 
-    #Import plotting functions:
-    import matplotlib as mpl
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
 
-    fig = plt.figure()  # Create a figure instance
+
+    fig = figure()  # Create a figure instance
     ax = fig.gca(projection='3d')  # Get current axes in 3D projection
     ax.plot(xt, yt, zt)  # Plot the solution
     ax.set_xlabel('x')  # Set x label
     ax.set_ylabel('y')  # Set y label
     ax.set_zlabel('z')  # Set z label
-    plt.show()  # Show the figure
+    show()  # Show the figure
