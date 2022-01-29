@@ -52,8 +52,8 @@ yt = sspSolution[:, 1]  # Read y(t)
 zt = sspSolution[:, 2]  # Read z(t)
 
 #Import plotting functions:
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
+# import matplotlib as mpl
+# from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
