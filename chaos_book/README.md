@@ -15,5 +15,6 @@
 |2|floquet.py|Q1.2| A limit cycle with analytic Floquet exponent|
 |2|phase.py||Used by floquet.py
 |2|Rossler.py|Q1.4| Stability of an equilibrium |
+|2|Stability.py|Q1.4| Stability of an equilibrium |
 
 
