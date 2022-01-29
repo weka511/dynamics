@@ -1,4 +1,4 @@
-# Dynamics
+# chaos_book
 
 ## Code written to accompany  [Chaos Book](http://chaosbook.org/) by Predrag Cvitanović et al
 
