@@ -1,20 +1,5 @@
 # Dynamics
 
-## Code written to accompany  [Chaos Book](http://chaosbook.org/) by Predrag Cvitanović et al
-
-|#| File | Remarks|
-|--|-------------------|---------------------------------------------------------------------------------------------------|
-|1|CycleStability.py||
-|1|Newton.py||
-|1|Poincare.py|Q1.5 Poincaré sections and return maps of the Rössler system |
-|1|Rossler.py|Q1.4 Integrating Rössler system|
-|1|RungeKutta.py|Q1.3 Runge-Kutta integration|
-|1|Stability.py||
-|2|Bakers map.py|Q2.1 A contracting baker’s map|
-|2|CycleStability.py|Q1.5 Stability of a periodic orbit |
-|2|floquet.py|Q1.2 A limit cycle with analytic Floquet exponent|
-|2|Rossler.py|Q1.4 Stability of an equilibrium |
-
 ## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
 || Name | Description |
@@ -43,12 +28,13 @@
 | 6|barnes_hut.py | 3D version of Barnes-Hut Simulation. |
 | 7|mol_dynamics.py |Molecular dynamics of hard spheres.|
 | 7|trafficLights.py | Traffic Intersection|
-|8| bacteria.py| Bacteria Chemotaxy |
+|8| bacteria.py| Bacteria Chemotaxy |Code written to accompany  [Chaos Book](http://chaosbook.org/) by Predrag Cvitanović et al
 
 ## Other
 
 | Name | Description |
 | -------------------------- | ------------------------------------------------|
+| chaos_book| Code written to accompany  [Chaos Book](http://chaosbook.org/) by Predrag Cvitanović et al
 | duffing.py  | Plot solutions to Duffing's equation |
 | henon.py| Plot evolution of Hénon map|
 | lorenz.py   | Plot solutions to Lorenz Equation |
