@@ -15,7 +15,7 @@ eq0 = fsolve(Rossler.Velocity, np.array([0, 0, 0], float), args=(0,))
 #velocity function is in fact time independent.
 
 #Evaluate the stability matrix (Rossler.Stability) at eq0:
-Aeq0 = None  # COMPLETE THIS LINE
+Aeq0 = Rossler.StabilityMatrix(eq0)  # COMPLETE THIS LINE
 #Find eigenvalues and eigenvectors of the stability matrix at eq0:
 #We are going to use eig function from np.linalg module, which will return
 #eigenvalues as a 3-dimensional numpy array as its first output and eigenvectors
@@ -29,10 +29,10 @@ print(eigenValues)
 #Let's take the real and imaginary parts of eigenvector corresponding to
 #eigenvalue with largest real part:
 v1 = np.real(eigenVectors[:, 0])
-v2 = None  # COMPLETE THIS LINE, HINT: Use np.imag()
+v2 =  np.imag(eigenVectors[:, 0])  # COMPLETE THIS LINE, HINT: Use np.imag()
 #Normalize these eigenvectors:
 v1 = v1 / np.linalg.norm(v1)
-v2 = None  # COMPLETE THIS LINE
+v2 = v2/ np.linalg.norm(v2)  # COMPLETE THIS LINE
 #Define the initial condition as a slight perturbation to the eq0 in v1
 #direction:
 ssp0 = eq0 + 1e-6 * v1
@@ -43,9 +43,9 @@ tInitial = 0  # Initial time
 tFinal = 50  # Final time
 Nt = 5000  # Number of time points to be used in the integration
 # Time array for solution:
-tArray = np.linspace(None, None, None)  # COMPLETE THIS LINE
+tArray = np.linspace(tInitial, tFinal, Nt)  # COMPLETE THIS LINE
 
-sspSolution = odeint(None, None, None)  # COMPLETE THIS LINE
+sspSolution = odeint(Rossler.Velocity, ssp0, tArray)  # COMPLETE THIS LINE
 
 xt = sspSolution[:, 0]  # Read x(t)
 yt = sspSolution[:, 1]  # Read y(t)
