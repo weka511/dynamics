@@ -32,12 +32,16 @@ Transform to polar coordinates
 Substituting \eqref{eq:dot_q} and \eqref{eq:dot_p} in \eqref{eq:dot_q_polar} and \eqref{eq:dot_p_polar}
 \begin{align*}
 	\cos{\theta} \dot{q} + \sin{\theta} \dot{p} =& \dot{r}\cos^2\theta -\cancel{r \cos{\theta} \sin{\theta}\; \dot{\theta}} + \dot{r}\sin^2\theta+ \cancel{r \cos{\theta} \sin{\theta}\; \dot{\theta}}\\
-	=& \dot{r}\\
+	=& \dot{r}  \numberthis \label{eq:dot_r0}\\
 	\sin{\theta} \dot{q} - \cos{\theta}\dot{p} =& \sin{\theta} \big[\cancel{\dot{r} \cos{\theta}}  - r \sin{\theta} \, \dot{\theta}\big] - \cos{\theta}\big[\cancel{\dot{r} \sin{\theta}}  + r \cos{\theta} \, \dot{\theta}\big]\\
 	=& - r \big(\cos^2\theta+\sin^2\theta\big) \dot{\theta}\\
 	=&-r \dot{\theta} \numberthis \label{eq:dot_theta}
 \end{align*}
-Whence
+\begin{figure}[H]
+	\caption{From \eqref{eq:dot_theta} the solution circles clockwise.}
+	\includegraphics[width=\textwidth]{floquet.png}
+\end{figure}
+From \eqref{eq:dot_r0}
 \begin{align*}
 	\dot{r} =&	\cos{\theta} \dot{q} + \sin{\theta} \dot{p}\\
 	=& 	\cos{\theta} \big[p + q\big(1-q^2-p^2\big)\big] + \sin{\theta} \big[-q + p\big(1-q^2-p^2\big)\big]\\
@@ -45,17 +49,14 @@ Whence
 	=& r \big(1-r^2\big) \numberthis \label{eq:dot_r}
 \end{align*}
 
-
-\begin{figure}[H]
-	\caption{From \eqref{eq:dot_theta} the solution circle clockwise.}
-	\includegraphics[width=\textwidth]{floquet.png}
-\end{figure}
 Substitute $r=1+\delta r$ in \eqref{eq:dot_r}
 \begin{align*}
 	\dot{\delta} =& \big(1+\delta\big)\big(1 -1 -2 \delta - \delta^2\big)\\
 	=& - \big(1+\delta\big) \delta (2 + \delta)\\
-	\approxeq & 2 \delta
+	\approxeq & - 2 \delta \text{, so}\\
+	\delta(t) \propto & e^{-2 t}
 \end{align*}
+So the contracting Floquet exponent is $-2$.
 \bibliographystyle{unsrt}
 \addcontentsline{toc}{section}{Bibliography}
 \bibliography{../../dynamics}
