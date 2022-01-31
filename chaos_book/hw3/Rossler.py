@@ -1,6 +1,5 @@
-from matplotlib.pyplot import figure, show
-from numpy             import array, dot, linspace, reshape, size, zeros
-from scipy.integrate   import odeint
+import numpy as np  # Import NumPy
+from scipy.integrate import odeint  # Import odeint
 
 #Define Rossler flow velocity function:
 
@@ -27,10 +26,10 @@ def Velocity(ssp, t):
     x, y, z = ssp  # Read state space points
     # Rossler flow equations:
     dxdt = - y - z
-    dydt = x + a * y
-    dzdt = b + z * (x - c)
+    dydt = None  # COMPLETE THIS LINE
+    dzdt = None  # COMPLETE THIS LINE
     # Collect Rossler flow equations in a single NumPy array:
-    vel = array([dxdt, dydt, dzdt], float)  # Velocity vector
+    vel = np.array([dxdt, dydt, dzdt], float)  # Velocity vector
     return vel
 
 
@@ -66,11 +65,10 @@ def StabilityMatrix(ssp):
 
     x, y, z = ssp  # Read state space points
 
-    return array([[0, -1, -1],
-                  [1, a, 0],
-                  [z, 0, x-c]],
-                 float)
-
+    A = np.array([[0, -1, -1],
+                  [None, None, None],
+                  [None, None, None]], float)  # COMPLETE THIS LINE
+    return A
 
 
 def JacobianVelocity(sspJacobian, t):
@@ -98,15 +96,15 @@ def JacobianVelocity(sspJacobian, t):
     #http://docs.scipy.org/doc/numpy/reference/generated/numpy.reshape.html
     #for the reference for numpy.reshape function
 
-    velJ = zeros(size(sspJacobian))  # Initiate the velocity vector as a
+    velJ = np.zeros(np.size(sspJacobian))  # Initiate the velocity vector as a
                                            # vector of same size with
                                            # sspJacobian
     velJ[0:3] = Velocity(ssp, t)
     #Last dxd elements of the velJ are determined by the action of
     #stability matrix on the current value of the Jacobian:
-    velTangent = dot(StabilityMatrix(ssp), J)  # Velocity matrix for
+    velTangent = np.dot(StabilityMatrix(ssp), J)  # Velocity matrix for
                                                   #  the tangent space
-    velJ[3:] = reshape(velTangent, 9)  # Another use of numpy.reshape, here
+    velJ[3:] = np.reshape(velTangent, 9)  # Another use of numpy.reshape, here
                                           # to convert from dxd to d^2
     return velJ
 
@@ -128,29 +126,38 @@ def Jacobian(ssp, t):
     return J
 
 if __name__ == "__main__":
-    tInitial = 0
-    tFinal   = 100
-    Nt       = 10000
+    #This block will be evaluated if this script is called as the main routine
+    #and will be ignored if this file is imported from another script.
 
-    tArray = linspace(tInitial, tFinal, Nt)
-    ssp0 = array([1.0,
-                  1.0,
-                  1.0],
-                 float)  # Initial condition for the solution
+    import RungeKutta as rk
 
+    tInitial = 0  # Initial time
+    tFinal = 100  # Final time
+    Nt = 10000  # Number of time points to be used in the integration
+
+    tArray = np.linspace(tInitial, tFinal, Nt)  # Time array for solution
+    ssp0 = np.array([1.0,
+                     1.0,
+                     1.0], float)  # Initial condition for the solution
+
+    #sspSolution = rk.RK4(Velocity, ssp0, tArray)
     sspSolution = odeint(Velocity, ssp0, tArray)
 
-    xt = sspSolution[:, 0]
-    yt = sspSolution[:, 1]
-    zt = sspSolution[:, 2]
+    xt = sspSolution[:, 0]  # Read x(t)
+    yt = sspSolution[:, 1]  # Read y(t)
+    zt = sspSolution[:, 2]  # Read z(t)
 
     print((xt[-1], yt[-1], zt[-1]))  # Print final point
 
+    #Import plotting functions:
+    import matplotlib as mpl
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
 
-    fig = figure()
-    ax  = fig.gca(projection='3d')
+    fig = plt.figure()  # Create a figure instance
+    ax = fig.gca(projection='3d')  # Get current axes in 3D projection
     ax.plot(xt, yt, zt)  # Plot the solution
     ax.set_xlabel('x')  # Set x label
     ax.set_ylabel('y')  # Set y label
     ax.set_zlabel('z')  # Set z label
-    show()  # Show the figure
+    plt.show()  # Show the figure

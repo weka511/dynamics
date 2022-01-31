@@ -35,7 +35,7 @@ sspTemplate = np.dot(zRotation(thetaPoincare), e_x)  # Matrix multiplication in
                                                      # reference to learn more
 #Normal to this plane will be equal to template vector rotated pi/2 about
 #the z axis:
-nTemplate =  np.dot(zRotation(pi/2), sspTemplate)  # COMPLETE THIS LINE
+nTemplate = None  # COMPLETE THIS LINE
 
 #Define the Poincare section hyperplane equation
 
@@ -51,7 +51,7 @@ def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
     U: Hyperplane equation which should be satisfied on the Poincare section
        U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
     """
-    U = np.dot(ssp - sspTemplate,nTemplate)  # COMPLETE THIS LINE          # Hyperplane equation, note that
+    U = None  # COMPLETE THIS LINE          # Hyperplane equation, note that
                                             # np.dot() function is used both
                                             # for matrix multiplication and
                                             # the scalar product
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     #we reshape it into an N x 3 form where each row corresponds to a different
     #intersection:
     sspSolutionPoincare = sspSolutionPoincare.reshape(
-                                            int(np.size(sspSolutionPoincare, 0) / 3),
+                                            np.size(sspSolutionPoincare, 0) / 3,
                                                       3)
     #Unit vectors which will span the Poincare section hyperplane are the
     #template vector and the unit vector at z. Let us construct a matrix which
