@@ -8,7 +8,7 @@ po1 = np.array([9.2690828474963798e+00,
                 2.5815927750254137e+00], float)
 period = 5.8810885346818402e+00  # Period of po1
 #Initial condition for the Jacobian is identity:
-Jacobian0 = np.identity(3)  # COMPLETE THIS LINE. HINT: Use np.identity(DIMENSION)
+Jacobian0 = np.identity(3)
 #Initial condition for Jacobian integral is a d+d^2 dimensional matrix
 #formed by concatenation of initial condition for state space and the
 #Jacobian:
@@ -35,7 +35,7 @@ Jacobian = sspJacobianSolution[-1, 3:].reshape((3, 3))
 #periodic orbit
 
 #Find eigenvalues and eigenvectors of the Jacobian:
-eigenValues, eigenVectors = np.linalg.eig(Jacobian)  # COMPLETE THIS LINE.
+eigenValues, eigenVectors = np.linalg.eig(Jacobian)
                                   # HINT: Use np.linalg.eig()
 #Print them for submission:
 print(eigenValues)
