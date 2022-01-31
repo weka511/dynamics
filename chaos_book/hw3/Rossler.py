@@ -119,11 +119,29 @@ def Jacobian(ssp, t):
     Outputs:
     J: Jacobian of trajectory f^t(ssp). dxd NumPy array
     """
-    #CONSTRUCT THIS FUNCTION
+    #CONSTRUCT THIS FUNCTION   -- DONE, using template
     #Hint: See the Jacobian calculation in CycleStability.py
-    J = None
+    Jacobian0 = np.identity(3)
+    #Initial condition for Jacobian integral is a d+d^2 dimensional matrix
+    #formed by concatenation of initial condition for state space and the
+    #Jacobian:
+    sspJacobian0 = np.zeros(3 + 3 ** 2)  # Initiate
+    sspJacobian0[0:3] = po1  # First 3 elemenets
+    sspJacobian0[3:] = np.reshape(Jacobian0, 9)  # Remaining 9 elements
+    tInitial = 0  # Initial time
+    tFinal = period  # Final time
+    Nt = 500  # Number of time points to be used in the integration
 
-    return J
+    tArray = np.linspace(tInitial, tFinal, Nt)  # Time array for solution
+
+    sspJacobianSolution = odeint(Rossler.JacobianVelocity, sspJacobian0, tArray)
+
+    xt = sspJacobianSolution[:, 0]  # Read x(t)
+    yt = sspJacobianSolution[:, 1]  # Read y(t)
+    zt = sspJacobianSolution[:, 2]  # Read z(t)
+
+    #Read the Jacobian for the periodic orbit:
+    return sspJacobianSolution[-1, 3:].reshape((3, 3))
 
 if __name__ == "__main__":
     #This block will be evaluated if this script is called as the main routine
