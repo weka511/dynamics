@@ -1,6 +1,6 @@
 import numpy as np  # Import NumPy
 from scipy.integrate import odeint  # Import odeint
-
+from numpy import array
 #Define Rossler flow velocity function:
 
 #Parameters:
@@ -26,8 +26,8 @@ def Velocity(ssp, t):
     x, y, z = ssp  # Read state space points
     # Rossler flow equations:
     dxdt = - y - z
-    dydt = None  # COMPLETE THIS LINE
-    dzdt = None  # COMPLETE THIS LINE
+    dydt = x + a * y
+    dzdt = b + z * (x - c)
     # Collect Rossler flow equations in a single NumPy array:
     vel = np.array([dxdt, dydt, dzdt], float)  # Velocity vector
     return vel
@@ -65,10 +65,11 @@ def StabilityMatrix(ssp):
 
     x, y, z = ssp  # Read state space points
 
-    A = np.array([[0, -1, -1],
-                  [None, None, None],
-                  [None, None, None]], float)  # COMPLETE THIS LINE
-    return A
+
+    return array([[0, -1, -1],
+                  [1, a, 0],
+                  [z, 0, x-c]],
+                 float)
 
 
 def JacobianVelocity(sspJacobian, t):

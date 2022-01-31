@@ -1,5 +1,5 @@
 import numpy as np   # Import NumPy
-from numpy import cos, sin, pi  # We import cos and sin functions and pi from
+from numpy import cos, dot, sin, pi  # We import cos and sin functions and pi from
                                 # numpy individually to avoid referring to np
                                 # each time we call them.
 from scipy.integrate import odeint  # Import odeint from scipy.integrate
@@ -51,11 +51,11 @@ def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
     U: Hyperplane equation which should be satisfied on the Poincare section
        U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
     """
-    U = None  # COMPLETE THIS LINE          # Hyperplane equation, note that
+    # U = None  # COMPLETE THIS LINE          # Hyperplane equation, note that
                                             # np.dot() function is used both
                                             # for matrix multiplication and
                                             # the scalar product
-    return U
+    return dot((ssp - sspTemplate) , nTemplate)
 
 
 if __name__ == "__main__":

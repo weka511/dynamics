@@ -1,9 +1,24 @@
 import numpy as np  # Import NumPy
-from numpy import pi  # Import pi from numpy
+from numpy           import append, argsort, array, dot, cos, linspace, pi, real, sin, size
+from numpy.linalg    import eig, norm
 from scipy.integrate import odeint  # Import odeint from scipy.integrate
-from scipy.optimize import fsolve  # Import fsolve from scipy.optimize
-import Rossler  # Import Rossler module
-import Poincare  # Import Poincare module
+from scipy.optimize  import fsolve  # Import fsolve from scipy.optimize
+import Rossler
+import Poincare
+from Rossler         import Flow, StabilityMatrix, Velocity
+from scipy.interpolate import splev,  splrep
+
+def zRotation(theta):
+    """
+    Rotation matrix about z-axis
+    Input:
+    theta: Rotation angle (radians)
+    Output:
+    Rz: Rotation matrix about z-axis
+    """
+    return array([[cos(theta), -sin(theta), 0],
+                    [sin(theta), cos(theta), 0],  # Simon
+                    [0, 0, 1]], float)  # Simon
 
 #Set the angle between the Poincare section hyperplane and the x-axis:
 thetaPoincare = 0.0
@@ -12,10 +27,10 @@ thetaPoincare = 0.0
 #hyperplane:
 e_x = np.array([1, 0, 0], float)  # Unit vector in x-direction
 #Template vector to define the Poincare section hyperplane:
-sspTemplate = None  # COMPLETE THIS LINE. HINT: See Poincare.py
+sspTemplate = np.dot(zRotation(thetaPoincare), e_x)  # COMPLETE THIS LINE. HINT: See Poincare.py  DONE
 #Normal to this plane will be equal to template vector rotated pi/2 about
 #the z axis:
-nTemplate = None  # COMPLETE THIS LINE. HINT: See Poincare.py
+nTemplate = dot(zRotation(pi/2), sspTemplate)  # COMPLETE THIS LINE. HINT: See Poincare.py  DONE
 
 #Define the Poincare section hyperplane equation as a Lambda function based on
 #the UPoincare from Poincare module, using our new sspTemplate and nTemplate:
@@ -27,52 +42,77 @@ UPoincare = lambda ssp: Poincare.UPoincare(ssp, sspTemplate, nTemplate)
 #exercise and construct this initial condition:
 #Numerically find the equilibrium of the Rossler system close to the
 #origin:
-eq0 = None  # COMPLETE THIS LINE. HINT: See Stability.py
+eq0 = fsolve(Velocity, array([0, 0, 0], float), args=(0,))  # COMPLETE THIS LINE. HINT: See Stability.py
 #Evaluate the stability matrix at eq0:
-Aeq0 = None  # COMPLETE THIS LINE. HINT: See Stability.py
+Aeq0 = StabilityMatrix(eq0)  # COMPLETE THIS LINE. HINT: See Stability.py DONE
 #Find eigenvalues and eigenvectors of the stability matrix at eq0:
-eigenValues, eigenVectors = None  # COMPLETE THIS LINE. HINT: See Stability.py
+eigenValues, eigenVectors =  eig(Aeq0)  # COMPLETE THIS LINE. HINT: See Stability.py DONE
 #Read the real part of the leading eigenvector into the vector v1:
-v1 = None  # COMPLETE THIS LINE. HINT: See Stability.py
+v1 = real(eigenVectors[:, 0])  # COMPLETE THIS LINE. HINT: See Stability.py DONE
 #Normalize v1:
-v1 = None  # COMPLETE THIS LINE. HINT: See Stability.py
+v1 = v1 / norm(v1)   # COMPLETE THIS LINE. HINT: See Stability.py DONE
 #Initial condition as a slight perturbation to the eq0 in v1 direction:
-ssp0 = None  # COMPLETE THIS LINE. HINT: See Stability.py
+ssp0 = eq0 + 1e-6 * v1  # COMPLETE THIS LINE. HINT: See Stability.py DONE
 
 tInitial = 0  # Initial time
 tFinal = 1000  # Final time
 Nt = 100000  # Number of time points to be used in the integration
 
 # Time array for solution:
-tArray = None  # COMPLETE THIS LINE. HINT: See previous exercises
+tArray = linspace(tInitial, tFinal, Nt)  # COMPLETE THIS LINE. HINT: See previous exercises  DONE
 #Integration:
-sspSolution = None  # COMPLETE THIS LINE. HINT: See previous exercises
+sspSolution = odeint(Velocity, ssp0, tArray)  # COMPLETE THIS LINE. HINT: See previous exercises DONE
 
 #Now let us look for the intersections with the Poincare section over the
 #solution. We first create an empty array to which we will append the
 #points at which the flow pierces the Poincare section:
 sspSolutionPoincare = np.array([], float)
 #FILL IN sspSolutionPoincare, HINT: You can copy/paste corresponding block of
-#code from Poincare.py
+#code from Poincare.py DONE
+for i in range(size(sspSolution, 0) - 1):
+    #Look at every instance from integration and search for Poincare
+    #section hyperplane crossings:
+    if UPoincare(sspSolution[i]) < 0 and UPoincare(sspSolution[i+1]) > 0: #Simon NOT HAPPENING!
 
+        #If the hyperplane equation is lesser than zero at one instance
+        #and greater than zero at the next, this implies that there is a
+        #zero in between
+        sspPoincare0 = sspSolution[i]  # Initial point for the `fine'
+                                       # integration
+        #Initial guess for the how much time one needs to integrate
+        #starting at sspPoincare0 in order to exactly land on the Poincare
+        #section
+        deltat0 = (tArray[i + 1] - tArray[i]) / 2
+        #Define the equation for deltat which must be solved as a lambda function
+        fdeltat = lambda deltat: UPoincare(Flow(sspPoincare0, deltat))
+        #Find deltat at which fdeltat is 0:
+        deltat = fsolve(fdeltat, deltat0)
+        #Now integrate deltat from sspPoincare0 to find where exactly the
+        #flow pierces the Poincare section:
+        sspPoincare = Flow(sspPoincare0, deltat)
+        sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
 #At this point sspSolutionPoincare is a long vector each three elements
 #corresponding to one intersection of the flow with the Poincare section
 #we reshape it into an N x 3 form where each row corresponds to a different
 #intersection:
-sspSolutionPoincare = None  # COMPLETE THIS LINE. HINT: See Poincare.py
+sspSolutionPoincare = sspSolutionPoincare.reshape(
+                                            size(sspSolutionPoincare, 0) // 3,
+                                            3)  # COMPLETE THIS LINE. HINT: See Poincare.py DONE
 #Unit vectors which will span the Poincare section hyperplane are the
 #template vector and the unit vector at z. Let us construct a matrix which
 #projects state space vectors onto these basis:
 e_z = np.array([0, 0, 1], float)  # Unit vector in z direction
-ProjPoincare = np.array([None, None, None], float)  # COMPLETE THIS LINE.
+ProjPoincare = array([sspTemplate,
+                             e_z,
+                             nTemplate], float)  # COMPLETE THIS LINE. DONE
                                                     # HINT: See Poincare.py
 #sspSolutionPoincare has column vectors on its rows. We act on the
 #transpose of this matrix to project each state space point onto Poincare
 #basis by a simple matrix multiplication:
-PoincareSection = np.dot(None, None)  # COMPLETE THIS LINE.
+PoincareSection = dot(ProjPoincare, sspSolutionPoincare.transpose())  # COMPLETE THIS LINE. DONE
                                       # HINT: See Poincare.py
 #We return to the usual N x 3 form by another transposition:
-PoincareSection = None  # COMPLETE THIS LINE. HINT: Use .transpose()
+PoincareSection =  PoincareSection.transpose()   # COMPLETE THIS LINE. HINT: Use .transpose() DONE
 #Third column of this matrix should be zero if everything is correct, so we
 #discard it:
 PoincareSection = PoincareSection[:, 0:2]
@@ -180,19 +220,19 @@ sn2 = sn[1:]
 
 #Indices on the order of which the sn1 is sorted from its smallest to the
 #largest element:
-isort = None  # COMPLETE THIS LINE. HINT: See Poincare.py, use np.argsort()
+isort = argsort(sn1)  # COMPLETE THIS LINE. HINT: See Poincare.py, use np.argsort() DONE
 
 sn1 = sn1[isort]  # sort radii1
 sn2 = sn2[isort]  # sort radii2
 
 # Construct tck of the spline rep
-tckReturn = None  # COMPLETE THIS LINE. HINT: See Poincare.py.
+tckReturn = splrep(sn1,sn2)  # COMPLETE THIS LINE. HINT: See Poincare.py. DONE
 snPlus1 = interpolate.splev(sArray, tckReturn)  # Evaluate spline
 
 # Finally, find the fixed point of this map:
 # In order to solve with fsolve, construct a lambda function which would be
 # zero at the fixed points of the return map:
-ReturnMap = lambda s: None  # COMPLETE THIS LINE. HINT: See Poincare.py
+ReturnMap = lambda r: splev(r, tckReturn) - r # COMPLETE THIS LINE. HINT: See Poincare.py DONE
 sfixed = fsolve(ReturnMap, 10.0)[0]  # Change this initial guess by looking at
 
 #We now have a candidate arclength that should be near to that of a fixed point
@@ -224,7 +264,7 @@ Tnext = fsolve(fdeltat, Tguess)[0]  # Note that we pick the 0th element of the
                                     # problem is one dimensional
 #Let us integrate to see if this was a good guess:
 #Time array for solution from 0 to Tnext:
-tArray = np.linspace(None, None, None)  # COMPLETE THIS LINE
+tArray = np.linspace(0, Tnext, 100)  # COMPLETE THIS LINE DONE
 #Integration:
 sspfixedSolution = odeint(Rossler.Velocity, sspfixed, tArray)
 
