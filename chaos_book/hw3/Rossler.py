@@ -126,16 +126,16 @@ def Jacobian(ssp, t):
     #Initial condition for Jacobian integral is a d+d^2 dimensional matrix
     #formed by concatenation of initial condition for state space and the
     #Jacobian:
-    sspJacobian0 = np.zeros(3 + 3 ** 2)  # Initiate
-    sspJacobian0[0:3] = po1  # First 3 elemenets
-    sspJacobian0[3:] = np.reshape(Jacobian0, 9)  # Remaining 9 elements
-    tInitial = 0  # Initial time
-    tFinal = period  # Final time
-    Nt = 500  # Number of time points to be used in the integration
+    sspJacobian0      = np.zeros(3 + 3 ** 2)  # Initiate
+    sspJacobian0[0:3] = ssp  # First 3 elemenets
+    sspJacobian0[3:]  = np.reshape(Jacobian0, 9)  # Remaining 9 elements
+    tInitial          = 0  # Initial time
+    tFinal            = t  # Final time
+    Nt                = 500  # Number of time points to be used in the integration
 
     tArray = np.linspace(tInitial, tFinal, Nt)  # Time array for solution
 
-    sspJacobianSolution = odeint(Rossler.JacobianVelocity, sspJacobian0, tArray)
+    sspJacobianSolution = odeint(JacobianVelocity, sspJacobian0, tArray)
 
     xt = sspJacobianSolution[:, 0]  # Read x(t)
     yt = sspJacobianSolution[:, 1]  # Read y(t)

@@ -51,10 +51,7 @@ def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
     U: Hyperplane equation which should be satisfied on the Poincare section
        U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
     """
-    # U = None  # COMPLETE THIS LINE          # Hyperplane equation, note that
-                                            # np.dot() function is used both
-                                            # for matrix multiplication and
-                                            # the scalar product
+
     return dot((ssp - sspTemplate) , nTemplate)
 
 
