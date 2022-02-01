@@ -278,97 +278,94 @@ sspfixedSolution = odeint(Velocity, sspfixed, tArray)
 #exactly. We are going to use Newton-Raphson scheme
 #(eq. 13.9 from ChaosBook.org version14.5.7)
 #We start by setting our tolerance, and calculating initial error:
-tol = 1e-9
-period = Tnext.copy()  # copy Tnext to a new variable period
-error = zeros(4)  # Initiate the error vector
-Delta = zeros(4)  # Initiate the delta vector
+tol        = 1e-9
+period     = Tnext.copy()  # copy Tnext to a new variable period
+error      = zeros(4)  # Initiate the error vector
+Delta      = zeros(4)  # Initiate the delta vector
 error[0:3] = Flow(sspfixed, period) - sspfixed
-Newton = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+
+k    = 0
+kmax = 20
 #We are going to iterate the newton method until the maximum value of the
 #absolute error meets the tolerance:
-k = 0  # Counter for the Newton solver
-kmax = 20  # Maximum steps for Newton solver to terminate if it is not
-           # converging
 while max(abs(error)) > tol:
-    k += 1
-    print(k)
-    #Compute the Newton matrix:
-    #First 3x3 block is 1 - J^t(x)
-    Newton[0:3, 0:3] = 1-Jacobian(sspfixed,Tnext)  # COMPLETE THIS LINE TRY
-    #Fourth column is the negative velocity at time T: -v(f^T(x))
-    Newton[0:3, 3] = -Velocity(sspfixed,Tnext)  # COMPLETE THIS LINE TRY
-    #Fourth row is the Poincare section constraint:
-    Newton[3, 0:3] = nTemplate# dot(nTemplate,error[0:2])  # COMPLETE THIS LINE
-    #Now we will invert this matrix and act on the error vector to find the
-    #updates to our guesses:
-    Delta = dot(inv(Newton), error)
-    #Update our guesses:
-    sspfixed = sspfixed + Delta[0:3]
-    period = period + Delta[3]
-    #Compute the new errors:
-    error[0:3] = Flow(sspfixed, period) - sspfixed
     if k > kmax:
         print("Passed the maximum number of iterations")
         break
-print("Shortest peridoic orbit is at: ", sspfixed[0],
+    k += 1
+    print(f'Iteration {k}')
+    Newton[0:3, 0:3] = 1-Jacobian(sspfixed,Tnext)     #First 3x3 block is 1 - J^t(x) # COMPLETE THIS LINE TRY
+    Newton[0:3, 3]  = -Velocity(sspfixed,Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x)) # COMPLETE THIS LINE TRY
+    Newton[3, 0:3]  = nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint: # COMPLETE THIS LINE
+    Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
+    sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
+    period          = period + Delta[3]
+    error[0:3]      = Flow(sspfixed, period) - sspfixed #Compute the new errors:
+
+
+print("Shortest periodic orbit is at: ", sspfixed[0],
                                          sspfixed[1],
                                          sspfixed[2])
 print("Period:", period)
 
 #Let us integrate the periodic orbit:
-tArray = linspace(0, period, 1000)  # Time array for solution
-#Integration:
+tArray        = linspace(0, period, 1000)  # Time array for solution integration
 periodicOrbit = odeint(Velocity, sspfixed, tArray)
 
-
-
-
-fig1 = figure(1)  # Create a figure instance
-ax = fig1.gca(projection='3d')  # Get current axes in 3D projection
-# Plot the solution:
+fig = figure()
+ax   = fig.gca(projection='3d')
 ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2], linewidth=0.5)
-ax.set_xlabel('$x$')  # Set x label
-ax.set_ylabel('$y$')  # Set y label
-ax.set_zlabel('$z$')  # Set z label
-
+ax.set_xlabel('$x$')
+ax.set_ylabel('$y$')
+ax.set_zlabel('$z$')
+ax.set_title('Plot the solution')
 ax.plot(sspSolutionPoincare[:, 0],
         sspSolutionPoincare[:, 1],
-        sspSolutionPoincare[:, 2], '.r', markersize=4)
+        sspSolutionPoincare[:, 2], '.r', markersize=4,label='sspSolutionPoincare')
+ax.legend()
 
-fig2 = figure(2)  # Create another figure instance
-ax = fig2.gca()  # Get current axes
-ax.plot(PoincareSection[:, 0], PoincareSection[:, 1], '.r', markersize=3)
+fig = figure()
+ax  = fig.gca()
+ax.plot(PoincareSection[:, 0], PoincareSection[:, 1], '.r', markersize=3, label='PoincareSection')
 
-ax.plot(SortedPoincareSection[:, 0], SortedPoincareSection[:, 1])
+ax.plot(SortedPoincareSection[:, 0], SortedPoincareSection[:, 1],'.b',label='SortedPoincareSection')
 ax.plot(InterpolatedPoincareSection[:, 0],
-        InterpolatedPoincareSection[:, 1])
-ax.set_xlabel('$\\hat{x}\'$')  # Set x label
-ax.set_ylabel('$z$')  # Set y label
+        InterpolatedPoincareSection[:, 1],'.g',label='InterpolatedPoincareSection')
+ax.set_xlabel('$\\hat{x}\'$')
+ax.set_ylabel('$z$')
+ax.legend()
 
-fig3 = figure(3, figsize=(8, 8))  # Create another figure instance
-ax = fig3.gca()  # Get current axes
-ax.set_aspect('equal')  # Set the aspect ratio of the plot to the square
-ax.plot(sn1, sn2, '.r', markersize=5)
-
-ax.plot(sArray, snPlus1)
-ax.plot(sArray, sArray, 'k')
-ax.set_xlabel('$s_n$')  # Set x label
+fig = figure(figsize=(8, 8))
+ax  = fig.gca()
+ax.set_aspect('equal')
+ax.plot(sn1, sn2, '.r', markersize=5, label='sn1:sn2')
+ax.set_title('sns')
+ax.plot(sArray, snPlus1,'.b',label='sArray:snPlus1')
+ax.plot(sArray, sArray, 'k',label='sArray:sArray')
+ax.set_xlabel('$s_n$')
 ax.set_ylabel('$s_{n+1}$')  # Set y label
+ax.legend()
 
-fig4 = figure(4)  # Create another figure instance
-ax = fig4.gca(projection='3d')  # Get current axes in 3D projection
-# Plot the solution:
+fig = figure()
+ax   = fig.gca(projection='3d')
+ax.set_title('sspfixedSolution')
 ax.plot(sspfixedSolution[:, 0],
         sspfixedSolution[:, 1],
-        sspfixedSolution[:, 2])
-ax.set_xlabel('$x$')  # Set x label
-ax.set_ylabel('$y$')  # Set y label
-ax.set_zlabel('$z$')  # Set z label
+        sspfixedSolution[:, 2],
+        color='xkcd:green',
+        label='sspfixedSolution')
+ax.set_xlabel('$x$')
+ax.set_ylabel('$y$')
+ax.set_zlabel('$z$')
 
 
 # Plot the periodic orbit:
 ax.plot(periodicOrbit[:, 0],
         periodicOrbit[:, 1],
-        periodicOrbit[:, 2])
+        periodicOrbit[:, 2],
+        color='xkcd:purple',
+        label='periodicOrbit')
+ax.legend()
 
 show()  # Show the figures
