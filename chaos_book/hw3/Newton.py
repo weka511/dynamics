@@ -29,8 +29,8 @@ thetaPoincare = 0.0 #Angle between the Poincare section hyperplane and the x-axi
 #hyperplane:
 
 e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
-sspTemplate = dot(zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane: # COMPLETE THIS LINE. HINT: See Poincare.py  DONE
-nTemplate   = dot(zRotation(pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis:# COMPLETE THIS LINE. HINT: See Poincare.py  DONE
+sspTemplate = dot(zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
+nTemplate   = dot(zRotation(pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
 
 #Define the Poincare section hyperplane equation as a Lambda function based on
 #the UPoincare from Poincare module, using our new sspTemplate and nTemplate:
@@ -50,24 +50,24 @@ def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
 
     return dot((ssp - sspTemplate) , nTemplate)
 
-#We will first run a long trajectory of the Rossler system by starting
-#close to the eq0 in order to include its unstable manifold on the Poincare
-#section. Let us start by repeating what we have done in the stability
-#exercise and construct this initial condition:
-#Numerically find the equilibrium of the Rossler system close to the
-#origin:
-eq0                       = fsolve(Velocity, array([0, 0, 0], float), args=(0,))  # COMPLETE THIS LINE. HINT: See Stability.py
-Aeq0                      = StabilityMatrix(eq0)  #Evaluate the stability matrix at eq0: # COMPLETE THIS LINE. HINT: See Stability.py DONE
-eigenValues, eigenVectors = eig(Aeq0)  #Find eigenvalues and eigenvectors of the stability matrix at eq0: # COMPLETE THIS LINE. HINT: See Stability.py DONE
-v1                        = real(eigenVectors[:, 0]) #Read the real part of the leading eigenvector into the vector v1: # COMPLETE THIS LINE. HINT: See Stability.py DONE
-v1                        = v1 / norm(v1)  #Normalize v1: # COMPLETE THIS LINE. HINT: See Stability.py DONE
-ssp0                      = eq0 + 1e-6 * v1  #Initial condition as a slight perturbation to the eq0 in v1 direction: # COMPLETE THIS LINE. HINT: See Stability.py DONE
+# We will first run a long trajectory of the Rossler system by starting
+# close to the eq0 in order to include its unstable manifold on the Poincare
+# section. Let us start by repeating what we have done in the stability
+# exercise and construct this initial condition:
+# Numerically find the equilibrium of the Rossler system close to the
+# origin:
+eq0                       = fsolve(Velocity, array([0, 0, 0], float), args=(0,))
+Aeq0                      = StabilityMatrix(eq0)  #Evaluate the stability matrix at eq0
+eigenValues, eigenVectors = eig(Aeq0)  #Find eigenvalues and eigenvectors of the stability matrix at eq0
+v1                        = real(eigenVectors[:, 0]) #Read the real part of the leading eigenvector into the vector v1
+v1                        = v1 / norm(v1)  #Normalize v1
+ssp0                      = eq0 + 1e-6 * v1  #Initial condition as a slight perturbation to the eq0 in v1 direction
 
-tInitial                  = 0  # Initial time
-tFinal                    = 1000  # Final time
-Nt                        = 100000  # Number of time points to be used in the integration
-tArray                    = linspace(tInitial, tFinal, Nt)  # Time array for solution: # COMPLETE THIS LINE. HINT: See previous exercises  DONE
-sspSolution               = odeint(Velocity, ssp0, tArray)  #Integration:# COMPLETE THIS LINE. HINT: See previous exercises DONE
+tInitial                  = 0
+tFinal                    = 1000
+Nt                        = 100000
+tArray                    = linspace(tInitial, tFinal, Nt)
+sspSolution               = odeint(Velocity, ssp0, tArray)
 
 
 
@@ -103,7 +103,7 @@ for i in range(size(sspSolution, 0) - 1):
 #intersection:
 sspSolutionPoincare = sspSolutionPoincare.reshape(
                                             size(sspSolutionPoincare, 0) // 3,
-                                            3)  # COMPLETE THIS LINE. HINT: See Poincare.py DONE
+                                            3)
 
 
 #Unit vectors which will span the Poincare section hyperplane are the
@@ -112,27 +112,25 @@ sspSolutionPoincare = sspSolutionPoincare.reshape(
 e_z          = array([0, 0, 1], float)  # Unit vector in z direction
 ProjPoincare = array([sspTemplate,
                              e_z,
-                             nTemplate], float)  # COMPLETE THIS LINE. DONE
-                                                    # HINT: See Poincare.py
+                             nTemplate], float)
 #sspSolutionPoincare has column vectors on its rows. We act on the
 #transpose of this matrix to project each state space point onto Poincare
 #basis by a simple matrix multiplication:
-PoincareSection = dot(ProjPoincare, sspSolutionPoincare.transpose())  # COMPLETE THIS LINE. DONE  # HINT: See Poincare.py
-
-PoincareSection =  PoincareSection.transpose()   #We return to the usual N x 3 form by another transposition: COMPLETE THIS LINE. HINT: Use .transpose() DONE
+PoincareSection = dot(ProjPoincare, sspSolutionPoincare.transpose())
+PoincareSection =  PoincareSection.transpose()   #We return to the usual N x 3 form by another transposition
 #Third column of this matrix should be zero if everything is correct, so we
 #discard it:
 
 PoincareSection = PoincareSection[:, 0:2]  # Does this actually do anything?
 
-#We are now going to compute the pairwise distances between PoincareSection
-#elements in order to sort them according to the increasing distance
+# We are now going to compute the pairwise distances between PoincareSection
+# elements in order to sort them according to the increasing distance
 
-#In previous exercise, we constructed a Poincare return map using the
-#radial distance from the origin, this is an easy, however not a good way
-#of attacking this problem since the return map you get would be multivalued
-#if you are not lucky. Now we are going to do a better job and parametrize
-#the Poincare section intersections according to arc lengths.
+# In previous exercise, we constructed a Poincare return map using the
+# radial distance from the origin, this is an easy, however not a good way
+# of attacking this problem since the return map you get would be multivalued
+# if you are not lucky. Now we are going to do a better job and parametrize
+# the Poincare section intersections according to arc lengths.
 
 #We start by importing pdist and square form functions (see
 #http://docs.scipy.org/doc/scipy-0.14.0/reference/spatial.distance.html for
@@ -226,19 +224,19 @@ sn2 = sn[1:]
 
 #Indices on the order of which the sn1 is sorted from its smallest to the
 #largest element:
-isort = argsort(sn1)  # COMPLETE THIS LINE. HINT: See Poincare.py, use argsort() DONE
 
-sn1 = sn1[isort]  # sort radii1
-sn2 = sn2[isort]  # sort radii2
+isort = argsort(sn1)
+sn1   = sn1[isort]  # sort radii1
+sn2   = sn2[isort]  # sort radii2
 
 # Construct tck of the spline rep
-tckReturn = splrep(sn1,sn2)  # COMPLETE THIS LINE. HINT: See Poincare.py. DONE
+tckReturn = splrep(sn1,sn2)
 snPlus1 = splev(sArray, tckReturn)  # Evaluate spline
 
 # Finally, find the fixed point of this map:
 # In order to solve with fsolve, construct a lambda function which would be
 # zero at the fixed points of the return map:
-ReturnMap = lambda r: splev(r, tckReturn) - r # COMPLETE THIS LINE. HINT: See Poincare.py DONE
+ReturnMap = lambda r: splev(r, tckReturn) - r
 sfixed = fsolve(ReturnMap, 10.0)[0]  # Change this initial guess by looking at
 
 #We now have a candidate arclength that should be near to that of a fixed point
@@ -270,7 +268,7 @@ Tnext = fsolve(fdeltat, Tguess)[0]  # Note that we pick the 0th element of the
                                     # problem is one dimensional
 #Let us integrate to see if this was a good guess:
 #Time array for solution from 0 to Tnext:
-tArray = linspace(0, Tnext, 100)  # COMPLETE THIS LINE DONE
+tArray = linspace(0, Tnext, 100)
 #Integration:
 sspfixedSolution = odeint(Velocity, sspfixed, tArray)
 
@@ -295,9 +293,9 @@ while max(abs(error)) > tol:
         break
     k += 1
     print(f'Iteration {k}')
-    Newton[0:3, 0:3] = 1-Jacobian(sspfixed,Tnext)     #First 3x3 block is 1 - J^t(x) # COMPLETE THIS LINE TRY
-    Newton[0:3, 3]  = -Velocity(sspfixed,Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x)) # COMPLETE THIS LINE TRY
-    Newton[3, 0:3]  = nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint: # COMPLETE THIS LINE
+    Newton[0:3, 0:3] = 1-Jacobian(sspfixed,Tnext)     #First 3x3 block is 1 - J^t(x)
+    Newton[0:3, 3]  = -Velocity(sspfixed,Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
+    Newton[3, 0:3]  = nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
     Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
     sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
     period          = period + Delta[3]
