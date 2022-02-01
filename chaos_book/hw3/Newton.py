@@ -69,14 +69,10 @@ Nt                        = 100000
 tArray                    = linspace(tInitial, tFinal, Nt)
 sspSolution               = odeint(Velocity, ssp0, tArray)
 
-
-
 #Now let us look for the intersections with the Poincare section over the
 #solution. We first create an empty array to which we will append the
 #points at which the flow pierces the Poincare section:
 
-#FILL IN sspSolutionPoincare, HINT: You can copy/paste corresponding block of
-#code from Poincare.py DONE
 sspSolutionPoincare = array([], float)
 for i in range(size(sspSolution, 0) - 1):
     #Look at every instance from integration and search for Poincare
@@ -92,7 +88,7 @@ for i in range(size(sspSolution, 0) - 1):
 
         fdeltat             = lambda deltat: UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
 
-        deltat              = fsolve(fdeltat, deltat0) #Find deltat at which fdeltat is 0:
+        deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
         sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
                                                             #flow pierces the Poincare section:
         sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
@@ -132,11 +128,6 @@ PoincareSection = PoincareSection[:, 0:2]  # Does this actually do anything?
 # if you are not lucky. Now we are going to do a better job and parametrize
 # the Poincare section intersections according to arc lengths.
 
-#We start by importing pdist and square form functions (see
-#http://docs.scipy.org/doc/scipy-0.14.0/reference/spatial.distance.html for
-#their documentation) to compute pairwise distances between Poincare
-#section elements:
-
 Distance = squareform(pdist(PoincareSection))
 #Distance is a matrix which contains Euclidean distance between ith and
 #jth elements of PoincareSection in its element [i,j]
@@ -148,8 +139,8 @@ SortedPoincareSection = PoincareSection.copy()  # Copy PoincareSection into
 #Create a zero-array to assign arclengths of the Poincare section points
 #after sorting:
 ArcLengths = zeros(size(SortedPoincareSection, 0))
-#Create another zero-array to assign the arclengths of the Poincare section
-#points keeping their dynamical order for use in the return map
+# Create another zero-array to assign the arclengths of the Poincare section
+# points keeping their dynamical order for use in the return map
 sn = zeros(size(PoincareSection, 0))
 for k in range(size(SortedPoincareSection, 0) - 1):
     #Find the element which is closest to the kth point:
@@ -212,9 +203,9 @@ sArray = linspace(min(ArcLengths), max(ArcLengths), 1000)
 #Evaluate the interpolation:
 InterpolatedPoincareSection = fPoincare(sArray)
 
-#We can now construct the return map over arclengths, we have already
-#computed the array where arclengths of the Poincare section intersections
-#are ordered in their dynamical order, we separate it into two parts to use
+# We can now construct the return map over arclengths, we have already
+# computed the array where arclengths of the Poincare section intersections
+# are ordered in their dynamical order, we separate it into two parts to use
 #them as the data to the return map:
 sn1 = sn[0:-1]
 sn2 = sn[1:]
@@ -311,25 +302,40 @@ print("Period:", period)
 tArray        = linspace(0, period, 1000)  # Time array for solution integration
 periodicOrbit = odeint(Velocity, sspfixed, tArray)
 
-fig = figure()
+fig  = figure()
 ax   = fig.gca(projection='3d')
-ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2], linewidth=0.5)
+ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
+        linewidth = 0.5,
+        label     = 'Rossler')
+
+ax.plot(sspSolutionPoincare[:, 0],
+        sspSolutionPoincare[:, 1],
+        sspSolutionPoincare[:, 2], '.r',
+        markersize = 4,
+        label      = 'Recurrences')
+
 ax.set_xlabel('$x$')
 ax.set_ylabel('$y$')
 ax.set_zlabel('$z$')
-ax.set_title('Plot the solution')
-ax.plot(sspSolutionPoincare[:, 0],
-        sspSolutionPoincare[:, 1],
-        sspSolutionPoincare[:, 2], '.r', markersize=4,label='sspSolutionPoincare')
+
+ax.set_title('Poincare Recurrences for Rossler')
 ax.legend()
 
 fig = figure()
 ax  = fig.gca()
-ax.plot(PoincareSection[:, 0], PoincareSection[:, 1], '.r', markersize=3, label='PoincareSection')
+ax.plot(PoincareSection[:, 0], PoincareSection[:, 1], '.r',
+        markersize = 5,
+        label      = 'Poincare Section')
 
-ax.plot(SortedPoincareSection[:, 0], SortedPoincareSection[:, 1],'.b',label='SortedPoincareSection')
-ax.plot(InterpolatedPoincareSection[:, 0],
-        InterpolatedPoincareSection[:, 1],'.g',label='InterpolatedPoincareSection')
+ax.plot(SortedPoincareSection[:, 0], SortedPoincareSection[:, 1],'.b',
+         markersize = 3,
+        label = 'Sorted Poincare Section')
+
+ax.plot(InterpolatedPoincareSection[:, 0], InterpolatedPoincareSection[:, 1],'.g',
+        markersize = 1,
+        label = 'Interpolated Poincare Section')
+
+ax.set_title('Poincare Section, showing Interpolation')
 ax.set_xlabel('$\\hat{x}\'$')
 ax.set_ylabel('$z$')
 ax.legend()
@@ -337,12 +343,17 @@ ax.legend()
 fig = figure(figsize=(8, 8))
 ax  = fig.gca()
 ax.set_aspect('equal')
-ax.plot(sn1, sn2, '.r', markersize=5, label='sn1:sn2')
-ax.set_title('sns')
-ax.plot(sArray, snPlus1,'.b',label='sArray:snPlus1')
-ax.plot(sArray, sArray, 'k',label='sArray:sArray')
+ax.plot(sn1, sn2, '.r',
+        markersize = 5,
+        label='sn1:sn2')
+
+ax.plot(sArray, snPlus1,'.b',
+        label = 'sArray:snPlus1')
+ax.plot(sArray, sArray, 'k',
+        label= '$s_n=s_{n+1}$')
 ax.set_xlabel('$s_n$')
 ax.set_ylabel('$s_{n+1}$')  # Set y label
+ax.set_title('Return map')
 ax.legend()
 
 fig = figure()
