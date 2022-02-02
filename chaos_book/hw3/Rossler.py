@@ -1,8 +1,6 @@
 from numpy             import array, dot, identity, linspace, reshape, size, zeros
 from scipy.integrate   import odeint
 from matplotlib.pyplot import figure, show
-from RungeKutta        import RK4
-
 
 #Parameters:
 a = 0.2
@@ -21,7 +19,7 @@ def Velocity(ssp, t):
        scipy.integrate
 
     Outputs:
-    vel: velocity at ssp. dx1 NumPy array: vel = [dx/dt, dy/dt, dz/dt]
+        vel: velocity at ssp. dx1 NumPy array: vel = [dx/dt, dy/dt, dz/dt]
     '''
 
     x, y, z = ssp
@@ -44,10 +42,9 @@ def Flow(ssp0, deltat):
     Outputs:
         sspdeltat: Final state space point
     '''
-    #Following numerical integration will return a 2 by 3(=d) solution array
-    #where first row contains initial point ssp0, and the last row contains
-    #final point
-    sspSolution = odeint(Velocity, ssp0, [0.0, deltat])
+
+    sspSolution = odeint(Velocity, ssp0, [0.0, deltat])     # Compute a 2 by 3(=d) solution array whose first row contains initial point ssp0,
+                                                            # and the last row contains final point
     return sspSolution[-1, :]  # Read the final point to sspdeltat
 
 
@@ -87,25 +84,18 @@ def JacobianVelocity(sspJacobian, t):
         velJ = (d+d^2)x1 dimensional velocity vector
     '''
 
-    ssp = sspJacobian[0:3]  # First three elements form the original state
-                            # space vector
-    J = sspJacobian[3:].reshape((3, 3))  # Last nine elements corresponds to
-                                         # the elements of Jacobian.
-
-    velJ = zeros(size(sspJacobian))  # Initiate the velocity vector as a
-                                           # vector of same size with
-                                           # sspJacobian
-    velJ[0:3] = Velocity(ssp, t)
-    #Last dxd elements of the velJ are determined by the action of
-    #stability matrix on the current value of the Jacobian:
-    velTangent = dot(StabilityMatrix(ssp), J)  # Velocity matrix for
-                                                  #  the tangent space
-    velJ[3:] = reshape(velTangent, 9)  # Another use of numpy.reshape, here
-                                          # to convert from dxd to d^2
+    ssp        = sspJacobian[0:3]                 # First three elements form the original state space vector
+    J          = sspJacobian[3:].reshape((3, 3))  # Last nine elements corresponds to the elements of Jacobian.
+    velJ       = zeros(size(sspJacobian))         # Initiate the velocity vector as a vector of same size as sspJacobian
+    velJ[0:3]  = Velocity(ssp, t)
+    velTangent = dot(StabilityMatrix(ssp), J)     # Velocity matrix for  the tangent space
+    velJ[3:]   = reshape(velTangent, 9)           # Last dxd elements of the velJ are determined by the action of
+                                                  # stability matrix on the current value of the Jacobian:
     return velJ
 
 
-def Jacobian(ssp, t):
+def Jacobian(ssp, t,
+             Nt = 500):
     '''
     Jacobian function for the trajectory started on ssp, evolved for time t
 
@@ -115,28 +105,20 @@ def Jacobian(ssp, t):
     Outputs:
         J: Jacobian of trajectory f^t(ssp). dxd NumPy array
     '''
-    #CONSTRUCT THIS FUNCTION   -- DONE, using template
-    #Hint: See the Jacobian calculation in CycleStability.py
+
     Jacobian0 = identity(3)
-    #Initial condition for Jacobian integral is a d+d^2 dimensional matrix
-    #formed by concatenation of initial condition for state space and the
-    #Jacobian:
+    # Initial condition for Jacobian integral is a d+d^2 dimensional matrix
+    # formed by concatenation of initial condition for state space and the Jacobian:
     sspJacobian0        = zeros(3 + 3 ** 2)  # Initiate
     sspJacobian0[0:3]   = ssp  # First 3 elemenets
     sspJacobian0[3:]    = reshape(Jacobian0, 9)  # Remaining 9 elements
-    tInitial            = 0  # Initial time
-    tFinal              = t  # Final time
-    Nt                  = 500  # Number of time points to be used in the integration
+    tInitial            = 0
+    tFinal              = t
 
     tArray              = linspace(tInitial, tFinal, Nt)  # Time array for solution
 
     sspJacobianSolution = odeint(JacobianVelocity, sspJacobian0, tArray)
 
-    # xt                  = sspJacobianSolution[:, 0]  # Read x(t)
-    # yt                  = sspJacobianSolution[:, 1]  # Read y(t)
-    # zt                  = sspJacobianSolution[:, 2]  # Read z(t)
-
-    #Read the Jacobian for the periodic orbit:
     return sspJacobianSolution[-1, 3:].reshape((3, 3))
 
 if __name__ == '__main__':
@@ -150,7 +132,6 @@ if __name__ == '__main__':
                       1.0,
                       1.0], float)  # Initial condition for the solution
 
-    #sspSolution = rk.RK4(Velocity, ssp0, tArray)
     sspSolution = odeint(Velocity, ssp0, tArray)
 
     xt = sspSolution[:, 0]  # Read x(t)
@@ -165,4 +146,5 @@ if __name__ == '__main__':
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
+    ax.set_title('Rossler')
     show()
