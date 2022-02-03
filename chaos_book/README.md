@@ -16,4 +16,4 @@
 -|Stability.py|Q1.4| Stability of an equilibrium
 3|Rossler.py|Q3.1| Shortest periodic orbit of the Rössler system
 -|Newton.py|Q3.1| Shortest periodic orbit of the Rössler system
-4|Lorentz.py|Q4.3|
+4|Lorentz.py|Q4.3| Symmetry of Lorenz Flow|
