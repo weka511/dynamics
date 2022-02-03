@@ -6,7 +6,7 @@
 # integrator_with_jacob(), reduceSymmetry(), case3 and case4.
 ############################################################
 
-from numpy             import arange, array, zeros_like
+from numpy             import arange, array, dot, identity, reshape, size, zeros, zeros_like
 from matplotlib.pyplot import figure, show, suptitle
 from numpy.random      import rand
 from scipy.integrate   import odeint
@@ -36,11 +36,9 @@ def velocity(stateVec, t):
     y = stateVec[1]
     z = stateVec[2]
 
-    vx = sigma * (y-x)
-    vy = rho * x -x -x * z
-    vz = x*y - b*z
-
-    return array([vx, vy, vz])
+    return array([sigma * (y-x),
+                  rho*x - y - x*z,
+                  x*y - b*z])
 
 def stabilityMatrix(stateVec):
     '''
@@ -68,8 +66,8 @@ def integrator(init_x, dt, nstp):
     return : a [ nstp x 3 ] vector
     '''
 
-    state = odeint(velocity, init_x, arange(0, dt*nstp, dt))
-    return state
+    return odeint(velocity, init_x, arange(0, dt*nstp, dt))
+
 
 def integrator_with_jacob(init_x, dt, nstp):
     '''
@@ -80,14 +78,27 @@ def integrator_with_jacob(init_x, dt, nstp):
             state: a [ nstp x 3 ] state vector
             Jacob: [ 3 x 3 ] Jacobian matrix
     '''
+    def JacobianVelocity(sspJacobian, t):
+        ssp        = sspJacobian[0:d]                 # First three elements form the original state space vector
+        J          = sspJacobian[d:].reshape((d, d))  # Last nine elements corresponds to the elements of Jacobian.
+        velJ       = zeros(size(sspJacobian))         # Initiate the velocity vector as a vector of same size as sspJacobian
+        velJ[0:d]  = velocity(ssp, t)
+        velTangent = dot(stabilityMatrix(ssp), J)     # Velocity matrix for  the tangent space
+        velJ[d:]   = reshape(velTangent, d*d)           # Last dxd elements of the velJ are determined by the action of
+                                                      # stability matrix on the current value of the Jacobian:
+        return velJ
 
-    # Please fill out the implementation of this function.
-    # You can go back to the previous homework to see how to
-    # integrate state and Jacobian at the same time.
+    d                   = len(init_x)
+    Jacobian0           = identity(d)
+    sspJacobian0        = zeros(d + d ** 2)  # Initiate
+    sspJacobian0[0:d]   = init_x  # First 3 elemenets
+    sspJacobian0[d:]    = reshape(Jacobian0, d**2)  # Remaining 9 elements
 
-
-    state = None
-    Jacob = None
+    sspJacobianSolution = odeint(JacobianVelocity,
+                                 sspJacobian0,
+                                 arange(0, dt*nstp, dt))
+    state = sspJacobianSolution[0:d]
+    Jacob = sspJacobianSolution[-1, d:].reshape((d, d))
 
     return state, Jacob
 
@@ -115,17 +126,19 @@ def plotFig(orbit):
     show()
 
 def plot_orbits(orbit,reduced_orbit,case=None):
-    fig = figure(figsize=(8,6))
+    fig = figure(figsize=(20,20))
     suptitle(f'Case {case}')
     ax = fig.add_subplot(121, projection='3d')
-    ax.plot(orbit[:,0], orbit[:,1], orbit[:,2])
+    ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
+            markersize = 1)
     ax.set_title('Orbit')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     ax = fig.add_subplot(122, projection='3d')
     ax.set_title('Reduced')
-    ax.plot(reduced_orbit[:,0], reduced_orbit[:,1], reduced_orbit[:,2])
+    ax.plot(reduced_orbit[:,0], reduced_orbit[:,1], reduced_orbit[:,2],
+            markersize = 1)
     ax.set_xlabel('u')
     ax.set_ylabel('v')
     ax.set_zlabel('z')
@@ -150,24 +163,23 @@ if __name__ == '__main__':
 
     # case 2: periodic orbit
     if args.case == 2:
-        x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
-        dt = 0.0050279107820829149
-        nstp = 156
-        orbit_double = integrator(x0, dt, nstp*2)
-        orbit = orbit_double[:nstp, :] # one prime period
+        x0            = array([ -0.78844208,  -1.84888176,  18.75036186])
+        dt            = 0.0050279107820829149
+        nstp          = 156
+        orbit_double  = integrator(x0, dt, nstp*2)
+        orbit         = orbit_double[:nstp, :] # one prime period
         reduced_orbit = reduceSymmetry(orbit)
-
-        plotFig(orbit_double)
-        plotFig(reduced_orbit)
+        plot_orbits(orbit,reduced_orbit,case=args.case)
 
     # case 3 : calculate Floquet multipliers and Floquet vectors associated
     # with the full periodic orbit in the full state space.
     # Please check that one of Floquet vectors is in the same/opposite
     # direction with velocity field at x0.
     if args.case == 3:
-        x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
+        x0 = array([ -0.78844208,  -1.84888176,  18.75036186])
         dt = 0.0050279107820829149 # integration time step
         nstp = 156 # number of integration steps => T = nstp * dt
+        state, Jacob = integrator_with_jacob(x0, dt, nstp)
 
         # please fill out the part to calculate Floquet multipliers and
         # vectors.
