@@ -6,10 +6,11 @@
 # integrator_with_jacob(), reduceSymmetry(), case3 and case4.
 ############################################################
 
-from numpy             import arange, array, dot, identity, reshape, size, zeros, zeros_like
+from numpy             import arange, array, dot,  identity, reshape, size, zeros, zeros_like
 from matplotlib.pyplot import figure, show, suptitle
 from numpy.random      import rand
 from scipy.integrate   import odeint
+from scipy.linalg      import eig, norm
 from argparse          import ArgumentParser
 
 sigma = 10.0
@@ -90,9 +91,9 @@ def integrator_with_jacob(init_x, dt, nstp):
 
     d                   = len(init_x)
     Jacobian0           = identity(d)
-    sspJacobian0        = zeros(d + d ** 2)  # Initiate
-    sspJacobian0[0:d]   = init_x  # First 3 elemenets
-    sspJacobian0[d:]    = reshape(Jacobian0, d**2)  # Remaining 9 elements
+    sspJacobian0        = zeros(d + d ** 2)
+    sspJacobian0[0:d]   = init_x
+    sspJacobian0[d:]    = reshape(Jacobian0, d**2)
 
     sspJacobianSolution = odeint(JacobianVelocity,
                                  sspJacobian0,
@@ -179,20 +180,31 @@ if __name__ == '__main__':
         x0 = array([ -0.78844208,  -1.84888176,  18.75036186])
         dt = 0.0050279107820829149 # integration time step
         nstp = 156 # number of integration steps => T = nstp * dt
-        state, Jacob = integrator_with_jacob(x0, dt, nstp)
-
+        state, Jacob = integrator_with_jacob(x0, dt, 2*nstp)
+        eigenValues, eigenVectors = eig(Jacob)
+        vel = velocity(state[-1],2*nstp)
+        vel /= norm(vel)
+        print (f'Eigenvalues: {eigenValues}')
+        print (f'Gradient,{vel}')
+        for i in range(len(eigenValues)):
+            print (eigenVectors[:,i], norm(eigenVectors[:,i]), dot(eigenVectors[:,i],vel))
         # please fill out the part to calculate Floquet multipliers and
         # vectors.
 
 
 
-    # case 4: calculate Floquet multipliers and Flqouet vectors associated
+    # case 4: calculate Floquet multipliers and Floquet vectors associated
     # with the prime period.
     if args.case == 4:
-        x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
+        C = array([[-1, 0, 0],
+                   [0,  -1, 0],
+                   [0,  0, 1]])
+        x0 = array([ -0.78844208,  -1.84888176,  18.75036186])
         dt = 0.0050279107820829149
         nstp = 156
-
+        state, Jacob = integrator_with_jacob(x0, dt, nstp)
+        eigenValues, eigenVectors = eig(dot(C,Jacob))
+        print (eigenValues)
         # please fill out the part to calculate Floquet multipliers and
         # vectors.
 
