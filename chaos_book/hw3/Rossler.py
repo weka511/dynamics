@@ -124,8 +124,8 @@ def Jacobian(ssp, t,
 if __name__ == '__main__':
 
     tInitial = 0  # Initial time
-    tFinal   = 100  # Final time
-    Nt       = 10000  # Number of time points to be used in the integration
+    tFinal   = 250  # Final time
+    Nt       = 25000  # Number of time points to be used in the integration
 
     tArray   = linspace(tInitial, tFinal, Nt)  # Time array for solution
     ssp0     = array([1.0,
@@ -134,9 +134,9 @@ if __name__ == '__main__':
 
     sspSolution = odeint(Velocity, ssp0, tArray)
 
-    xt = sspSolution[:, 0]  # Read x(t)
-    yt = sspSolution[:, 1]  # Read y(t)
-    zt = sspSolution[:, 2]  # Read z(t)
+    xt = sspSolution[:, 0]
+    yt = sspSolution[:, 1]
+    zt = sspSolution[:, 2]
 
     print((xt[-1], yt[-1], zt[-1]))  # Print final point
 
@@ -147,4 +147,12 @@ if __name__ == '__main__':
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     ax.set_title('Rossler')
+    ssp1    = array([9.269082847348976, 1.1000467728916225e-22, 2.58159277507681], float)  # Initial condition for the solution
+
+    sspSolution = odeint(Velocity, ssp1, linspace(tInitial, 5.9, 1000))
+
+    xt = sspSolution[:, 0]
+    yt = sspSolution[:, 1]
+    zt = sspSolution[:, 2]
+    ax.plot(xt, yt, zt,'.r')
     show()

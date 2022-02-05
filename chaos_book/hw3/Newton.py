@@ -57,10 +57,10 @@ def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
 # Numerically find the equilibrium of the Rossler system close to the
 # origin:
 eq0                       = fsolve(Velocity, array([0, 0, 0], float), args=(0,))
-Aeq0                      = StabilityMatrix(eq0)  #Evaluate the stability matrix at eq0
-eigenValues, eigenVectors = eig(Aeq0)  #Find eigenvalues and eigenvectors of the stability matrix at eq0
-v1                        = real(eigenVectors[:, 0]) #Read the real part of the leading eigenvector into the vector v1
-v1                        = v1 / norm(v1)  #Normalize v1
+Aeq0                      = StabilityMatrix(eq0)
+eigenValues, eigenVectors = eig(Aeq0)
+v1                        = real(eigenVectors[:, 0]) #Real part of the leading eigenvector
+v1                        = v1 / norm(v1)
 ssp0                      = eq0 + 1e-6 * v1  #Initial condition as a slight perturbation to the eq0 in v1 direction
 
 tInitial                  = 0
@@ -358,7 +358,7 @@ ax.legend()
 
 fig = figure()
 ax   = fig.gca(projection='3d')
-ax.set_title('sspfixedSolution')
+ax.set_title('Periodic Orbit')
 ax.plot(sspfixedSolution[:, 0],
         sspfixedSolution[:, 1],
         sspfixedSolution[:, 2],
