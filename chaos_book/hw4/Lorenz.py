@@ -1,11 +1,3 @@
-############################################################
-# This file contains related functions for integrating and reducing
-# Lorenz system.
-#
-# please fill out C2, velocity(), stabilityMatrix(),
-# integrator_with_jacob(), reduceSymmetry(), case3 and case4.
-############################################################
-
 from numpy             import arange, array, dot,  identity, reshape, size, zeros, zeros_like
 from matplotlib.pyplot import figure, show, suptitle
 from numpy.random      import rand
@@ -17,13 +9,12 @@ sigma = 10.0
 rho   = 28.0
 b     = 8.0/3.0
 
-# complete the definition of C^{1/2} operation matrix for Lorenz
-# system.
-C2 = array([
-        [-1, 0, 0],
-        [0, -1, 0],
-        [0, 0, 1]
-        ])
+
+C2 = array([ #  C^{1/2} operation matrix for Lorenz system.
+    [-1, 0, 0],
+    [0, -1, 0],
+    [0, 0, 1]
+])
 
 
 def velocity(stateVec, t):
@@ -174,38 +165,31 @@ if __name__ == '__main__':
 
     # case 3 : calculate Floquet multipliers and Floquet vectors associated
     # with the full periodic orbit in the full state space.
-    # Please check that one of Floquet vectors is in the same/opposite
-    # direction with velocity field at x0.
     if args.case == 3:
-        x0 = array([ -0.78844208,  -1.84888176,  18.75036186])
-        dt = 0.0050279107820829149 # integration time step
-        nstp = 156 # number of integration steps => T = nstp * dt
-        state, Jacob = integrator_with_jacob(x0, dt, 2*nstp)
+        x0                        = array([ -0.78844208,  -1.84888176,  18.75036186])
+        dt                        = 0.0050279107820829149 # integration time step
+        nstp                      = 156 # number of integration steps => T = nstp * dt
+        state, Jacob              = integrator_with_jacob(x0, dt, 2*nstp)
         eigenValues, eigenVectors = eig(Jacob)
-        vel = velocity(state[-1],2*nstp)
-        vel /= norm(vel)
+        vel                       = velocity(state[-1],2*nstp)
+        vel                      /= norm(vel)
         print (f'Eigenvalues: {eigenValues}')
         print (f'Gradient,{vel}')
+        # Check that one of Floquet vectors is in the same/opposite
+        # direction with velocity field at x0.
         for i in range(len(eigenValues)):
             print (eigenVectors[:,i], norm(eigenVectors[:,i]), dot(eigenVectors[:,i],vel))
-        # please fill out the part to calculate Floquet multipliers and
-        # vectors.
-
 
 
     # case 4: calculate Floquet multipliers and Floquet vectors associated
     # with the prime period.
     if args.case == 4:
-        C = array([[-1, 0, 0],
-                   [0,  -1, 0],
-                   [0,  0, 1]])
-        x0 = array([ -0.78844208,  -1.84888176,  18.75036186])
-        dt = 0.0050279107820829149
-        nstp = 156
-        state, Jacob = integrator_with_jacob(x0, dt, nstp)
+        C                         = array([[-1, 0, 0],
+                                           [0,  -1, 0],
+                                           [0,  0, 1]])
+        x0                        = array([ -0.78844208,  -1.84888176,  18.75036186])
+        dt                        = 0.0050279107820829149
+        nstp                      = 156
+        state, Jacob              = integrator_with_jacob(x0, dt, nstp)
         eigenValues, eigenVectors = eig(dot(C,Jacob))
         print (eigenValues)
-        # please fill out the part to calculate Floquet multipliers and
-        # vectors.
-
-
