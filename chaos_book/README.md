@@ -2,8 +2,8 @@
 
 ## Code written to accompany  [Chaos Book](http://chaosbook.org/) by Predrag Cvitanović et al
 
-#| File | Q |Remarks
---|-------------------|-----|---------------------------------------------------------------------------------------------------
+#| File | Homework |Remarks
+--|-------------------|--------|---------------------------------------------------------------------------------------------------
 1|Poincare.py|Q1.5| Poincaré sections and return maps of the Rössler system
 -|Rossler.py|Q1.4| Integrating Rössler system
 -|RungeKutta.py|Q1.3| Runge-Kutta integration
