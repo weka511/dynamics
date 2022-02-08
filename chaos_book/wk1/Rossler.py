@@ -7,12 +7,15 @@ from RungeKutta        import RK4
 
 
 #Parameters:
-a = 0.2
-b = 0.2
-c = 5.7
+A = 0.2
+B = 0.2
+C = 5.7
 
 
-def Velocity(ssp, t):
+def Velocity(ssp, t,
+             a = A,
+             b = B,
+             c = C):
     """
     Velocity function for the Rossler flow
 
@@ -129,31 +132,27 @@ def Jacobian(ssp, t):
     return J
 
 if __name__ == "__main__":
-
-
-
     tInitial = 0  # Initial time
-    tFinal = 2.0 # 5.881088455554846384  # Final time
-    Nt = 10000  # Number of time points to be used in the integration
+    tFinal   = 2.0 # 5.881088455554846384  # Final time
+    Nt       = 10000  # Number of time points to be used in the integration
 
-    tArray = linspace(tInitial, tFinal, Nt)  # Time array for solution
-    ssp0 = array([9.269083709793489945,
-                     0.0,
-                     2.581592405683282632], float)  # Initial condition for the solution
+    tArray   = linspace(tInitial, tFinal, Nt)  # Time array for solution
+    ssp0     = array([9.269083709793489945,
+                      0.0,
+                      2.581592405683282632], float)  # Initial condition for the solution
 
-    #sspSolution = rk.RK4(Velocity, ssp0, tArray)
     sspSolution = odeint(Velocity, ssp0, tArray)
 
-    xt = sspSolution[:, 0]  # Read x(t)
-    yt = sspSolution[:, 1]  # Read y(t)
-    zt = sspSolution[:, 2]  # Read z(t)
+    xt = sspSolution[:, 0]
+    yt = sspSolution[:, 1]
+    zt = sspSolution[:, 2]
 
     print((xt[-1], yt[-1], zt[-1]))  # Print final point
 
 
 
     fig = figure()  # Create a figure instance
-    ax = fig.gca(projection='3d')  # Get current axes in 3D projection
+    ax  = fig.gca(projection='3d')  # Get current axes in 3D projection
     ax.plot(xt, yt, zt)  # Plot the solution
     ax.set_xlabel('x')  # Set x label
     ax.set_ylabel('y')  # Set y label
