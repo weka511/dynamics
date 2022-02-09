@@ -1,27 +1,45 @@
-from numpy             import array, linspace
-from scipy.integrate   import odeint
 from matplotlib.pyplot import figure, show
 from math              import sqrt
-from Rossler           import Velocity
+from numpy             import array, linspace
+from Rossler           import Velocity, StabilityMatrix
+from scipy.integrate   import odeint
+from scipy.linalg      import eig
 
-def get_equilibrium(a = 0.2,b = 0.2,c = 5.7):
+def get_equilibrium(a = 0.2,
+                    b = 0.2,
+                    c = 5.7):
     srqt1 = sqrt(1 - 4 * a*b/(c*c))
-    mult1 = 0.5 +0.5*srqt1
+    mult1 = 0.5 + 0.5*srqt1
     mult2 = 0.5 - 0.5*srqt1
-    # pt = (mult1*c, -mult1*c/a, mult1*c/a)
-    pt1 = (mult1*c, -mult1*c/a, mult1*c/a)
-    pt2 = (mult2*c, -mult1*c/a, mult1*c/a)
+    pt1   = (mult1*c, -mult1*c/a, mult1*c/a)
+    pt2   = (mult2*c, -mult2*c/a, mult2*c/a)
     return (pt1,pt2)
 
-u1,u2 = get_equilibrium()
-tArray = linspace(0, 250, 10000)
-s1 = odeint(Velocity, u1, tArray)
-s2 = odeint(Velocity, u2, tArray)
+def subset(s,i,step=1):
+    m,_ = s.shape
+    return [s[j,i] for j in range(0,m,step)]
 
-fig    = figure()
-ax     = fig.gca(projection='3d')
-ax.plot(s1[:,0],s1[:,1],s1[:,2],c='xkcd:blue',markersize=1)
-fig    = figure()
-ax     = fig.gca(projection='3d')
-ax.plot(s2[:,0],s2[:,1],s2[:,2],c='xkcd:red',markersize=1)
+def plot_solution(s,
+                  c    = 'xkcd:blue',
+                  step = 1):
+    fig       = figure()
+    ax        = fig.gca(projection='3d')
+    xt        = subset(s,0,step=step)
+    yt        = subset(s,1,step=step)
+    zt        = subset(s,2,step=step)
+    A         = StabilityMatrix(s[0,:])
+    floquet,_ = eig(A)
+    ax.plot(xt,yt,zt,
+            c  = c,
+            ms = 1)
+    ax.set_title(f'{floquet}')
+
+u1,u2  = get_equilibrium()
+
+plot_solution(odeint(Velocity, u1,  linspace(0, 600.0, 10000)))
+plot_solution(odeint(Velocity, u2,  linspace(0, 600.0, 10000)),
+              c    = 'xkcd:red',
+              step = 100)
+
+
 show()

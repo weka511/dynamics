@@ -58,7 +58,10 @@ def Flow(ssp0, deltat):
     return sspdeltat
 
 
-def StabilityMatrix(ssp):
+def StabilityMatrix(ssp,
+             a = A,
+             b = B,
+             c = C):
     """
     Stability matrix for the Rossler flow
 
@@ -69,12 +72,12 @@ def StabilityMatrix(ssp):
        A[i, j] = del Velocity[i] / del ssp[j]
     """
 
-    x, y, z = ssp  # Read state space points
+    x, y, z = ssp
 
-    A = np.array([[0, -1, -1],
-                  [None, None, None],
-                  [None, None, None]], float)  # COMPLETE THIS LINE
-    return A
+    return array([[0, -1, -1],
+                  [1, a, 0],
+                  [z, 0, x-c]],
+                 float)
 
 
 def JacobianVelocity(sspJacobian, t):
@@ -115,25 +118,36 @@ def JacobianVelocity(sspJacobian, t):
     return velJ
 
 
-def Jacobian(ssp, t):
-    """
+def Jacobian(ssp, t,
+             Nt = 500):
+    '''
     Jacobian function for the trajectory started on ssp, evolved for time t
 
     Inputs:
-    ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
-    t: Integration time
+        ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
+        t: Integration time
     Outputs:
-    J: Jacobian of trajectory f^t(ssp). dxd NumPy array
-    """
-    #CONSTRUCT THIS FUNCTION
-    #Hint: See the Jacobian calculation in CycleStability.py
-    J = None
+        J: Jacobian of trajectory f^t(ssp). dxd NumPy array
+    '''
 
-    return J
+    Jacobian0 = identity(3)
+    # Initial condition for Jacobian integral is a d+d^2 dimensional matrix
+    # formed by concatenation of initial condition for state space and the Jacobian:
+    sspJacobian0        = zeros(3 + 3 ** 2)  # Initiate
+    sspJacobian0[0:3]   = ssp  # First 3 elemenets
+    sspJacobian0[3:]    = reshape(Jacobian0, 9)  # Remaining 9 elements
+    tInitial            = 0
+    tFinal              = t
+
+    tArray              = linspace(tInitial, tFinal, Nt)  # Time array for solution
+
+    sspJacobianSolution = odeint(JacobianVelocity, sspJacobian0, tArray)
+
+    return sspJacobianSolution[-1, 3:].reshape((3, 3))
 
 if __name__ == "__main__":
     tInitial = 0  # Initial time
-    tFinal   = 2.0 # 5.881088455554846384  # Final time
+    tFinal   = 5.881088455554846384  # Final time
     Nt       = 10000  # Number of time points to be used in the integration
 
     tArray   = linspace(tInitial, tFinal, Nt)  # Time array for solution
