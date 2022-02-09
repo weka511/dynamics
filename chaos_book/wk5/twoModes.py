@@ -7,19 +7,19 @@
 #
 # Next, complete case2, and case3.
 ############################################################
-from argparse          import ArgumentParser
-import numpy as np
-import matplotlib.pyplot as plt
+from argparse             import ArgumentParser
+from numpy                import abs, arange, array, pi, round
+from matplotlib.pyplot    import figure, show
 from mpl_toolkits.mplot3d import Axes3D
+from numpy.random         import rand
+from scipy.integrate      import odeint
+from scipy.optimize       import fsolve
 
-from numpy.random import rand
-from scipy.integrate import odeint
-from scipy.optimize import fsolve
-
-# globle coefficients
+# global coefficients
 G_mu1 = -2.8
-G_c1 = -7.75
-G_a2 = -2.66
+G_c1  = -7.75
+G_a2  = -2.66
+TBP   = None
 
 def velocity(stateVec, t):
     """
@@ -36,7 +36,7 @@ def velocity(stateVec, t):
 
     r2 = x1**2 + y1**2
 
-    velo =
+    velo = TBP
 
     return velo
 
@@ -52,7 +52,7 @@ def velocity_reduced(stateVec_reduced, t):
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
 
-    velo =
+    velo = TBP
 
     return velo
 
@@ -64,7 +64,7 @@ def velocity_phase(stateVec_reduced):
     Note: phase velocity only depends on the state vector
     """
 
-    velo_phase =
+    velo_phase = TBP
 
     return velo_phase
 
@@ -77,7 +77,7 @@ def integrator(init_state, dt, nstp):
     dt: time step
     nstp: number of time step
     """
-    states = odeint(velocity, init_state, np.arange(0, dt*nstp, dt))
+    states = odeint(velocity, init_state, arange(0, dt*nstp, dt))
     return states
 
 def integrator_reduced(init_state, dt, nstp):
@@ -88,7 +88,7 @@ def integrator_reduced(init_state, dt, nstp):
     dt: time step
     nstp: number of time step
     """
-    states = odeint(velocity_reduced, init_state, np.arange(0, dt*nstp, dt))
+    states = odeint(velocity_reduced, init_state, arange(0, dt*nstp, dt))
     return states
 
 def stabilityMatrix_reduced(stateVec_reduced):
@@ -102,7 +102,7 @@ def stabilityMatrix_reduced(stateVec_reduced):
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
 
-    stab =
+    stab = TBP
 
     return stab
 
@@ -117,9 +117,9 @@ def groupTransform(state, phi):
     phi: group angle. in range [0, 2*pi]
     return: the transformed state. Dimension [1 x 4]
     """
-    state_transformed =
+    state_transformed = TBP
 
-   return  state_transformed
+    return  state_transformed
 
 def reduceSymmetry(states):
     """
@@ -133,19 +133,19 @@ def reduceSymmetry(states):
     """
 
     if states.ndim == 1: # if the state is one point
-
+        pass #TBP
 
     if states.ndim == 2: # if they are a sequence of state points
-
+        pass #TBP
 
     return reducedStates
 
 
 def plotFig(orbit):
-    fig = plt.figure(figsize=(8,6))
+    fig = figure(figsize=(8,6))
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(orbit[:,0], orbit[:,1], orbit[:,2])
-    plt.show()
+    show()
 
 
 if __name__ == '__main__':
@@ -177,7 +177,7 @@ if __name__ == '__main__':
         plotFig(reduced_orbit[:,0:3])
         plotFig(reduced_orbit2[:,0:3])
 
-        print stabilityMatrix_reduced(np.array([0.1, 0.2, 0.3])) # test your implementation of stability matrix
+        print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
 
     if args.case == 2:
@@ -185,15 +185,15 @@ if __name__ == '__main__':
         Try reasonable guess to find relative equilibria.
         One possible way: numpy.fsolve
         """
-        guess = # a relative good guess
+        guess = TBP # a relative good guess
         # implement your method to find relative equilibrium
-        req =  # relative equilibrium
+        req =  TBP# relative equilibrium
 
         # see how relative equilibrium drifts in the full state space
-        req_full = np.array([req[0], 0, req[1], req[2]])
+        req_full = array([req[0], 0, req[1], req[2]])
         dt = 0.005
-        T =  np.abs(2 * np.pi /  velocity_phase(req))
-        nstp = np.round(T / dt)
+        T =  abs(2 * pi /  velocity_phase(req))
+        nstp = round(T / dt)
         orbit = integrator(req_full, dt, nstp)
         plotFig(orbit[:,0:3])
 
@@ -215,11 +215,11 @@ if __name__ == '__main__':
         you are only required to obtain the return map.
         """
         # copy the relative equilibrium you got from case 2 here
-        req = np.array([ , , ]) # [rx1, rx2, ry2]
+        req = array([ TBP,TBP, TBP]) # [rx1, rx2, ry2]
         # find the real part and imaginary part of the expanding eigenvector at req
         # You should get: Vi = array([-0.        ,  0.58062392, -0.00172256])
-        Vr =
-        Vi =
+        Vr = TBP
+        Vi = TBP
 
         # For simplicity, we choose to work in a new coordiate, whose orgin is
         # the relative equilirium.
@@ -227,9 +227,9 @@ if __name__ == '__main__':
         # Hint: numpy.qr()
         # You should get
         # Py = array([-0.12715969, -0.9918583 ,  0.00689345]) : normalized
-        Px =  # should be in the same direction of Vr
-        Py =  # should be in the plan spanned by (Vr, Vi), and orthogonal to Px
-        Pz =  # should be orthogonal to Px and Py
+        Px =  TBP # should be in the same direction of Vr
+        Py =  TBP # should be in the plan spanned by (Vr, Vi), and orthogonal to Px
+        Pz =  TBP # should be orthogonal to Px and Py
 
         # produce an ergodic trajectory started from relative equilbirum
         x0_reduced = req + 0.0001*Vr;
@@ -241,7 +241,7 @@ if __name__ == '__main__':
         # To check your answer, you can set 'orbit = req' on purpose and see
         # whether orbit_prj is (0, 0, 0), also set 'oribt = Px + req' and see
         # whether orbit_prj is (1, 0, 0)
-        orbit_prj =
+        orbit_prj = TBP
 
         # Choose Poincare section be Px = 0 (y-z plane), find all the intersection
         # points by orbit_prj.
@@ -251,9 +251,9 @@ if __name__ == '__main__':
         # poincare section and then use simple linear interpolation to get the
         # intersection point.
 
-        PoincarePoints = # the set of recored Poincare intersection points
-        Pnum =  # number of intersection points
-        distance = # the Euclidean distance of intersection points to the orgin
+        PoincarePoints = TBP # the set of recored Poincare intersection points
+        Pnum = TBP # number of intersection points
+        distance = TBP # the Euclidean distance of intersection points to the orgin
                    # Please distinguish Euclidean distance with the arch length that follows.
                    # Euclidean distance of a Poincare intersection point P_i = (0, yi, zi)
                    # (the x coordinate is zero since section is chosen as Px = 0)
@@ -275,7 +275,7 @@ if __name__ == '__main__':
         # In this way, we have the arch length of each Poincare intersection point. The return map
         # r_n -> r_{n+1} indicates how intersection points stretch and fold on the Poincare section.
 
-        length = # arch length
+        length = TBP # arch length
 
         # plot the return map with diffrent order. Try to locate the fixed
         # points in each of these return map. Each of them corresponds to
