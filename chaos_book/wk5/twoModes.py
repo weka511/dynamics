@@ -15,20 +15,19 @@ from numpy.random         import rand
 from scipy.integrate      import odeint
 from scipy.optimize       import fsolve
 
-# global coefficients
-G_mu1 = -2.8
-G_c1  = -7.75
-G_a2  = -2.66
-TBP   = None
+mu1 = -2.8
+c1  = -7.75
+a2  = -2.66
+TBP = None
 
 def velocity(stateVec, t):
-    """
+    '''
     velocity in the full state space.
 
     stateVec: state vector [x1, y1, x2, y2]
     t: just for convention of odeint, not used.
     return: velocity at stateVec. Dimension [1 x 4]
-    """
+    '''
     x1 = stateVec[0]
     y1 = stateVec[1]
     x2 = stateVec[2]
@@ -36,18 +35,19 @@ def velocity(stateVec, t):
 
     r2 = x1**2 + y1**2
 
-    velo = TBP
-
-    return velo
+    return [(mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
+            (mu1-r2)*y1 + c1*(x1*y2 - x2*y1),
+            x2 + y2 + x1**2 - y1**2 + a2*x2*r2,
+            -x2 + y2 + 2*x1*y1 + a2*y2*r2]
 
 def velocity_reduced(stateVec_reduced, t):
-    """
+    '''
     velocity in the slice after reducing the continous symmetry
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     t: not used
     return: velocity at stateVect_reduced. dimension [1 x 3]
-    """
+    '''
     x1 = stateVec_reduced[0]
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
@@ -57,12 +57,12 @@ def velocity_reduced(stateVec_reduced, t):
     return velo
 
 def velocity_phase(stateVec_reduced):
-    """
+    '''
     phase velocity.
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     Note: phase velocity only depends on the state vector
-    """
+    '''
 
     velo_phase = TBP
 
@@ -70,34 +70,34 @@ def velocity_phase(stateVec_reduced):
 
 
 def integrator(init_state, dt, nstp):
-    """
+    '''
     integrate two modes system in the full state sapce.
 
     init_state: initial state [x1, y1, x2, y2]
     dt: time step
     nstp: number of time step
-    """
+    '''
     states = odeint(velocity, init_state, arange(0, dt*nstp, dt))
     return states
 
 def integrator_reduced(init_state, dt, nstp):
-    """
+    '''
     integrate two modes system in the slice
 
     init_state: initial state [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     dt: time step
     nstp: number of time step
-    """
+    '''
     states = odeint(velocity_reduced, init_state, arange(0, dt*nstp, dt))
     return states
 
 def stabilityMatrix_reduced(stateVec_reduced):
-    """
+    '''
     calculate the stability matrix on the slice
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     return: stability matrix. Dimension [3 x 3]
-    """
+    '''
     x1 = stateVec_reduced[0]
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
@@ -109,20 +109,20 @@ def stabilityMatrix_reduced(stateVec_reduced):
 
 
 def groupTransform(state, phi):
-    """
+    '''
     perform group transform on a perticular state. Symmetry group is 'g(phi)'
     and state is 'x'. the transformed state is ' xp = g(phi) * x '
 
     state: state in the full state space. Dimension [1 x 4]
     phi: group angle. in range [0, 2*pi]
     return: the transformed state. Dimension [1 x 4]
-    """
+    '''
     state_transformed = TBP
 
     return  state_transformed
 
 def reduceSymmetry(states):
-    """
+    '''
     tranform states in the full state space into the slice.
     Hint: use numpy.arctan2(y,x)
     Note: this function should be able to reduce the symmetry
@@ -130,7 +130,7 @@ def reduceSymmetry(states):
 
     states: states in the full state space. dimension [m x 4]
     return: the corresponding states on the slice dimension [m x 3]
-    """
+    '''
 
     if states.ndim == 1: # if the state is one point
         pass #TBP
@@ -157,20 +157,20 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.case == 1:
-        """
+        '''
         validate your implementation.
         We generate an ergodic trajectory, and then use two
         different methods to obtain the corresponding trajectory in slice.
         The first method
         is post-processing. The second method utilizes the dynamics in
         the slice directly.
-        """
-        x0 = 0.1*rand(4) # random inital state
-        x0_reduced = reduceSymmetry(x0) # initial state transformed into slice
-        dt = 0.005
-        nstp = 500.0 / dt
-        orbit = integrator(x0, dt, nstp) # trajectory in the full state space
-        reduced_orbit = reduceSymmetry(orbit) # trajectory in the slice by reducing the symmety
+        '''
+        x0             = 0.1*rand(4) # random inital state
+        x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
+        dt             = 0.005
+        nstp           = 500.0 / dt
+        orbit          = integrator(x0, dt, nstp) # trajectory in the full state space
+        reduced_orbit  = reduceSymmetry(orbit) # trajectory in the slice by reducing the symmety
         reduced_orbit2 = integrator_reduced(x0_reduced, dt, nstp) # trajectory in the slice by integration in slice
 
         plotFig(orbit[:,0:3])
@@ -181,24 +181,24 @@ if __name__ == '__main__':
 
 
     if args.case == 2:
-        """
+        '''
         Try reasonable guess to find relative equilibria.
         One possible way: numpy.fsolve
-        """
+        '''
         guess = TBP # a relative good guess
         # implement your method to find relative equilibrium
         req =  TBP# relative equilibrium
 
         # see how relative equilibrium drifts in the full state space
         req_full = array([req[0], 0, req[1], req[2]])
-        dt = 0.005
-        T =  abs(2 * pi /  velocity_phase(req))
-        nstp = round(T / dt)
+        dt    = 0.005
+        T     =  abs(2 * pi /  velocity_phase(req))
+        nstp  = round(T / dt)
         orbit = integrator(req_full, dt, nstp)
         plotFig(orbit[:,0:3])
 
     if args.case == 3:
-        """
+        '''
         return map in the Poincare section. This case is similar to hw3.
 
         We start with the relative equilibrium, and construct a Poincare
@@ -213,7 +213,7 @@ if __name__ == '__main__':
         give us good initial guesses for periodic orbits. If you like, you
         can use Newton method to refine these initial conditions. For HW5,
         you are only required to obtain the return map.
-        """
+        '''
         # copy the relative equilibrium you got from case 2 here
         req = array([ TBP,TBP, TBP]) # [rx1, rx2, ry2]
         # find the real part and imaginary part of the expanding eigenvector at req
