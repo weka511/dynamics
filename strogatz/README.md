@@ -2,12 +2,13 @@
 
 ## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
--| Name | Description 
---:|------------------|---------------------------------------------------------- 
+-| Name | Description
+--:|------------------|----------------------------------------------------------
+3|exercise_3.7.6.py|
 6| exercise_6_1.py |Plot phase portraits for a number of ODEs
 6| exercise_6_2.py |Plot phase portraits for a number of ODEs
 6| exercise_6_3.py |Plot phase portraits for a number of ODEs
-6| exercise_6_3_10.py |Stability of fixed point: saddle or not? (tricky) 
+6| exercise_6_3_10.py |Stability of fixed point: saddle or not? (tricky)
 6| exercise_6_4.py |Plot phase portraits for Competitive Lotka–Volterra equations
 6| exercise_6_4_4.py |Plot phase portraits for simplified Competitive Lotka–Volterra equations
 6| exercise_6_4_8.py |Plot phase portraits for evolutionary dynamics
