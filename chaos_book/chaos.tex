@@ -90,11 +90,11 @@ Substituting  \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2} in \eqref{eq:rdot:1}
 \end{align*}
 Substituting  \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2} in \eqref{eq:thetadot:1}
 \begin{align*}
-	 \dot{\theta} =& \frac{1}{r^2}\big[ r \cos \theta\big(\rho r \cos \theta -r \sin \theta - r \cos \theta z\big) - r \sigma \sin\theta \big(r \cos \theta-r \sin \theta\big) \big]\\
-	  =& \cos \theta\big(\rho  \cos \theta - \sin \theta - \cos \theta z\big) -  \sigma \sin\theta \big( \cos \theta- \sin \theta\big)\\
-	  =& \big(\rho-z  \big) \cos^2 \theta + \sigma \sin^2 \theta - \big( \sigma+1 \big) \cos \theta \sin \theta\\
-	  =& \frac{\rho-z }{2}\big[1 + \cos 2 \theta\big] + \frac{\sigma}{2}\big[1 - \cos 2 \theta\big]-\frac{\sigma+1}{2} \sin 2 \theta\\
-	  =& \frac{1}{2}\big[\rho-z +\sigma + \big(\rho-z -\sigma\big)\cos 2 \theta - \big(\sigma+1\big) \sin 2 \theta\big]
+	 \dot{\theta} =& \frac{1}{r^2}\big[ r \cos \theta\big(\rho r \cos \theta -r \sin \theta - r \cos \theta z\big) - r \sigma \sin\theta \big(r \sin \theta-r \cos \theta\big) \big]\\
+	  =& \cos \theta\big(\rho  \cos \theta - \sin \theta - \cos \theta z\big) -  \sigma \sin\theta \big( \sin \theta- \cos \theta\big)\\
+	  =& \big(\rho-z  \big) \cos^2 \theta - \sigma \sin^2 \theta + \big( \sigma-1 \big) \cos \theta \sin \theta\\
+	  =& \frac{\rho-z }{2}\big[1 + \cos 2 \theta\big] - \frac{\sigma}{2}\big[1 - \cos 2 \theta\big]+\frac{\sigma-1}{2} \sin 2 \theta\\
+	  =& \frac{1}{2}\big[\rho-z -\sigma + \big(\rho-z +\sigma\big)\cos 2 \theta + \big(\sigma-1\big) \sin 2 \theta\big]
 \end{align*}
 Converting \eqref{eq:lorenz:3} to polar coordinates gives
 \begin{align*}
