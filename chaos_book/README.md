@@ -4,6 +4,7 @@
 
 #| File | Homework |Remarks
 --|-------------------|--------|---------------------------------------------------------------------------------------------------
+-|chaos.tex|Q1.3|Q1.3 Floquet Multipliers
 1|Poincare.py|Q1.5| Poincaré sections and return maps of the Rössler system
 -|Rossler.py|Q1.4| Integrating Rössler system
 -|RungeKutta.py|Q1.3| Runge-Kutta integration
@@ -11,7 +12,6 @@
 2|BakersMap.py|Q2.1| A contracting baker’s map
 -|CycleStability.py|Q1.5| Stability of a periodic orbit
 -|floquet.py|Q1.2| A limit cycle with analytic Floquet exponent
--|floquet.tex|Q1.3|Q1.3 Floquet Multipliers
 -|phase.py|Q1.2|Used by floquet.py
 -|Rossler.py|Q1.4| Stability of an equilibrium
 -|Stability.py|Q1.4| Stability of an equilibrium
