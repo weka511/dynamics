@@ -15,7 +15,9 @@
 Homework 2, Q1.3 from \cite{ChaosBook}
 \end{abstract}
 
-\section{Homework 2, Q1.3}
+\section{Homework 2}
+
+\subsection{Homework, Q1.3}
 
 From \cite[Q1.3]{ChaosBook}
 \begin{align*}
@@ -57,6 +59,48 @@ Substitute $r=1+\delta r$ in \eqref{eq:dot_r}
 	\delta(t) \propto & e^{-2 t}
 \end{align*}
 So the contracting Floquet exponent is $-2$.
+
+
+\section{Lorenz Equations}
+
+\begin{align*}
+	\dot{x} =& \sigma(y-x) \numberthis \label{eq:lorenz:1}\\
+	\dot{y} =& \rho x -y - xz \numberthis \label{eq:lorenz:2}\\
+	\dot{z} =& xy-bz \numberthis \label{eq:lorenz:3}
+\end{align*}
+\subsection{Exercise 11.4}
+Substituting
+\begin{align*}
+	x =& r \cos \theta\\
+	y =& r \sin \theta \text{, we have}\\
+	\dot{x} =& \dot{r} \cos \theta - r \sin\theta \; \dot{\theta}\\
+	\dot{y} =& \dot{r} \sin \theta + r \cos\theta \; \dot{\theta}\\
+	x\dot{x}+ y\dot{y} =& r  \dot{r} \cos^2 \theta -  \cancel{r^2 \cos \theta \sin\theta \; \dot{\theta}}+  r \dot{r} \sin^2 \theta + \cancel{ r^2 \cos\theta \sin \theta \; \dot{\theta}}\\
+	=& r \dot{r} \numberthis \label{eq:rdot:1}\\
+	x\dot{y}-y\dot{x}=& \cancel{r \cos \theta \dot{r} \sin \theta} +r^2 \cos^2 \theta  \; \dot{\theta} -\cancel{r \sin \theta \dot{r} \cos \theta} + r^2 \sin^2 \theta  \; \dot{\theta}\\
+	=& r^2 \dot{\theta} \numberthis \label{eq:thetadot:1}
+\end{align*}
+Substituting  \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2} in \eqref{eq:rdot:1}
+\begin{align*}
+	\dot r =& \frac{1}{r}\big[\sigma r^2 \cos \theta (\sin\theta-cos\theta) +  r^2 \sin \theta \big(\rho \cos\theta -sin\theta - \cos \theta z\big)\big]\\
+	=& \sigma r \cos \theta \sin\theta -\sigma r \cos^2 \theta + r (\rho-z) \cos\theta \sin \theta-r \sin^2 \theta \\
+	=& \big(\sigma +\rho -z \big)r \underbrace{\cos \theta \sin\theta}_\text{$\frac{\sin 2\theta}{2}$} -\sigma r \underbrace{\cos^2 \theta}_\text{$\frac{1+\cos 2\theta}{2}$}-r \underbrace{\sin^2 \theta}_\text{$\frac{1-\cos 2\theta}{2}$}\\
+	=&  \big(\sigma +\rho -z \big)r \frac{\sin 2\theta}{2} - \sigma r \frac{1+\cos 2\theta}{2} -r \frac{1-\cos 2\theta}{2}\\
+	=& \frac{r}{2}\big[\big(\sigma +\rho -z \big)\sin 2\theta - 1 -\sigma + \big(1-\sigma\big) \cos 2\theta\big]
+\end{align*}
+Substituting  \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2} in \eqref{eq:thetadot:1}
+\begin{align*}
+	 \dot{\theta} =& \frac{1}{r^2}\big[ r \cos \theta\big(\rho r \cos \theta -r \sin \theta - r \cos \theta z\big) - r \sigma \sin\theta \big(r \cos \theta-r \sin \theta\big) \big]\\
+	  =& \cos \theta\big(\rho  \cos \theta - \sin \theta - \cos \theta z\big) -  \sigma \sin\theta \big( \cos \theta- \sin \theta\big)\\
+	  =& \big(\rho-z  \big) \cos^2 \theta + \sigma \sin^2 \theta - \big( \sigma+1 \big) \cos \theta \sin \theta\\
+	  =& \frac{\rho-z }{2}\big[1 + \cos 2 \theta\big] + \frac{\sigma}{2}\big[1 - \cos 2 \theta\big]-\frac{\sigma+1}{2} \sin 2 \theta\\
+	  =& \frac{1}{2}\big[\rho-z +\sigma + \big(\rho-z -\sigma\big)\cos 2 \theta - \big(\sigma+1\big) \sin 2 \theta\big]
+\end{align*}
+Converting \eqref{eq:lorenz:3} to polar coordinates gives
+\begin{align*}
+	\dot{z} =& r^2 cos\theta \sin\theta - b z\\
+	=& \frac{1}{2} r^2 \sin 2\theta -bz
+\end{align*}
 \bibliographystyle{unsrt}
 \addcontentsline{toc}{section}{Bibliography}
 \bibliography{../dynamics}
