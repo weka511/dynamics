@@ -4,7 +4,7 @@
 
 #| File | Homework |Remarks
 --|-------------------|--------|---------------------------------------------------------------------------------------------------
--|chaos.tex|Q1.3|Q1.3 Floquet Multipliers
+-|chaos.tex||Miscellaneous problems
 1|Poincare.py|Q1.5| Poincaré sections and return maps of the Rössler system
 -|Rossler.py|Q1.4| Integrating Rössler system
 -|RungeKutta.py|Q1.3| Runge-Kutta integration
@@ -22,3 +22,8 @@
 5|twoModes.py|Q5.2|Two modes system (Chapter 13 Exercise 13.7)
 -|twoModes.py|Q5.2|Two modes system continued: relative equilibria
 -|twoModes.py|Q5.2|Two modes system continued: Poincaré return map
+6|tentMap.py|Q6.3|Full tent map (Chapter 14 Example 14.8, 14.10) 
+7|henonMap.py|Q7.1|Stable and unstable manifold of Henon map (Example 15.5) 
+8|multishooting.py||
+-|twomodes_continue.py||
+-|unimodal.py||
