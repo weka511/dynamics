@@ -4,7 +4,7 @@
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 
 %opening
-\title{Q1.3 Floquet Multipliers}
+\title{Chaos}
 \author{Simon Crase}
 
 \begin{document}
@@ -12,12 +12,38 @@
 \maketitle
 
 \begin{abstract}
-Homework 2, Q1.3 from \cite{ChaosBook}
+Miscellaneous calculations  from \cite{ChaosBook}
 \end{abstract}
 
+\section{Lorenz Equations}
+
+\begin{align*}
+	\dot{x} =& \sigma(y-x) \numberthis \label{eq:lorenz:1}\\
+	\dot{y} =& \rho x -y - xz \numberthis \label{eq:lorenz:2}\\
+	\dot{z} =& xy-bz \numberthis \label{eq:lorenz:3}
+\end{align*}
+The equilibria are given by
+\begin{align*}
+	\sigma(y-x) =& 0\\
+	\rho x -y - xz  =& 0\\
+	xy-bz =& 0
+\end{align*}
+Assuming $\rho, \sigma, b \ne 0$
+\begin{align*}
+	y =& x\\
+	z =& \frac{xy}{b}
+\end{align*}
+One solution is $(x,y,z)= (0,0,0)$. The other solution is
+\begin{align*}
+	\rho x - x-x \frac{x^2}{b} =& 0\\
+	\rho -1 - \frac {x^2}{b} =& 0\\
+	x^2 =& b(\rho-1)\\
+	x =& \pm \sqrt{ b(\rho-1)}\\
+	(x,y,z)=& (\pm \sqrt{ b(\rho-1)},\pm \sqrt{ b(\rho-1)},\rho-1)
+\end{align*}
 \section{Homework 2}
 
-\subsection{Homework, Q1.3}
+\subsection{Homework, Q1.3 Floquet Multipliers}
 
 From \cite[Q1.3]{ChaosBook}
 \begin{align*}
@@ -61,15 +87,10 @@ Substitute $r=1+\delta r$ in \eqref{eq:dot_r}
 So the contracting Floquet exponent is $-2$.
 
 
-\section{Lorenz Equations}
-
-\begin{align*}
-	\dot{x} =& \sigma(y-x) \numberthis \label{eq:lorenz:1}\\
-	\dot{y} =& \rho x -y - xz \numberthis \label{eq:lorenz:2}\\
-	\dot{z} =& xy-bz \numberthis \label{eq:lorenz:3}
-\end{align*}
+\section{11}
 \subsection{Exercise 11.4}
-Substituting
+We convert  \eqref{eq:lorenz:1}, \eqref{eq:lorenz:2}, and  \eqref{eq:lorenz:2} to polar coordinates.
+
 \begin{align*}
 	x =& r \cos \theta\\
 	y =& r \sin \theta \text{, we have}\\
@@ -86,7 +107,7 @@ Substituting  \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2} in \eqref{eq:rdot:1}
 	=& \sigma r \cos \theta \sin\theta -\sigma r \cos^2 \theta + r (\rho-z) \cos\theta \sin \theta-r \sin^2 \theta \\
 	=& \big(\sigma +\rho -z \big)r \underbrace{\cos \theta \sin\theta}_\text{$\frac{\sin 2\theta}{2}$} -\sigma r \underbrace{\cos^2 \theta}_\text{$\frac{1+\cos 2\theta}{2}$}-r \underbrace{\sin^2 \theta}_\text{$\frac{1-\cos 2\theta}{2}$}\\
 	=&  \big(\sigma +\rho -z \big)r \frac{\sin 2\theta}{2} - \sigma r \frac{1+\cos 2\theta}{2} -r \frac{1-\cos 2\theta}{2}\\
-	=& \frac{r}{2}\big[\big(\sigma +\rho -z \big)\sin 2\theta - 1 -\sigma + \big(1-\sigma\big) \cos 2\theta\big]
+	=& \frac{r}{2}\big[\big(\sigma +\rho -z \big)\sin 2\theta - 1 -\sigma + \big(1-\sigma\big) \cos 2\theta\big] \numberthis \label{eq:lorenz:polar:r}
 \end{align*}
 Substituting  \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2} in \eqref{eq:thetadot:1}
 \begin{align*}
@@ -94,14 +115,17 @@ Substituting  \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2} in \eqref{eq:thetadot:
 	  =& \cos \theta\big(\rho  \cos \theta - \sin \theta - \cos \theta z\big) -  \sigma \sin\theta \big( \sin \theta- \cos \theta\big)\\
 	  =& \big(\rho-z  \big) \cos^2 \theta - \sigma \sin^2 \theta + \big( \sigma-1 \big) \cos \theta \sin \theta\\
 	  =& \frac{\rho-z }{2}\big[1 + \cos 2 \theta\big] - \frac{\sigma}{2}\big[1 - \cos 2 \theta\big]+\frac{\sigma-1}{2} \sin 2 \theta\\
-	  =& \frac{1}{2}\big[\rho-z -\sigma + \big(\rho-z +\sigma\big)\cos 2 \theta + \big(\sigma-1\big) \sin 2 \theta\big]
+	  =& \frac{1}{2}\big[\rho-z -\sigma + \big(\rho-z +\sigma\big)\cos 2 \theta + \big(\sigma-1\big) \sin 2 \theta\big] \numberthis \label{eq:lorenz:polar:theta}
 \end{align*}
 Converting \eqref{eq:lorenz:3} to polar coordinates gives
 \begin{align*}
 	\dot{z} =& r^2 cos\theta \sin\theta - b z\\
-	=& \frac{1}{2} r^2 \sin 2\theta -bz
+	=& \frac{1}{2} r^2 \sin 2\theta -bz \numberthis \label{eq:lorenz:polar:z}
 \end{align*}
+Note that the transformation $\theta \rightarrow \theta + \pi$ leaves $\cos \theta$ and $\sin \theta$ unchanged, so \eqref{eq:lorenz:polar:r}, \eqref{eq:lorenz:polar:theta}, and \eqref{eq:lorenz:polar:z} are invariant.
+
 \bibliographystyle{unsrt}
 \addcontentsline{toc}{section}{Bibliography}
 \bibliography{../dynamics}
+
 \end{document}
