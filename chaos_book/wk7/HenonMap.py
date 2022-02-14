@@ -1,17 +1,7 @@
-############################################################
-#
-# In this template, Henon map is implemented in a class because
-# we need to change the parameters for future homeworks and
-# it is much more convenient to use class here than global
-# parameters.
-# If you are not familiar with class object in python,
-# have a look at the tutorial here:
-# https://docs.python.org/2/tutorial/classes.html
-#
-# please set case = 1 to validate your implementation first.
-# Then go to case2, case3 and case4.
-#
-############################################################
+'''
+Stable and unstable manifold of Henon map (Example 15.5)
+'''
+
 from argparse          import ArgumentParser
 from numpy             import array, vstack, savez, load, arange, size, zeros
 from matplotlib.pyplot import figure, legend, show
@@ -45,7 +35,7 @@ class Henon:
         x = stateVec[0];
         y = stateVec[1];
 
-        stateNext = TBP # fill this in
+        stateNext = [1 - self.a*x*x + self.b*y,x]
 
         return stateNext
 
@@ -60,8 +50,10 @@ class Henon:
         Hint : numpy.vstack()
         '''
 
-        state = TBP # fill this in
-
+        state = zeros((NumOfIter+1 , 2))
+        state[0,:]=stateVec
+        for i in range(NumOfIter):
+            state[i+1,:] = self.oneIter(state[i,:])
         return state
 
     def Jacob(self, stateVec):
@@ -73,7 +65,8 @@ class Henon:
         x = stateVec[0];
         y = stateVec[1];
 
-        jacobian = TBP # fill this in
+        jacobian = array([[-2*self.a*x, self.b],
+                          [1,0]])
 
         return jacobian
 
@@ -87,7 +80,7 @@ class Henon:
         x = stateVec[0];
         y = stateVec[1];
 
-        statePrev = TBP # fill this in
+        statePrev = (y,-(1-self.a*y*y-x)/self.b)
         return statePrev
 
     def multiBackIter(self, stateVec, NumOfIter):
@@ -119,19 +112,18 @@ if __name__ == '__main__':
 
     if args.case == 1:
         '''
-        Validate your implimentation of Henon map.
+        Validate your implementation of Henon map.
         Note here we use a=1.4, b=0.3 in this valication
         case. For other cases in this homework, we use a=6, b=-1.
         Actually, these two sets of parameters are both important
         since we will come back to this model when discussing invariant measure.
         '''
-        henon = Henon(1.4, 0.3) # creake a Henon instance
-        states = henon.multiIter(rand(2), 1000) # forward iterations
+        henon      = Henon(1.4, 0.3) # creake a Henon instance
+        states     = henon.multiIter(rand(2), 1000) # forward iterations
         states_bac = henon.multiBackIter(states[-1,:], 10) # backward iterations
 
-        # check your implementation of forward map
-        fig = figure(figsize=(6,6))
-        ax = fig.add_subplot(111)
+        fig        = figure(figsize=(6,6))       # check your implementation of forward map
+        ax         = fig.add_subplot(111)
         ax.scatter(states[:,0], states[:, 1], edgecolor='none')
         ax.set_xlabel('x')
         ax.set_ylabel('y')
