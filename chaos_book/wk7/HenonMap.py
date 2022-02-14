@@ -3,7 +3,7 @@ Stable and unstable manifold of Henon map (Example 15.5)
 '''
 
 from argparse          import ArgumentParser
-from numpy             import array, vstack, savez, load, arange, size, zeros
+from numpy             import arange, array, load, savez,  size, sqrt, vstack, zeros
 from matplotlib.pyplot import figure, legend, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
@@ -185,17 +185,19 @@ if __name__ == '__main__':
         '''
         henon = Henon() # use the default parameters: a=6, b=-1
         # get the two equilbria of this map. equilibrium '0' should have smaller x coordinate.
-        eq0 = array([TBP, ]) # equilibrium '0'
-        eq1 = array([TBP, ]) # equilibrium '1'
+        term0 = (1-henon.b)/(2*henon.a)
+        term1 = sqrt((1+term0**2)/henon.a)
+        eq0   = array([term0-term1, term0-term1]) # equilibrium '0'
+        eq1   = array([term0+term1, term0+term1 ]) # equilibrium '1'
 
         # get the expanding multiplier and eigenvectors at equilibrium '0'
         Lamba_e = TBP # expanding multiplier
-        Ev = TBP# expanding eigenvector
+        Ev      = TBP# expanding eigenvector
 
         NumOfIter = 5 # number of iterations used to get stable/unstable manifold
-        tol = 0.1 # tolerance distance between adjacent points in the manifold
-        r0 = 0.0001 # small length
-        N = TBP# implement the formula (*). Note 'N' should be an integer.
+        tol     = 0.1 # tolerance distance between adjacent points in the manifold
+        r0      = 0.0001 # small length
+        N       = TBP# implement the formula (*). Note 'N' should be an integer.
         delta_r = (Lamba_e-1)*r0 / N # initial spacing between points in the manifold
 
         # generate the unstable manifold. Note we do not use Henon.multiIter() here
