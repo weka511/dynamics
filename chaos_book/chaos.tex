@@ -124,6 +124,25 @@ Converting \eqref{eq:lorenz:3} to polar coordinates gives
 \end{align*}
 Note that the transformation $\theta \rightarrow \theta + \pi$ leaves $\cos \theta$ and $\sin \theta$ unchanged, so \eqref{eq:lorenz:polar:r}, \eqref{eq:lorenz:polar:theta}, and \eqref{eq:lorenz:polar:z} are invariant.
 
+\section{Henon mapping}
+\begin{align*}
+	(x_{n+1},y_{n+1}) =& (1-ax_n^2+by_n,x_n)\\
+	x_n =& y_{n+1}\\
+	1-ax_n^2+by_n =& x_{n+1}\\
+	y_n =& \frac{x_{n+1} + a  y_{n+1}^2-1}{b}
+\end{align*}
+Fixed point
+\begin{align*}
+	(x,y) =& (1-ax^2+by,x)\\
+	x =& y\\
+	x =& 1-ax^2 +bx\\
+	ax^2 + (1-b)x = &1\\
+	a\big[x^2 + 2\frac{1-b}{2a} + \big(\frac{1-b}{2a}\big)^2\big]  = &1+ \big(\frac{1-b}{2a}\big)^2\\
+	a\big[x+ \frac{1-b}{2a}\big]^2= &1+ \big(\frac{1-b}{2a}\big)^2
+	\\
+	\big[x+ \frac{1-b}{2a}\big]^2= &\frac{1+ \big(\frac{1-b}{2a}\big)^2}{a}\\
+	x = - \frac{1-b}{2a} \pm \sqrt{\frac{1+ \big(\frac{1-b}{2a}\big)^2}{a}}
+\end{align*}
 \bibliographystyle{unsrt}
 \addcontentsline{toc}{section}{Bibliography}
 \bibliography{../dynamics}
