@@ -1,10 +1,10 @@
-import numpy as np
+from numpy import abs
 
 def tent(x):
     """
     tent map: one iteration
     """
-    return 1 - 2 * np.abs(x-0.5)
+    return 1 - 2 * abs(x-0.5)
 
 def tent_iter(x, n):
     """
