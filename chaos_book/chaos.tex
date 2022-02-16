@@ -15,6 +15,8 @@
 Miscellaneous calculations  from \cite{ChaosBook}
 \end{abstract}
 
+\tableofcontents
+
 \section{Lorenz Equations}
 
 \begin{align*}
@@ -124,24 +126,25 @@ Converting \eqref{eq:lorenz:3} to polar coordinates gives
 \end{align*}
 Note that the transformation $\theta \rightarrow \theta + \pi$ leaves $\cos \theta$ and $\sin \theta$ unchanged, so \eqref{eq:lorenz:polar:r}, \eqref{eq:lorenz:polar:theta}, and \eqref{eq:lorenz:polar:z} are invariant.
 
-\section{Henon mapping}
+\section{Homework 7}
+\subsection{Henon mapping}
 \begin{align*}
-	(x_{n+1},y_{n+1}) =& (1-ax_n^2+by_n,x_n)\\
+	(x_{n+1},y_{n+1}) =& (1-ax_n^2+by_n,x_n) \numberthis \label{eq:henon:recurrence}\\
 	x_n =& y_{n+1}\\
 	1-ax_n^2+by_n =& x_{n+1}\\
 	y_n =& \frac{x_{n+1} + a  y_{n+1}^2-1}{b}
 \end{align*}
-Fixed point
+At a fixed point, \eqref{eq:henon:recurrence} becomes
 \begin{align*}
-	(x,y) =& (1-ax^2+by,x)\\
-	x =& y\\
-	x =& 1-ax^2 +bx\\
+	(x,y) =& (1-ax^2+by,x)\text{, ie}\\
+	x =& y \text{, and}\\
+	x =& 1-ax^2 +by\\
+	=& 1-ax^2 +bx\text{. Gathering terms}\\
 	ax^2 + (1-b)x = &1\\
-	a\big[x^2 + 2\frac{1-b}{2a} + \big(\frac{1-b}{2a}\big)^2\big]  = &1+ \big(\frac{1-b}{2a}\big)^2\\
-	a\big[x+ \frac{1-b}{2a}\big]^2= &1+ \big(\frac{1-b}{2a}\big)^2
-	\\
-	\big[x+ \frac{1-b}{2a}\big]^2= &\frac{1+ \big(\frac{1-b}{2a}\big)^2}{a}\\
-	x = - \frac{1-b}{2a} \pm \sqrt{\frac{1+ \big(\frac{1-b}{2a}\big)^2}{a}}
+	a\big[x^2 + 2\frac{1-b}{2a}x + \big(\frac{1-b}{2a}\big)^2\big]  = &1+ \frac{(1-b)^2}{2a}\\
+	a\big[x+ \frac{1-b}{2a}\big]^2= &1+ \frac{(1-b)^2}{4a}\\
+	\big[x+ \frac{1-b}{2a}\big]^2= &\frac{1+ \frac{(1-b)^2}{4a}}{a}\\
+	x = - \frac{1-b}{2a} \pm \sqrt{\frac{1+ \frac{(1-b)^2}{4a}}{a}}
 \end{align*}
 \bibliographystyle{unsrt}
 \addcontentsline{toc}{section}{Bibliography}

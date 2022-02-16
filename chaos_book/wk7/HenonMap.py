@@ -3,10 +3,11 @@ Stable and unstable manifold of Henon map (Example 15.5)
 '''
 
 from argparse          import ArgumentParser
-from numpy             import arange, array, load, savez,  size, sqrt, vstack, zeros
+from numpy             import arange, argmax, array, load, savez,  size, sqrt, vstack, zeros
 from matplotlib.pyplot import figure, legend, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
+from scipy.linalg      import eig, norm
 from scipy.optimize    import fsolve
 
 TBP = None
@@ -24,6 +25,13 @@ class Henon:
         '''
         self.a = a
         self.b = b
+
+    def fixed_points(self):
+        term0 = (1-self.b) / (2*self.a)
+        term1 = sqrt((1 + ((1-self.b)**2)/(4*self.a))/self.a)
+        fixed0 = -term0-term1
+        fixed1 = -term0+term1
+        return (fixed0,fixed0),(fixed1,fixed1)
 
     def oneIter(self, stateVec):
         '''
@@ -114,13 +122,16 @@ if __name__ == '__main__':
         '''
         Validate your implementation of Henon map.
         Note here we use a=1.4, b=0.3 in this valication
-        case. For other cases in this homework, we use a=6, b=-1.
+        case. This is the classical Hénon map -- wikipedia.
+        For other cases in this homework, we use a=6, b=-1.
         Actually, these two sets of parameters are both important
         since we will come back to this model when discussing invariant measure.
         '''
-        henon      = Henon(1.4, 0.3) # creake a Henon instance
+        henon      = Henon(1.4, 0.3) # create a Henon instance
         states     = henon.multiIter(rand(2), 1000) # forward iterations
         states_bac = henon.multiBackIter(states[-1,:], 10) # backward iterations
+
+        eq0,eq1 = henon.fixed_points()
 
         fig        = figure(figsize=(6,6))       # check your implementation of forward map
         ax         = fig.add_subplot(111)
@@ -175,7 +186,7 @@ if __name__ == '__main__':
         The following formula is used to determine 'N' ( please figure out its meaning
         and convince yourself ):
 
-        ( (\Lamba_e - 1) * r0 / N ) * (\Lambda_e)^NumOfIter = tol  (*)
+        ( (\Lambda_e - 1) * r0 / N ) * (\Lambda_e)^NumOfIter = tol  (*)
 
         Here, 'tol' is the tolerance distance between adjacent points in the unstable manifold.
 
@@ -185,25 +196,26 @@ if __name__ == '__main__':
         '''
         henon = Henon() # use the default parameters: a=6, b=-1
         # get the two equilbria of this map. equilibrium '0' should have smaller x coordinate.
-        term0 = (1-henon.b)/(2*henon.a)
-        term1 = sqrt((1+term0**2)/henon.a)
-        eq0   = array([term0-term1, term0-term1]) # equilibrium '0'
-        eq1   = array([term0+term1, term0+term1 ]) # equilibrium '1'
+
+        eq0,eq1 = henon.fixed_points()
 
         # get the expanding multiplier and eigenvectors at equilibrium '0'
-        Lamba_e = TBP # expanding multiplier
-        Ev      = TBP# expanding eigenvector
-
+        J        = henon.Jacob(eq0)
+        w,vl     = eig(J)
+        i        = argmax(abs(w))
+        Lambda_e = w[i] # expanding multiplier
+        Ev       = vl[i] # expanding eigenvector
+        assert norm(Ev)==1
         NumOfIter = 5 # number of iterations used to get stable/unstable manifold
-        tol     = 0.1 # tolerance distance between adjacent points in the manifold
-        r0      = 0.0001 # small length
-        N       = TBP# implement the formula (*). Note 'N' should be an integer.
-        delta_r = (Lamba_e-1)*r0 / N # initial spacing between points in the manifold
+        tol       = 0.1 # tolerance distance between adjacent points in the manifold
+        r0        = 0.0001 # small length
+        N         = int((Lambda_e-1)*r0*(Lambda_e**NumOfIter)/tol)# implement the formula (*). Note 'N' should be an integer.
+        delta_r   = (Lambda_e-1)*r0 / N # initial spacing between points in the manifold
 
         # generate the unstable manifold. Note we do not use Henon.multiIter() here
         # since we want to keep the ordering of the points along the manifold.
-        uManif = eq0
-        states = zeros([N,2])
+        uManifold = eq0
+        states    = zeros([N,2])
         for i in range(N): # get the initial N points
             states[i,:] = eq0 + (r0 + delta_r*i)*Ev
         uManifold = vstack((uManifold, states))
@@ -213,7 +225,15 @@ if __name__ == '__main__':
                 states[j,:] = henon.oneIter(states[j,:]);
             uManifold = vstack((uManifold, states))
 
-
+        fig = figure(figsize=(6,6))
+        ax = fig.add_subplot(111)
+        ax.plot(uManifold[:,0], uManifold[:, 1], 'r-', lw=2, label=r'$W_u$')
+        ax.scatter(eq0[0],eq0[1])
+        ax.scatter(eq1[0],eq1[1])
+        ax.text(eq0[0], eq0[1], '0')
+        ax.text(eq1[0], eq1[1], '1')
+        legend()
+        show()
         # Please fill out this part to generate the stable manifold.
         # Check whether the stable manifold is symmetric with unstable manifold with
         # diagonal line y = x
