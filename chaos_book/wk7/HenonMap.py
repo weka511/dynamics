@@ -276,8 +276,15 @@ if __name__ == '__main__':
         # save the variables needed for case3
         # if you are using ipython enviroment, you could just keep the varibles in the
         # current session.
-        savez('case2', B=B, C=C, D=D, eq0=eq0, eq1=eq1,
-                 sManifold=sManifold, uManifold=uManifold, tck=tck)
+        savez('case2',
+              B         = B,
+              C         = C,
+              D         = D,
+              eq0       = eq0,
+              eq1       = eq1,
+              sManifold = sManifold,
+              uManifold = uManifold,
+              tck       = tck)
 
         # plot the unstable, stable manifold, points B, C, D, equilibria '0' and '1'.
         fig = figure(figsize=(6,6))
@@ -345,6 +352,10 @@ if __name__ == '__main__':
             Mf1 = vstack((Mf1,henon.oneIter(m)))
             Mb1 = vstack((Mb1,henon.oneBackIter(m)))
 
+        state0 = henon.oneIter((0,0))
+        stateC = henon.oneIter(C)
+        stateB = henon.oneIter(B)
+        stateD = henon.oneIter(D)
         # plot out Mf1 and Mb1
 
         ax = fig.add_subplot(122)
@@ -352,6 +363,14 @@ if __name__ == '__main__':
         ax.plot(Mf1[:,0], Mf1[:,1], 'm.')
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r')
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c')
+        ax.text(state0[0],state0[1],"0'")
+        ax.text(stateC[0],stateC[1],"C'")
+        ax.text(stateB[0],stateB[1],"B'")
+        ax.text(stateD[0],stateD[1],"D'")
+        ax.scatter(state0[0],state0[1],c='xkcd:blue',zorder=5,marker='x')
+        ax.scatter(stateC[0],stateC[1],c='xkcd:blue',zorder=5,marker='x')
+        ax.scatter(stateB[0],stateB[1],c='xkcd:blue',zorder=5,marker='x')
+        ax.scatter(stateD[0],stateD[1],c='xkcd:blue',zorder=5,marker='x')
         show()
 
         # In order to see the pre-images of the borders of Mf1 and Mb1, please
