@@ -109,6 +109,11 @@ class Henon:
 
         return state
 
+'''Case 2: use scipy.optimize.fsolve() to obtain intersection points B, C, D'''
+def get_point(f,x0,tck):
+    x = fsolve(f,x0)
+    y =splev(x,tck)
+    return x[0],y[0]
 
 if __name__ == '__main__':
 
@@ -261,12 +266,12 @@ if __name__ == '__main__':
         # use scipy.optimize.fsolve() to obtain intersection points B, C, D
         # hint: use scipy.interpolate.splev() and the fact that stable and unstable
         # are symmetric with y = x
-        c1 = fsolve(lambda x:splev(x,tck)-x,eq1[0])
-        C = c1,splev(c1,tck)
-        d1 = fsolve(lambda x:splev(splev(x,tck),tck)-x,-0.5)
-        D = d1,splev(d1,tck)
-        b1 = fsolve(lambda x:splev(splev(x,tck),tck)-x,+0.5)
-        B = b1,splev(b1,tck)
+
+
+        C = get_point(lambda x:splev(x,tck)-x,eq1[0],tck)
+        D = get_point(lambda x:splev(splev(x,tck),tck)-x,-0.5,tck)
+        B = get_point(lambda x:splev(splev(x,tck),tck)-x,+0.5,tck)
+
 
         # save the variables needed for case3
         # if you are using ipython enviroment, you could just keep the varibles in the
@@ -281,7 +286,7 @@ if __name__ == '__main__':
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
         ax.scatter(eq0[0],eq0[1])
         ax.scatter(eq1[0],eq1[1])
-        ax.text(C[0], C[1], f' C{C[0]}')
+        ax.text(C[0], C[1], f' C_x={C[0]:.4f}')
         ax.text(D[0], D[1], 'D')
         ax.text(B[0], B[1], 'B')
         ax.text(eq0[0], eq0[1], '0')
@@ -301,7 +306,7 @@ if __name__ == '__main__':
         henon = Henon() # use the default parameters: a=6, b=-1
         # load needed variables from case2. If you have kept the variables
         # in the working space, then just comment out the following few lines.
-        case2 = load('case2.npz')
+        case2 = load('case2.npz', allow_pickle=True)
         B = case2['B']; C = case2['C']; D = case2['D']; eq0 = case2['eq0']; eq1 = case2['eq1'];
         tck = case2['tck']; uManifold = case2['uManifold']; sManifold = case2['sManifold'];
 
