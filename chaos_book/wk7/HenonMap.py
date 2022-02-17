@@ -10,7 +10,7 @@ from scipy.interpolate import splrep, splev
 from scipy.linalg      import eig, norm
 from scipy.optimize    import fsolve
 
-TBP = None
+
 
 class Henon:
     '''
@@ -383,17 +383,18 @@ if __name__ == '__main__':
         We go further into the partition of state space in this case.
         In case3 you have figure out what the pre-images of the border of
         first forward and backward iteration, so we do not need to
-        sample the region again, iteration of the boarder is enough.
+        sample the region again, iteration of the border is enough.
         In this case we iterate forward and backward for two steps
         '''
+        TBP = None
         henon = Henon() # use the default parameters: a=6, b=-1
-        # load needed variables from case2
-        case2 = load('case2.npz')
+
+        case2 = load('case2.npz', allow_pickle=True)       # load needed variables from case2
         B = case2['B']; C = case2['C']; D = case2['D']; eq0 = case2['eq0']; eq1 = case2['eq1'];
         tck = case2['tck']; uManifold = case2['uManifold']; sManifold = case2['sManifold'];
 
-        # initialize the first/second forward/backward iteration of the boarder
-        Mf1 = array([]).reshape(0,2) # the first forward iteration of the boarder you got in case 3
+        # initialize the first/second forward/backward iteration of the border
+        Mf1 = array([]).reshape(0,2) # the first forward iteration of the border you got in case 3
         Mf2 = array([]).reshape(0,2) # ... second forward ....
         Mb1 = array([]).reshape(0,2) # ....first backward ....
         Mb2 = array([]).reshape(0,2) # ....second backward ....
