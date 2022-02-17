@@ -4,7 +4,7 @@ Stable and unstable manifold of Henon map (Example 15.5)
 
 from argparse          import ArgumentParser
 from numpy             import arange, argmax, argmin, array, load, savez,  size, sqrt, vstack, zeros
-from matplotlib.pyplot import figure, legend, show
+from matplotlib.pyplot import figure, grid, legend, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
 from scipy.linalg      import eig, norm
@@ -258,21 +258,21 @@ if __name__ == '__main__':
         tck = splrep(sManifold[:,0], sManifold[:,1], s=0)
         m,_ = sManifold.shape
 
-        xs   = [sManifold[i,0] for i in range(0,m,16)]   # simon test
-        ys   = splev(xs,tck)                             # simon test
         # use scipy.optimize.fsolve() to obtain intersection points B, C, D
         # hint: use scipy.interpolate.splev() and the fact that stable and unstable
         # are symmetric with y = x
         c1 = fsolve(lambda x:splev(x,tck)-x,eq1[0])
         C = c1,splev(c1,tck)
-        # D = TBP
-        # B = TBP
+        d1 = fsolve(lambda x:splev(splev(x,tck),tck)-x,-0.5)
+        D = d1,splev(d1,tck)
+        b1 = fsolve(lambda x:splev(splev(x,tck),tck)-x,+0.5)
+        B = b1,splev(b1,tck)
 
         # save the variables needed for case3
         # if you are using ipython enviroment, you could just keep the varibles in the
         # current session.
-        # savez('case2', B=B, C=C, D=D, eq0=eq0, eq1=eq1,
-                 # sManifold=sManifold, uManifold=uManifold, tck=tck)
+        savez('case2', B=B, C=C, D=D, eq0=eq0, eq1=eq1,
+                 sManifold=sManifold, uManifold=uManifold, tck=tck)
 
         # plot the unstable, stable manifold, points B, C, D, equilibria '0' and '1'.
         fig = figure(figsize=(6,6))
@@ -281,13 +281,12 @@ if __name__ == '__main__':
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
         ax.scatter(eq0[0],eq0[1])
         ax.scatter(eq1[0],eq1[1])
-        ax.scatter(xs,ys,c='m')                        # simon test
-        # ax.scatter(xs[-1],ys[-1],c='m')
-        ax.text(C[0], C[1], 'C')
-        # ax.text(D[0], D[1], 'D')
-        # ax.text(B[0], B[1], 'B')
+        ax.text(C[0], C[1], f' C{C[0]}')
+        ax.text(D[0], D[1], 'D')
+        ax.text(B[0], B[1], 'B')
         ax.text(eq0[0], eq0[1], '0')
         ax.text(eq1[0], eq1[1], '1')
+        grid()
         legend()
         show()
 
