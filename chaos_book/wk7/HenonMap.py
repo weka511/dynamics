@@ -255,12 +255,16 @@ if __name__ == '__main__':
         # get the spline interpolation of stable manifold. Note: unstable manifold are
         # double-valued, so we only interploate stable manifold, and this is
         # enough since unstable manifold and stable manifold is symmetric with line y = x.
-        # tck = splrep(sManifold[:,0], sManifold[:,1], s=0)
+        tck = splrep(sManifold[:,0], sManifold[:,1], s=0)
+        m,_ = sManifold.shape
 
+        xs   = [sManifold[i,0] for i in range(0,m,16)]   # simon test
+        ys   = splev(xs,tck)                             # simon test
         # use scipy.optimize.fsolve() to obtain intersection points B, C, D
         # hint: use scipy.interpolate.splev() and the fact that stable and unstable
         # are symmetric with y = x
-        # C = TBP
+        c1 = fsolve(lambda x:splev(x,tck)-x,eq1[0])
+        C = c1,splev(c1,tck)
         # D = TBP
         # B = TBP
 
@@ -277,7 +281,9 @@ if __name__ == '__main__':
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
         ax.scatter(eq0[0],eq0[1])
         ax.scatter(eq1[0],eq1[1])
-        # ax.text(C[0], C[1], 'C')
+        ax.scatter(xs,ys,c='m')                        # simon test
+        # ax.scatter(xs[-1],ys[-1],c='m')
+        ax.text(C[0], C[1], 'C')
         # ax.text(D[0], D[1], 'D')
         # ax.text(B[0], B[1], 'B')
         ax.text(eq0[0], eq0[1], '0')
