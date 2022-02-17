@@ -333,20 +333,28 @@ if __name__ == '__main__':
                     M = vstack( (M, state) )
 
         # please plot out region M to convince yourself that you get region 0BCD
+        fig = figure(figsize=(12,6))
+        ax = fig.add_subplot(121)
+        ax.scatter(M[:,0],M[:,1],s=1)
+
         # Now iterate forward and backward the points in region 0BCD for one step
-        Mf1 = TBP# forward iteration points
-        Mb1 = TBP# backward iteration points
+
+        Mf1 = array([]).reshape(0,2)
+        Mb1 = array([]).reshape(0,2)
+        for m in M:
+            Mf1 = vstack((Mf1,henon.oneIter(m)))
+            Mb1 = vstack((Mb1,henon.oneBackIter(m)))
 
         # plot out Mf1 and Mb1
-        fig = figure(figsize=(6,6))
-        ax = fig.add_subplot(111)
+
+        ax = fig.add_subplot(122)
         ax.plot(Mb1[:,0], Mb1[:,1], 'g.')
         ax.plot(Mf1[:,0], Mf1[:,1], 'm.')
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r')
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c')
         show()
 
-        # In order to see the pre-images of the boarders of Mf1 and Mb1, please
+        # In order to see the pre-images of the borders of Mf1 and Mb1, please
         # try to plot the images and per-images of 4 edges of region 0BCD.
         # hint: use the interpolation function of stable manifold
 
