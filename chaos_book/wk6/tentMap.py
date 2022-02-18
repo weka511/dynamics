@@ -1,21 +1,20 @@
+'''Full tent map (Chapter 14 Example 14.8, 14.10)'''
+
 from numpy import abs
 
 def tent(x):
-    """
+    '''
     tent map: one iteration
-    """
+    '''
     return 1 - 2 * abs(x-0.5)
 
 def tent_iter(x, n):
-    """
+    '''
     tent map: n iterations
-    """
-    y = []
-    y.append(x)
+    '''
+    y = [x]
     for i in range(n):
-        tmp = tent(x)
-        y.append(tmp)
-        x = tmp
+        y.append(tent(y[-1]))
 
     return y
 
