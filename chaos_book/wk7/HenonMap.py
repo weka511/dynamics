@@ -4,13 +4,13 @@ Stable and unstable manifold of Henon map (Example 15.5)
 
 from argparse          import ArgumentParser
 from numpy             import arange, argmax, argmin, array, load, savez,  size, sqrt, vstack, zeros
-from matplotlib.pyplot import figure, grid, legend, show
+from matplotlib.pyplot import figure, grid, legend, rc, savefig, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
 from scipy.linalg      import eig, norm
 from scipy.optimize    import fsolve
 
-
+rc('text', usetex=True)
 
 class Henon:
     '''
@@ -140,11 +140,15 @@ if __name__ == '__main__':
 
         fig        = figure(figsize=(6,6))       # check your implementation of forward map
         ax         = fig.add_subplot(111)
-        ax.scatter(states[:,0], states[:, 1], edgecolor='none')
+        ax.scatter(states[:,0], states[:, 1],
+                   edgecolor = 'none',
+                   s         = 1,
+                   c         = 'xkcd:blue')
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_title('(a)')
-        show()
+        savefig('case1')
+
 
         # check the correctness of backward map. The first 10 states_bac should
         # be the last 10 states in reverse order.
@@ -230,19 +234,6 @@ if __name__ == '__main__':
                 states[j,:] = henon.oneIter(states[j,:]);
             uManifold = vstack((uManifold, states))
 
-        # fig = figure(figsize=(6,6))
-        # ax = fig.add_subplot(111)
-        # ax.plot(uManifold[:,0], uManifold[:, 1], 'r-', lw=2, label=r'$W_u$')
-        # ax.scatter(eq0[0],eq0[1])
-        # ax.scatter(eq1[0],eq1[1])
-        # ax.text(eq0[0], eq0[1], '0')
-        # ax.text(eq1[0], eq1[1], '1')
-        # legend()
-        # show()
-        # Please fill out this part to generate the stable manifold.
-        # Check whether the stable manifold is symmetric with unstable manifold with
-        # diagonal line y = x
-
         i_contract = argmin(abs(w))
         Ev         = vl[i_contract] # contracting eigenvector
         sManifold = eq0
@@ -288,19 +279,20 @@ if __name__ == '__main__':
 
         # plot the unstable, stable manifold, points B, C, D, equilibria '0' and '1'.
         fig = figure(figsize=(6,6))
-        ax = fig.add_subplot(111)
+        ax  = fig.add_subplot(111)
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r-', lw=2, label=r'$W_u$')
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
         ax.scatter(eq0[0],eq0[1])
         ax.scatter(eq1[0],eq1[1])
-        ax.text(C[0], C[1], f' C_x={C[0]:.4f}')
+        ax.text(C[0], C[1], f' $C_x={C[0]:.4f}$')
         ax.text(D[0], D[1], 'D')
         ax.text(B[0], B[1], 'B')
         ax.text(eq0[0], eq0[1], '0')
         ax.text(eq1[0], eq1[1], '1')
         grid()
         legend()
-        show()
+        ax.set_title('(b)')
+        savefig('case2')
 
 
 
@@ -310,12 +302,17 @@ if __name__ == '__main__':
         in Henon map. You are going to iterate region 0BCD forward and backward
         for one step.
         '''
-        henon = Henon() # use the default parameters: a=6, b=-1
-        # load needed variables from case2. If you have kept the variables
-        # in the working space, then just comment out the following few lines.
-        case2 = load('case2.npz', allow_pickle=True)
-        B = case2['B']; C = case2['C']; D = case2['D']; eq0 = case2['eq0']; eq1 = case2['eq1'];
-        tck = case2['tck']; uManifold = case2['uManifold']; sManifold = case2['sManifold'];
+        henon     = Henon() # use the default parameters: a=6, b=-1
+        case2     = load('case2.npz',
+                         allow_pickle = True)     # load needed variables from case2.
+        B         = case2['B']
+        C         = case2['C']
+        D         = case2['D']
+        eq0       = case2['eq0']
+        eq1       = case2['eq1']
+        tck       = case2['tck']
+        uManifold = case2['uManifold']
+        sManifold = case2['sManifold'];
 
         # We first make a sampling of region 0BCD.
         # It works like this:
@@ -339,11 +336,11 @@ if __name__ == '__main__':
                     state = array([x[i], x[j]])
                     M = vstack( (M, state) )
 
-        # please plot out region M to convince yourself that you get region 0BCD
-        fig = figure(figsize=(12,6))
-        ax = fig.add_subplot(121)
-        ax.scatter(M[:,0],M[:,1],s=1)
-
+        # # please plot out region M to convince yourself that you get region 0BCD
+        # fig = figure(figsize=(6,6))
+        # ax  = fig.add_subplot(111)
+        # ax.scatter(M[:,0],M[:,1],s=1)
+        # savefig('RegionM')
         # Now iterate forward and backward the points in region 0BCD for one step
 
         Mf1 = array([]).reshape(0,2)
@@ -358,7 +355,8 @@ if __name__ == '__main__':
         stateD = henon.oneIter(D)
         # plot out Mf1 and Mb1
 
-        ax = fig.add_subplot(122)
+        fig = figure(figsize=(6,6))
+        ax  = fig.add_subplot(111)
         ax.plot(Mb1[:,0], Mb1[:,1], 'g.')
         ax.plot(Mf1[:,0], Mf1[:,1], 'm.')
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r')
@@ -371,12 +369,28 @@ if __name__ == '__main__':
         ax.scatter(stateC[0],stateC[1],c='xkcd:blue',zorder=5,marker='x')
         ax.scatter(stateB[0],stateB[1],c='xkcd:blue',zorder=5,marker='x')
         ax.scatter(stateD[0],stateD[1],c='xkcd:blue',zorder=5,marker='x')
-        show()
+        ax.set_title('(c)')
+        savefig('case3')
+
 
         # In order to see the pre-images of the borders of Mf1 and Mb1, please
         # try to plot the images and per-images of 4 edges of region 0BCD.
         # hint: use the interpolation function of stable manifold
+        foo = array([]).reshape(0,2)
+        for m in uManifold:
+            foo = vstack((foo,henon.oneBackIter(m)))
 
+        fig = figure(figsize=(6,6))
+        ax  = fig.add_subplot(111)
+        ax.plot(uManifold[:,0], uManifold[:, 1], 'r-', lw=2, label=r'$W_u$')
+        ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
+        ax.plot(foo[:,0], foo[:, 1], 'm-', lw=2, label=r'foo')
+        ax.text(C[0], C[1], '$M_{11}$')
+        ax.text(D[0], D[1], '$M_{01}$')
+        ax.text(B[0], B[1], '$M_{10}$')
+        ax.text(eq0[0], eq0[1], '$M_{00}$')
+        ax.set_title('(d)')
+        savefig('Q7-3')
 
     if args.case == 4:
         '''
@@ -386,12 +400,17 @@ if __name__ == '__main__':
         sample the region again, iteration of the border is enough.
         In this case we iterate forward and backward for two steps
         '''
-        TBP = None
-        henon = Henon() # use the default parameters: a=6, b=-1
-
-        case2 = load('case2.npz', allow_pickle=True)       # load needed variables from case2
-        B = case2['B']; C = case2['C']; D = case2['D']; eq0 = case2['eq0']; eq1 = case2['eq1'];
-        tck = case2['tck']; uManifold = case2['uManifold']; sManifold = case2['sManifold'];
+        TBP       = None
+        henon     = Henon() # use the default parameters: a=6, b=-1
+        case2     = load('case2.npz', allow_pickle=True)       # load needed variables from case2
+        B         = case2['B']
+        C         = case2['C']
+        D         = case2['D']
+        eq0       = case2['eq0']
+        eq1       = case2['eq1']
+        tck       = case2['tck']
+        uManifold = case2['uManifold']
+        sManifold = case2['sManifold'];
 
         # initialize the first/second forward/backward iteration of the border
         Mf1 = array([]).reshape(0,2) # the first forward iteration of the border you got in case 3
@@ -405,15 +424,15 @@ if __name__ == '__main__':
 
         # plot out your result.
         fig = figure(figsize=(6,6))
-        ax = fig.add_subplot(111)
+        ax  = fig.add_subplot(111)
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r')
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c')
         ax.plot(Mf1[:,0], Mf1[:,1], 'm')
         ax.plot(Mf2[:,0], Mf2[:,1], 'g')
         ax.plot(Mb1[:,0], Mb1[:,1], 'b')
         ax.plot(Mb2[:,0], Mb2[:,1], 'y')
-        ax.set_title('(d)')
-        show()
+        ax.set_title('(e)')
+
 
         # find a point in the top left region (the region which is closest to point D)
         # as the initial condition to find a periodic period with period 4
@@ -424,3 +443,4 @@ if __name__ == '__main__':
         # if you like, you can figure out the symbolic representation
         # of this periodic orbit.
 
+show()
