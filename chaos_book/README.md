@@ -27,6 +27,6 @@
 -|henonMap.py|Q7.2|Henon map continued -- iteration of region 0BCD
 -|henonMap.py|Q7.3|Henon map continued -- periodic orbits
 -|henonMap.py|Q7.4|Henon map continued -- the number of intersection regions
-8|multishooting.py||
--|twomodes_continue.py|Q8.1|two modes system continued -- kneading theory
--|unimodal.py||
+8|multishooting.py|Q8.2|two modes system continued -- multi-shooting method
+-|twomodes_continue.py|Q8.1/Q8.2|two modes system continued -- kneading theory
+-|unimodal.py|Q8.1|
