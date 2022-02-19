@@ -20,13 +20,13 @@
 4|Lorentz.py|Q4.3| Symmetry of Lorenz Flow
 -|Lorentz.py|Q4.4| Symmetry of Lorenz Flow (continued)
 5|twoModes.py|Q5.2|Two modes system (Chapter 13 Exercise 13.7)
--|twoModes.py|Q5.2|Two modes system continued: relative equilibria
--|twoModes.py|Q5.2|Two modes system continued: Poincaré return map
-6|tentMap.py|Q6.3|Full tent map (Chapter 14 Example 14.8, 14.10) 
-7|henonMap.py|Q7.1|Stable and unstable manifold of Henon map (Example 15.5) 
--|henonMap.py|Q7.2|Henon map continued -- iteration of region 0BCD 
--|henonMap.py|Q7.3|Henon map continued -- periodic orbits 
--|henonMap.py|Q7.4|Henon map continued -- the number of intersection regions 
+-|twoModes.py|Q5.3|Two modes system continued: relative equilibria
+-|twoModes.py|Q5.4|Two modes system continued: Poincaré return map
+6|tentMap.py|Q6.3|Full tent map (Chapter 14 Example 14.8, 14.10)
+7|henonMap.py|Q7.1|Stable and unstable manifold of Henon map (Example 15.5)
+-|henonMap.py|Q7.2|Henon map continued -- iteration of region 0BCD
+-|henonMap.py|Q7.3|Henon map continued -- periodic orbits
+-|henonMap.py|Q7.4|Henon map continued -- the number of intersection regions
 8|multishooting.py||
--|twomodes_continue.py||
+-|twomodes_continue.py|Q8.1|two modes system continued -- kneading theory
 -|unimodal.py||
