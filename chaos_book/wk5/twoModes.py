@@ -5,6 +5,13 @@
 # velocity_phase(), stabilityMatrix_reduced(), groupTransform()
 # and reduceSymmetry(), and set case = 1 to validate your code
 #
+# velocity()                 DONE
+# velocity_reduced()         TODO
+# velocity_phase()           TODO
+# stabilityMatrix_reduced()  TODO
+# groupTransform()           TODO
+# reduceSymmetry()           TODO
+#
 # Next, complete case2, and case3.
 ############################################################
 from argparse             import ArgumentParser
@@ -141,11 +148,17 @@ def reduceSymmetry(states):
     return reducedStates
 
 
-def plotFig(orbit):
+def plotFig(orbit,
+            title      = 'Orbit',
+            markersize = 0.5,
+            colour     = 'xkcd:blue'):
     fig = figure(figsize=(8,6))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(orbit[:,0], orbit[:,1], orbit[:,2])
-    show()
+    ax  = fig.add_subplot(111, projection='3d')
+    ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
+            markersize = markersize,
+            c          = colour)
+    ax.set_title(title)
+
 
 
 if __name__ == '__main__':
@@ -166,18 +179,18 @@ if __name__ == '__main__':
         the slice directly.
         '''
         x0             = 0.1*rand(4) # random inital state
-        x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
+        # x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
         dt             = 0.005
         nstp           = 500.0 / dt
         orbit          = integrator(x0, dt, nstp) # trajectory in the full state space
-        reduced_orbit  = reduceSymmetry(orbit) # trajectory in the slice by reducing the symmety
-        reduced_orbit2 = integrator_reduced(x0_reduced, dt, nstp) # trajectory in the slice by integration in slice
+        # reduced_orbit  = reduceSymmetry(orbit) # trajectory in the slice by reducing the symmety
+        # reduced_orbit2 = integrator_reduced(x0_reduced, dt, nstp) # trajectory in the slice by integration in slice
 
         plotFig(orbit[:,0:3])
-        plotFig(reduced_orbit[:,0:3])
-        plotFig(reduced_orbit2[:,0:3])
+        # plotFig(reduced_orbit[:,0:3])
+        # plotFig(reduced_orbit2[:,0:3])
 
-        print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
+        # print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
 
     if args.case == 2:
@@ -289,3 +302,4 @@ if __name__ == '__main__':
         # plot r_n -> r_{n+2} # 2nd order
         # plot r_n -> r_{n+3} # 3nd order
         # plot r_n -> r_{n+4} # 4th order
+    show()
