@@ -1,19 +1,23 @@
 '''Full tent map (Chapter 14 Example 14.8, 14.10)'''
 
-# falls apart after 50 iterations, regardless of whether multiply in side abs or outside
-from numpy import abs
+# falls apart after 50 iterations, regardless of whether multiply inside abs or outside
+
+from mpmath import mp,nstr
 
 def tent(gamma):
+    def abs(x):
+        return x if x>=0 else -x
     '''
     tent map: one iteration
     '''
-    return 1 - 2*abs(gamma-0.5)
+    return mp.mpf(1) - abs(mp.mpf(2)*gamma - mp.mpf(1))
 
 def symbol(gamma):
-    return 0 if gamma<0.5 else 1
+    return 0 if 2*gamma<1 else 1
 
 if __name__ == '__main__':
-    gamma = 0.8
-    for i in range(128):
-        print (i,gamma,symbol(gamma))
+    mp.dps = 100
+    gamma = mp.mpf(8)/10
+    for i in range(256):
+        print (f'{i} {nstr(gamma,12)} {symbol(gamma)}')
         gamma = tent(gamma)
