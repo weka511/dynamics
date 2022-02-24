@@ -1,4 +1,5 @@
-import numpy as np
+from numpy import array, append
+
 class Unimodal:
     """
     symbolic dynamics of a unimodal map.
@@ -9,17 +10,17 @@ class Unimodal:
     def __init__(self, returnMap, C):
         self.returnMap = returnMap
         self.C = C
-        
+
     def returnMap_iter(self, x0, n):
         """
         multiple iterations of this map from point x0
         n: the iteration number.
         """
         x = x0
-        future = np.array([])
+        future = array([])
         for i in range(n):
             x = self.returnMap(x)
-            future = np.append(future, x)
+            future = append(future, x)
 
         return future
 
@@ -29,12 +30,12 @@ class Unimodal:
         n : the iteration number.
         """
         x = x0
-        future = np.array([])
+        future = array([])
         for i in range(n):
             x = self.returnMap(x);
             if x > self.C: symbol = 1
             else: symbol = 0
-            future = np.append(future, symbol)
+            future = append(future, symbol)
 
         return future
- 
+
