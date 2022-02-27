@@ -3,7 +3,7 @@ Stable and unstable manifold of Henon map (Example 15.5)
 '''
 
 from argparse          import ArgumentParser
-from numpy             import arange, argmax, argmin, array, load, savez,  size, sqrt, vstack, zeros
+from numpy             import arange, argmax, argmin, array, load, savez, size, sqrt, vstack, zeros
 from matplotlib.pyplot import figure, grid, legend, rc, savefig, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
@@ -27,8 +27,8 @@ class Henon:
         self.b = b
 
     def fixed_points(self):
-        term0 = (1-self.b) / (2*self.a)
-        term1 = sqrt((1 + ((1-self.b)**2)/(4*self.a))/self.a)
+        term0  = (1-self.b) / (2*self.a)
+        term1  = sqrt((1 + ((1-self.b)**2)/(4*self.a))/self.a)
         fixed0 = -term0-term1
         fixed1 = -term0+term1
         return (fixed0,fixed0),(fixed1,fixed1)
@@ -40,8 +40,7 @@ class Henon:
         stateVec: the current state. dimension : [1 x 2] numpy.array
         return: the next state. dimension : [1 x 2]
         '''
-        x = stateVec[0];
-        y = stateVec[1];
+        x,y = stateVec
 
         stateNext = [1 - self.a*x*x + self.b*y,x]
 
@@ -58,8 +57,8 @@ class Henon:
         Hint : numpy.vstack()
         '''
 
-        state = zeros((NumOfIter+1 , 2))
-        state[0,:]=stateVec
+        state      = zeros((NumOfIter+1 , 2))
+        state[0,:] = stateVec
         for i in range(NumOfIter):
             state[i+1,:] = self.oneIter(state[i,:])
         return state
@@ -70,13 +69,12 @@ class Henon:
 
         stateVec: the current state. dimension : [1 x 2] numpy.array
         '''
-        x = stateVec[0];
-        y = stateVec[1];
+        x,y = stateVec
 
-        jacobian = array([[-2*self.a*x, self.b],
-                          [1,0]])
+        return array([[-2*self.a*x, self.b],
+                      [1,0]])
 
-        return jacobian
+
 
     def oneBackIter(self, stateVec):
         '''
@@ -85,9 +83,7 @@ class Henon:
         stateVec: the current state. dimension : [1 x 2] numpy.array
         return: the previous state. dimension : [1 x 2]
         '''
-        x = stateVec[0];
-        y = stateVec[1];
-
+        x,y       = stateVec
         statePrev = (y,-(1-self.a*y*y-x)/self.b)
         return statePrev
 
@@ -100,23 +96,22 @@ class Henon:
         return: the current state and the pervious 'NumOfIter' states.
                 dimension [NumOfIter+1 x 2]
         '''
-        state = stateVec
+        state    = stateVec
         tmpState = stateVec
         for i in range(NumOfIter):
-            tmp = self.oneBackIter(tmpState)
+            tmp      = self.oneBackIter(tmpState)
             tmpState = tmp
-            state = vstack((state, tmpState))
+            state    = vstack((state, tmpState))
 
         return state
 
 '''Case 2: use scipy.optimize.fsolve() to obtain intersection points B, C, D'''
 def get_point(f,x0,tck):
     x = fsolve(f,x0)
-    y =splev(x,tck)
+    y = splev(x,tck)
     return x[0],y[0]
 
 if __name__ == '__main__':
-
     parser = ArgumentParser('Stable and unstable manifold of Henon map (Example 15.5)')
     parser.add_argument('case',
                         type    = int,
@@ -135,8 +130,7 @@ if __name__ == '__main__':
         henon      = Henon(1.4, 0.3) # create a Henon instance
         states     = henon.multiIter(rand(2), 1000) # forward iterations
         states_bac = henon.multiBackIter(states[-1,:], 10) # backward iterations
-
-        eq0,eq1 = henon.fixed_points()
+        eq0,eq1    = henon.fixed_points()
 
         fig        = figure(figsize=(6,6))       # check your implementation of forward map
         ax         = fig.add_subplot(111)
@@ -258,16 +252,11 @@ if __name__ == '__main__':
         # hint: use scipy.interpolate.splev() and the fact that stable and unstable
         # are symmetric with y = x
 
-
         C = get_point(lambda x:splev(x,tck)-x,eq1[0],tck)
         D = get_point(lambda x:splev(splev(x,tck),tck)-x,-0.5,tck)
         B = get_point(lambda x:splev(splev(x,tck),tck)-x,+0.5,tck)
 
-
-        # save the variables needed for case3
-        # if you are using ipython enviroment, you could just keep the varibles in the
-        # current session.
-        savez('case2',
+        savez('case2',               # save the variables needed for case3
               B         = B,
               C         = C,
               D         = D,
@@ -293,8 +282,6 @@ if __name__ == '__main__':
         legend()
         ax.set_title('(b)')
         savefig('case2')
-
-
 
     if args.case == 3:
         '''
@@ -349,7 +336,7 @@ if __name__ == '__main__':
             Mf1 = vstack((Mf1,henon.oneIter(m)))
             Mb1 = vstack((Mb1,henon.oneBackIter(m)))
 
-        state0 = henon.oneIter((0,0))
+        state0 = henon.oneIter(eq0)
         stateC = henon.oneIter(C)
         stateB = henon.oneIter(B)
         stateD = henon.oneIter(D)
@@ -359,8 +346,8 @@ if __name__ == '__main__':
         ax  = fig.add_subplot(111)
         ax.plot(Mb1[:,0], Mb1[:,1], 'g.')
         ax.plot(Mf1[:,0], Mf1[:,1], 'm.')
-        ax.plot(uManifold[:,0], uManifold[:, 1], 'r')
-        ax.plot(sManifold[:,0], sManifold[:, 1], 'c')
+        ax.plot(uManifold[:,0], uManifold[:, 1], 'r', label=r'$W_u$')
+        ax.plot(sManifold[:,0], sManifold[:, 1], 'c', label=r'$W_s$')
         ax.text(state0[0],state0[1],"0'")
         ax.text(stateC[0],stateC[1],"C'")
         ax.text(stateB[0],stateB[1],"B'")
@@ -370,6 +357,7 @@ if __name__ == '__main__':
         ax.scatter(stateB[0],stateB[1],c='xkcd:blue',zorder=5,marker='x')
         ax.scatter(stateD[0],stateD[1],c='xkcd:blue',zorder=5,marker='x')
         ax.set_title('(c)')
+        ax.legend()
         savefig('case3')
 
 
