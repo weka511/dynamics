@@ -112,9 +112,9 @@ def get_point(f,x0,tck):
     return x[0],y[0]
 
 
-def get_interpolated_line(C, D, n = 25):
+def get_interpolated_line(A, E,n = 25):
     def interpolate(u):
-        return (u*C[0]+(1-u)*D[0],u*C[1]+(1-u)*D[1])
+        return (u*A[0]+(1-u)*E[0],u*A[1]+(1-u)*E[1])
     return [interpolate(i/n) for i in range(n+1)]
 
 
@@ -381,17 +381,28 @@ if __name__ == '__main__':
         # try to plot the images and per-images of 4 edges of region 0BCD.
         # hint: use the interpolation function of stable manifold
 
-        inner = [henon.oneIter(p) for p in get_interpolated_line(C,D)]
+        inner_f = [henon.oneIter(p) for p in get_interpolated_line(C,D)]
+        inner_b = [henon.oneBackIter(p) for p in get_interpolated_line(C,B)]
         fig = figure(figsize=(6,6))
         ax  = fig.add_subplot(111)
-        ax.plot(uManifold[:,0], uManifold[:, 1], 'r-', lw=2, label=r'$W_u$')
-        ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
-        ax.plot([x for (x,_) in inner], [y for (_,y) in inner],'m-', lw=2, label=r'$CD$')
+        ax.plot(uManifold[:,0], uManifold[:, 1], 'r-',
+                lw    = 2,
+                label = r'$W_u$')
+        ax.plot(sManifold[:,0], sManifold[:, 1], 'c-',
+                lw    = 2,
+                label = r'$W_s$')
+        ax.plot([x for (x,_) in inner_f], [y for (_,y) in inner_f],'m-',
+                lw     =2,
+                label = r'$Pre_f$')
+        ax.plot([x for (x,_) in inner_b], [y for (_,y) in inner_b],'b-',
+                lw     =2,
+                label = r'$Pre_b$')
 
-        # ax.text(C[0], C[1], '$M_{11}$')
-        # ax.text(D[0], D[1], '$M_{01}$')
-        # ax.text(B[0], B[1], '$M_{10}$')
-        # ax.text(eq0[0], eq0[1], '$M_{00}$')
+        ax.text(C[0], C[1], '$M_{11}$')
+        ax.text(D[0], D[1], '$M_{01}$')
+        ax.text(B[0], B[1], '$M_{10}$')
+        ax.text(eq0[0], eq0[1], '$M_{00}$')
+        ax.legend()
         ax.set_title('(d)')
         savefig('Q7-3')
 
