@@ -3,7 +3,7 @@ Stable and unstable manifold of Henon map (Example 15.5)
 '''
 
 from argparse          import ArgumentParser
-from numpy             import arange, argmax, argmin, array, load, savez, size, sort, sqrt, vstack, zeros
+from numpy             import arange, argmax, argmin, array, load, savez, size, sqrt, vstack, zeros
 from matplotlib.pyplot import figure, grid, legend, rc, savefig, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
@@ -332,14 +332,14 @@ if __name__ == '__main__':
                     M = vstack( (M, state) )
 
         # please plot out region M to convince yourself that you get region 0BCD
-        fig = figure(figsize=(6,6))
-        ax  = fig.add_subplot(111)
-        ax.plot(M[:,0],M[:,1])
-        ax.text(C[0], C[1], f' $C_x={C[0]:.4f}$')
-        ax.text(D[0], D[1], 'D')
-        ax.text(B[0], B[1], 'B')
-        ax.text(eq0[0], eq0[1], '0')
-        savefig('RegionM')
+        # fig = figure(figsize=(6,6))
+        # ax  = fig.add_subplot(111)
+        # ax.plot(M[:,0],M[:,1])
+        # ax.text(C[0], C[1], f' $C_x={C[0]:.4f}$')
+        # ax.text(D[0], D[1], 'D')
+        # ax.text(B[0], B[1], 'B')
+        # ax.text(eq0[0], eq0[1], '0')
+        # savefig('RegionM')
         # Now iterate forward and backward the points in region 0BCD for one step
 
         Mf1 = array([]).reshape(0,2)
@@ -383,6 +383,7 @@ if __name__ == '__main__':
 
         inner_f = [henon.oneIter(p) for p in get_interpolated_line(C,D)]
         inner_b = [henon.oneBackIter(p) for p in get_interpolated_line(C,B)]
+
         fig = figure(figsize=(6,6))
         ax  = fig.add_subplot(111)
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r-',
@@ -427,10 +428,10 @@ if __name__ == '__main__':
         sManifold = case2['sManifold'];
 
         # initialize the first/second forward/backward iteration of the border
-        Mf1 = array([]).reshape(0,2) # the first forward iteration of the border you got in case 3
-        Mf2 = array([]).reshape(0,2) # ... second forward ....
-        Mb1 = array([]).reshape(0,2) # ....first backward ....
-        Mb2 = array([]).reshape(0,2) # ....second backward ....
+        Mf1 = [henon.oneIter(p) for p in get_interpolated_line(C,D,n=50)]
+        Mf2 = [henon.oneIter(p) for p in Mf1]
+        Mb1 = [henon.oneBackIter(p) for p in get_interpolated_line(C,B,n=50)] # ....first backward ....
+        Mb2 = [henon.oneBackIter(p) for p in Mb1] # ....second backward ....
 
         # implement your code here to get Mf1, Mf2, Mb1, Mb2
         # hint: use the interpolation function of stable manifold
@@ -439,14 +440,14 @@ if __name__ == '__main__':
         # plot out your result.
         fig = figure(figsize=(6,6))
         ax  = fig.add_subplot(111)
-        ax.plot(uManifold[:,0], uManifold[:, 1], 'r')
-        ax.plot(sManifold[:,0], sManifold[:, 1], 'c')
-        ax.plot(Mf1[:,0], Mf1[:,1], 'm')
-        ax.plot(Mf2[:,0], Mf2[:,1], 'g')
-        ax.plot(Mb1[:,0], Mb1[:,1], 'b')
-        ax.plot(Mb2[:,0], Mb2[:,1], 'y')
+        ax.plot(uManifold[:,0], uManifold[:, 1], 'r',label = r'$W_u$')
+        ax.plot(sManifold[:,0], sManifold[:, 1], 'c',label = r'$W_s$')
+        ax.plot([x for (x,_) in Mf1], [y for (_,y) in Mf1], 'm',label = r'$Mf_1$')
+        ax.plot([x for (x,_) in Mf2], [y for (_,y) in Mf2], 'g',label = r'$Mf_2$')
+        ax.plot([x for (x,_) in Mb1], [y for (_,y) in Mb1], 'b',label = r'$Mb_1$')
+        ax.plot([x for (x,_) in Mb2], [y for (_,y) in Mb2], 'y',label = r'$Mb_2$')
         ax.set_title('(e)')
-
+        ax.legend()
 
         # find a point in the top left region (the region which is closest to point D)
         # as the initial condition to find a periodic period with period 4
