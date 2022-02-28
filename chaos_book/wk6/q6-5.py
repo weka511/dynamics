@@ -23,10 +23,12 @@ if __name__=='__main__':
     # print (s)
     # w = create_w(s)
     # print (w,get_gamma(w))
-    for orbit in [[1],
-                  [0,1],
-                  [0,0,1],
-                  [0,1,0,1,1],
-                  [1,0,1,1,1,0]]:
+    for orbit in [
+            [1],
+            [0,1],
+            [0,0,1],
+            [0,1,0,1,1],
+            [1,0,1,1,1,0]
+        ]:
         print (orbit,gamma_max(orbit))
 
