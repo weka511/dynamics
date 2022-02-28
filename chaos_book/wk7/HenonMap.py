@@ -117,6 +117,19 @@ def get_interpolated_line(A, E,n = 25):
         return (u*A[0]+(1-u)*E[0],u*A[1]+(1-u)*E[1])
     return [interpolate(i/n) for i in range(n+1)]
 
+def get_case2():
+    '''load needed variables from case2.'''
+    case2     = load('case2.npz', allow_pickle = True)
+    B         = case2['B']
+    C         = case2['C']
+    D         = case2['D']
+    eq0       = case2['eq0']
+    eq1       = case2['eq1']
+    tck       = case2['tck']
+    uManifold = case2['uManifold']
+    sManifold = case2['sManifold']
+
+    return B,C,D,eq0, eq1,tck, uManifold,sManifold
 
 
 if __name__ == '__main__':
@@ -291,23 +304,15 @@ if __name__ == '__main__':
         ax.set_title('(b)')
         savefig('case2')
 
+
     if args.case == 3:
         '''
         Try to establish the first level partition of the non-wandering set
         in Henon map. You are going to iterate region 0BCD forward and backward
         for one step.
         '''
-        henon     = Henon() # use the default parameters: a=6, b=-1
-        case2     = load('case2.npz',
-                         allow_pickle = True)     # load needed variables from case2.
-        B         = case2['B']
-        C         = case2['C']
-        D         = case2['D']
-        eq0       = case2['eq0']
-        eq1       = case2['eq1']
-        tck       = case2['tck']
-        uManifold = case2['uManifold']
-        sManifold = case2['sManifold'];
+        henon                                   = Henon() # use the default parameters: a=6, b=-1
+        B,C,D,eq0, eq1,tck, uManifold,sManifold = get_case2()
 
         # We first make a sampling of region 0BCD.
         # It works like this:
@@ -415,17 +420,8 @@ if __name__ == '__main__':
         sample the region again, iteration of the border is enough.
         In this case we iterate forward and backward for two steps
         '''
-        TBP       = None
-        henon     = Henon() # use the default parameters: a=6, b=-1
-        case2     = load('case2.npz', allow_pickle=True)       # load needed variables from case2
-        B         = case2['B']
-        C         = case2['C']
-        D         = case2['D']
-        eq0       = case2['eq0']
-        eq1       = case2['eq1']
-        tck       = case2['tck']
-        uManifold = case2['uManifold']
-        sManifold = case2['sManifold'];
+        henon                                   = Henon() # use the default parameters: a=6, b=-1
+        B,C,D,eq0, eq1,tck, uManifold,sManifold = get_case2()
 
         # initialize the first/second forward/backward iteration of the border
         Mf1 = [henon.oneIter(p) for p in get_interpolated_line(C,D,n=50)]
@@ -448,12 +444,12 @@ if __name__ == '__main__':
         ax.plot([x for (x,_) in Mb2], [y for (_,y) in Mb2], 'y',label = r'$Mb_2$')
         ax.set_title('(e)')
         ax.legend()
-
+        savefig('case4')
         # find a point in the top left region (the region which is closest to point D)
         # as the initial condition to find a periodic period with period 4
         # hint: use fsolve()
         guess = array([-0.4, 0.5])
-        x = TBP # the initial condition you get from this guess
+        x = guess # the initial condition you get from this guess - TBD
         print (henon.multiIter(x, 4)) # check whether it is periodic
         # if you like, you can figure out the symbolic representation
         # of this periodic orbit.
