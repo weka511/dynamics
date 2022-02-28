@@ -3,7 +3,7 @@ Stable and unstable manifold of Henon map (Example 15.5)
 '''
 
 from argparse          import ArgumentParser
-from numpy             import arange, argmax, argmin, array, load, savez, size, sqrt, vstack, zeros
+from numpy             import arange, argmax, argmin, array, load, savez, size, sort, sqrt, vstack, zeros
 from matplotlib.pyplot import figure, grid, legend, rc, savefig, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
@@ -110,6 +110,14 @@ def get_point(f,x0,tck):
     x = fsolve(f,x0)
     y = splev(x,tck)
     return x[0],y[0]
+
+
+def get_interpolated_line(C, D, n = 25):
+    def interpolate(u):
+        return (u*C[0]+(1-u)*D[0],u*C[1]+(1-u)*D[1])
+    return [interpolate(i/n) for i in range(n+1)]
+
+
 
 if __name__ == '__main__':
     parser = ArgumentParser('Stable and unstable manifold of Henon map (Example 15.5)')
@@ -323,29 +331,37 @@ if __name__ == '__main__':
                     state = array([x[i], x[j]])
                     M = vstack( (M, state) )
 
-        # # please plot out region M to convince yourself that you get region 0BCD
-        # fig = figure(figsize=(6,6))
-        # ax  = fig.add_subplot(111)
-        # ax.scatter(M[:,0],M[:,1],s=1)
-        # savefig('RegionM')
+        # please plot out region M to convince yourself that you get region 0BCD
+        fig = figure(figsize=(6,6))
+        ax  = fig.add_subplot(111)
+        ax.plot(M[:,0],M[:,1])
+        ax.text(C[0], C[1], f' $C_x={C[0]:.4f}$')
+        ax.text(D[0], D[1], 'D')
+        ax.text(B[0], B[1], 'B')
+        ax.text(eq0[0], eq0[1], '0')
+        savefig('RegionM')
         # Now iterate forward and backward the points in region 0BCD for one step
 
         Mf1 = array([]).reshape(0,2)
-        Mb1 = array([]).reshape(0,2)
         for m in M:
             Mf1 = vstack((Mf1,henon.oneIter(m)))
+
+        Mb1 = array([]).reshape(0,2)
+        for m in M:
             Mb1 = vstack((Mb1,henon.oneBackIter(m)))
 
         state0 = henon.oneIter(eq0)
         stateC = henon.oneIter(C)
         stateB = henon.oneIter(B)
         stateD = henon.oneIter(D)
+
         # plot out Mf1 and Mb1
 
         fig = figure(figsize=(6,6))
         ax  = fig.add_subplot(111)
-        ax.plot(Mb1[:,0], Mb1[:,1], 'g.')
-        ax.plot(Mf1[:,0], Mf1[:,1], 'm.')
+        ax.plot(Mb1[:,0], Mb1[:,1], 'g.',label=r'$M_b$')
+        ax.plot(Mf1[:,0], Mf1[:,1], 'm.',label=r'$M_f$')
+
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r', label=r'$W_u$')
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c', label=r'$W_s$')
         ax.text(state0[0],state0[1],"0'")
@@ -364,19 +380,18 @@ if __name__ == '__main__':
         # In order to see the pre-images of the borders of Mf1 and Mb1, please
         # try to plot the images and per-images of 4 edges of region 0BCD.
         # hint: use the interpolation function of stable manifold
-        foo = array([]).reshape(0,2)
-        for m in uManifold:
-            foo = vstack((foo,henon.oneBackIter(m)))
 
+        inner = [henon.oneIter(p) for p in get_interpolated_line(C,D)]
         fig = figure(figsize=(6,6))
         ax  = fig.add_subplot(111)
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r-', lw=2, label=r'$W_u$')
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
-        ax.plot(foo[:,0], foo[:, 1], 'm-', lw=2, label=r'foo')
-        ax.text(C[0], C[1], '$M_{11}$')
-        ax.text(D[0], D[1], '$M_{01}$')
-        ax.text(B[0], B[1], '$M_{10}$')
-        ax.text(eq0[0], eq0[1], '$M_{00}$')
+        ax.plot([x for (x,_) in inner], [y for (_,y) in inner],'m-', lw=2, label=r'$CD$')
+
+        # ax.text(C[0], C[1], '$M_{11}$')
+        # ax.text(D[0], D[1], '$M_{01}$')
+        # ax.text(B[0], B[1], '$M_{10}$')
+        # ax.text(eq0[0], eq0[1], '$M_{00}$')
         ax.set_title('(d)')
         savefig('Q7-3')
 
