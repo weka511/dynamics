@@ -27,6 +27,9 @@ class Henon:
         self.b = b
 
     def fixed_points(self):
+        '''
+        Determine fixed points of Henon map
+        '''
         term0  = (1-self.b) / (2*self.a)
         term1  = sqrt((1 + ((1-self.b)**2)/(4*self.a))/self.a)
         fixed0 = -term0-term1
@@ -42,9 +45,7 @@ class Henon:
         '''
         x,y = stateVec
 
-        stateNext = [1 - self.a*x*x + self.b*y,x]
-
-        return stateNext
+        return [1 - self.a*x*x + self.b*y,x]
 
     def multiIter(self, stateVec, NumOfIter):
         '''
@@ -84,8 +85,7 @@ class Henon:
         return: the previous state. dimension : [1 x 2]
         '''
         x,y       = stateVec
-        statePrev = (y,-(1-self.a*y*y-x)/self.b)
-        return statePrev
+        return (y,-(1-self.a*y*y-x)/self.b)
 
     def multiBackIter(self, stateVec, NumOfIter):
         '''
@@ -159,17 +159,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.case == 1:
-        '''
-        Validate your implementation of Henon map.
-        Note here we use a=1.4, b=0.3 in this valication
-        case. This is the classical Hénon map -- wikipedia.
-        For other cases in this homework, we use a=6, b=-1.
-        Actually, these two sets of parameters are both important
-        since we will come back to this model when discussing invariant measure.
-        '''
-        henon      = Henon(1.4, 0.3) # create a Henon instance
-        states     = henon.multiIter(rand(2), 1000) # forward iterations
-        states_bac = henon.multiBackIter(states[-1,:], 10) # backward iterations
+        # Validate your implementation of Henon map.
+        # Note here we use a=1.4, b=0.3 in this valication
+        # case. This is the classical Hénon map -- wikipedia.
+        # For other cases in this homework, we use a=6, b=-1.
+        # Actually, these two sets of parameters are both important
+        # since we will come back to this model when discussing invariant measure.
+
+        henon      = Henon(1.4, 0.3)
+        states     = henon.multiIter(rand(2), 1000)
+        states_bac = henon.multiBackIter(states[-1,:], 10)
         eq0,eq1    = henon.fixed_points()
 
         fig        = figure(figsize=(6,6))       # check your implementation of forward map
@@ -202,45 +201,44 @@ if __name__ == '__main__':
 
 
     if args.case == 2:
-        '''
-        Try to obtain the stable and unstable manifold for
-        equilibrium '0' in Henon map with parameter a=6, b=-1.
+        # Try to obtain the stable and unstable manifold for
+        # equilibrium '0' in Henon map with parameter a=6, b=-1.
 
-        Plotting unstable/stable manifold is a difficult task in general.
-        We need to moniter a lot of variables, like the distances between points
-        along the manifold, the angle formed by adjacent 3 points on the manifold, etc.
-        However, for Henon map, a simple algorithm is enough for demonstration purpose.
-        The algorithm works as follows:
+        # Plotting unstable/stable manifold is a difficult task in general.
+        # We need to moniter a lot of variables, like the distances between points
+        # along the manifold, the angle formed by adjacent 3 points on the manifold, etc.
+        # However, for Henon map, a simple algorithm is enough for demonstration purpose.
+        # The algorithm works as follows:
 
-        Unstable manifold: start from a point close to equilibrium '0', in the direction of
-        the expanding eigenvector: ' eq0 + r0 * V_e '. Here 'eq0' is the equilibrium,
-        'r0' is a small number, 'V_e' is the expanding eigen direction of equilibrium '0'.
-        The image of
-        this point after one forward iteration should be very close to
-        ' eq0 + r0 * \Lambda_e * V_e', where
-        '\Lambda_e' is the expanding multiplier. We can confidently think that these two
-        points are sitting on the unstable manifold of 'eq0' since 'r0' is very small.
-        Now, we interpolate linearly between these two points and get total 'N' points.
-        If we iterate these 'N' points forward for 'NumOfIter' times, we get the unstable
-        manifold within some length.
-        The crutial part of this method is that when these 'N' state points are being iterated,
-        the spacings between them get larger and larger, so we need to use a relative large
-        value 'N' to ensure that these state points are not too far away from each other.
-        The following formula is used to determine 'N' ( please figure out its meaning
-        and convince yourself ):
+        # Unstable manifold: start from a point close to equilibrium '0', in the direction of
+        # the expanding eigenvector: ' eq0 + r0 * V_e '. Here 'eq0' is the equilibrium,
+        # 'r0' is a small number, 'V_e' is the expanding eigen direction of equilibrium '0'.
+        # The image of
+        # this point after one forward iteration should be very close to
+        # ' eq0 + r0 * \Lambda_e * V_e', where
+        # '\Lambda_e' is the expanding multiplier. We can confidently think that these two
+        # points are sitting on the unstable manifold of 'eq0' since 'r0' is very small.
+        # Now, we interpolate linearly between these two points and get total 'N' points.
+        # If we iterate these 'N' points forward for 'NumOfIter' times, we get the unstable
+        # manifold within some length.
+        # The crutial part of this method is that when these 'N' state points are being iterated,
+        # the spacings between them get larger and larger, so we need to use a relative large
+        # value 'N' to ensure that these state points are not too far away from each other.
+        # The following formula is used to determine 'N' ( please figure out its meaning
+        # and convince yourself ):
 
-        ( (\Lambda_e - 1) * r0 / N ) * (\Lambda_e)^NumOfIter = tol  (*)
+        # ( (\Lambda_e - 1) * r0 / N ) * (\Lambda_e)^NumOfIter = tol  (*)
 
-        Here, 'tol' is the tolerance distance between adjacent points in the unstable manifold.
+        # Here, 'tol' is the tolerance distance between adjacent points in the unstable manifold.
 
-        Stable manifold: If we reverse the dynamics, then the stable direction becomes the
-        ustable direction, so we can use the same method as above to obtain stable manifold.
+        # Stable manifold: If we reverse the dynamics, then the stable direction becomes the
+        # ustable direction, so we can use the same method as above to obtain stable manifold.
 
-        '''
         henon = Henon() # use the default parameters: a=6, b=-1
-        # get the two equilbria of this map. equilibrium '0' should have smaller x coordinate.
 
-        eq0,eq1 = henon.fixed_points()
+        eq0,eq1 = henon.fixed_points() # get the two equilbria of this map.
+
+        assert eq0[0]<eq1[0],'equilibrium 0 should have smaller x coordinate.'
 
         # get the expanding multiplier and eigenvectors at equilibrium '0'
         J        = henon.Jacob(eq0)
@@ -248,11 +246,11 @@ if __name__ == '__main__':
         i_expand = argmax(abs(w))
         Lambda_e = w[i_expand] # expanding multiplier
         Ev       = vl[i_expand] # expanding eigenvector
-        assert norm(Ev)==1
+        assert norm(Ev)==1, 'expanding eigenvector should be normalized'
         NumOfIter = 5 # number of iterations used to get stable/unstable manifold
         tol       = 0.1 # tolerance distance between adjacent points in the manifold
         r0        = 0.0001 # small length
-        N         = int((Lambda_e-1)*r0*(Lambda_e**NumOfIter)/tol)# implement the formula (*). Note 'N' should be an integer.
+        N         = int((Lambda_e-1)*r0*(Lambda_e**NumOfIter)/tol) # implement the formula (*). Note 'N' should be an integer.
         delta_r   = (Lambda_e-1)*r0 / N # initial spacing between points in the manifold
 
         # generate the unstable manifold. Note we do not use Henon.multiIter() here
@@ -325,11 +323,10 @@ if __name__ == '__main__':
 
 
     if args.case == 3:
-        '''
-        Try to establish the first level partition of the non-wandering set
-        in Henon map. You are going to iterate region 0BCD forward and backward
-        for one step.
-        '''
+        # Try to establish the first level partition of the non-wandering set
+        # in Henon map. You are going to iterate region 0BCD forward and backward
+        # for one step.
+
         henon                                   = Henon() # use the default parameters: a=6, b=-1
         B,C,D,eq0, eq1,tck, uManifold,sManifold = get_case2()
 
@@ -399,8 +396,6 @@ if __name__ == '__main__':
         ax1.set_title('(c)')
         ax1.legend()
 
-
-
         # In order to see the pre-images of the borders of Mf1 and Mb1, please
         # try to plot the images and per-images of 4 edges of region 0BCD.
         # hint: use the interpolation function of stable manifold
@@ -408,7 +403,6 @@ if __name__ == '__main__':
         inner_f = [henon.oneIter(p) for p in get_interpolated_line(C,D)]
         inner_b = [henon.oneBackIter(p) for p in get_interpolated_line(C,B)]
 
-        # fig = figure(figsize=(6,6))
         ax2  = fig.add_subplot(122)
         ax2.plot(uManifold[:,0], uManifold[:, 1], 'r-',
                 lw    = 2,
@@ -432,23 +426,21 @@ if __name__ == '__main__':
         savefig('case3')
 
     if args.case == 4:
-        '''
-        We go further into the partition of state space in this case.
-        In case3 you have figure out what the pre-images of the border of
-        first forward and backward iteration, so we do not need to
-        sample the region again, iteration of the border is enough.
-        In this case we iterate forward and backward for two steps
-        '''
-        henon                                   = Henon() # use the default parameters: a=6, b=-1
-        B,C,D,eq0, eq1,tck, uManifold,sManifold = get_case2()
+        # We go further into the partition of state space in this case.
+        # In case3 you have figure out what the pre-images of the border of
+        # first forward and backward iteration, so we do not need to
+        # sample the region again, iteration of the border is enough.
+        # In this case we iterate forward and backward for two steps
 
+        henon                                        = Henon() # use the default parameters: a=6, b=-1
+        B, C, D, eq0, eq1, tck, uManifold, sManifold = get_case2()
 
         # initialize the first/second forward/backward iteration of the border
         Mf1 = [henon.oneIter(p) for p in get_interpolated_line(C,D,n=100)]
         Mf2 = [henon.oneIter(p) for p in Mf1]
         Mb1 = [henon.oneBackIter(p) for p in get_interpolated_line(C,B,n=50)]
         Mb2 = [henon.oneBackIter(p) for p in Mb1]
-        # spl_Mb1 = splrep([x for (x,_) in Mb1], [y for (_,y) in Mb1], s=0)
+
         # implement your code here to get Mf1, Mf2, Mb1, Mb2
         # hint: use the interpolation function of stable manifold
 
@@ -463,35 +455,23 @@ if __name__ == '__main__':
 
         x_range = arange(D[0],opposite_D[0], 0.0001)
         y_range = arange(opposite_D[1],D[1], 0.0001)
-        a = zeros((size(x_range),size(y_range)))
+
+        a = zeros((size(x_range),size(y_range)))      #Heatmap for 4 repetitions of map
         for i in range(size(x_range)):
             for j in range(size(y_range)):
-                x,y = henon.multiIter([x_range[i],y_range[i]], 4)[-1]
-                a[i,j] = min(1,sqrt((x-x_range[i])**2 + (y-y_range[j])**2))
+                x,y    = henon.multiIter([x_range[i],y_range[i]], 4)[-1]
+                a[i,j] = sqrt((x-x_range[i])**2 + (y-y_range[j])**2)
+
         # plot out your result.
         fig = figure(figsize=(12,6))
         ax1  = fig.add_subplot(121)
-        ax2  = fig.add_subplot(122)
 
         ax1.plot(uManifold[:,0], uManifold[:, 1], 'r',label = r'$W_u$')
         ax1.plot(sManifold[:,0], sManifold[:, 1], 'c',label = r'$W_s$')
         ax1.plot([x for (x,_) in Mf1], [y for (_,y) in Mf1], 'm',label = r'$Mf_1$')
         ax1.plot([x for (x,_) in Mf2], [y for (_,y) in Mf2], 'g',label = r'$Mf_2$')
-        ax2.plot([x for (x,_) in Mf2_in], [y for (_,y) in Mf2_in], 'g',label = r'$Mf_2$')
-
         ax1.plot([x for (x,_) in Mb1], [y for (_,y) in Mb1], 'b',label = r'$Mb_1$')
         ax1.plot([x for (x,_) in Mb2], [y for (_,y) in Mb2], 'y',label = r'$Mb_2$')
-        ax2.plot([x for (x,_) in Mb2_in], [y for (_,y) in Mb2_in], 'y',label = r'$Mf_2$')
-        ax2.text(D[0], D[1], '$D$')
-        ax2.scatter(opposite_D[0],opposite_D[1],c='xkcd:red',marker='x',s=50,label='OppD')
-
-        heatmap = ax2.imshow(a,
-                             cmap          = 'hot',
-                             interpolation = 'nearest',
-                             origin        = 'lower',
-                             extent        = (x_range[0], x_range[-1], y_range[0], y_range[-1]))
-        colorbar(heatmap)
-
         ax1.set_title('(e)')
         ax1.legend()
         ax1.grid()
@@ -503,8 +483,27 @@ if __name__ == '__main__':
         x     = fsolve(lambda x:henon.multiIter(x, 4)[-1] - x,guess)
         cycle = henon.multiIter(x, 4)
         print (cycle) # check whether it is periodic
-        ax2.scatter(cycle[:,0],cycle[:,1],c='xkcd:green',marker='x',s=50,label='4cycle')
+        ax2  = fig.add_subplot(122)
+        ax2.plot([x for (x,_) in Mf2_in], [y for (_,y) in Mf2_in], 'g',label = r'$Mf_2$')
+        ax2.plot([x for (x,_) in Mb2_in], [y for (_,y) in Mb2_in], 'y',label = r'$Mf_2$')
+        ax2.text(D[0], D[1], '$D$')
+        ax2.scatter(opposite_D[0],opposite_D[1],
+                    c      = 'xkcd:red',
+                    marker = 'x',
+                    s      = 50,
+                    label  = 'OppD')
+        colorbar(ax2.imshow(a,
+                            cmap          = 'hot',
+                            interpolation = 'nearest',
+                            origin        = 'lower',
+                            extent        = (x_range[0], x_range[-1], y_range[0], y_range[-1])))
+        ax2.scatter(cycle[:,0],cycle[:,1],
+                    c      = 'xkcd:green',
+                    marker = 'x',
+                    s      = 50,
+                    label  = '4cycle')
         ax2.legend()
+        ax2.set_title('Find 4 cycle')
         savefig('case4')
         # if you like, you can figure out the symbolic representation
         # of this periodic orbit.
