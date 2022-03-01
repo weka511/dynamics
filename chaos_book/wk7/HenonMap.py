@@ -305,7 +305,7 @@ if __name__ == '__main__':
               sManifold = sManifold,
               uManifold = uManifold,
               tck       = tck)
-
+        print (f'Q7.1: {C[0]}')
         # plot the unstable, stable manifold, points B, C, D, equilibria '0' and '1'.
         fig = figure(figsize=(6,6))
         ax  = fig.add_subplot(111)
@@ -381,24 +381,24 @@ if __name__ == '__main__':
 
         # plot out Mf1 and Mb1
 
-        fig = figure(figsize=(6,6))
-        ax  = fig.add_subplot(111)
-        ax.plot(Mb1[:,0], Mb1[:,1], 'g.',label=r'$M_b$')
-        ax.plot(Mf1[:,0], Mf1[:,1], 'm.',label=r'$M_f$')
+        fig = figure(figsize=(12,6))
+        ax1  = fig.add_subplot(121)
+        ax1.plot(Mb1[:,0], Mb1[:,1], 'g.',label=r'$M_b$')
+        ax1.plot(Mf1[:,0], Mf1[:,1], 'm.',label=r'$M_f$')
 
-        ax.plot(uManifold[:,0], uManifold[:, 1], 'r', label=r'$W_u$')
-        ax.plot(sManifold[:,0], sManifold[:, 1], 'c', label=r'$W_s$')
-        ax.text(state0[0],state0[1],"0'")
-        ax.text(stateC[0],stateC[1],"C'")
-        ax.text(stateB[0],stateB[1],"B'")
-        ax.text(stateD[0],stateD[1],"D'")
-        ax.scatter(state0[0],state0[1],c='xkcd:blue',zorder=5,marker='x')
-        ax.scatter(stateC[0],stateC[1],c='xkcd:blue',zorder=5,marker='x')
-        ax.scatter(stateB[0],stateB[1],c='xkcd:blue',zorder=5,marker='x')
-        ax.scatter(stateD[0],stateD[1],c='xkcd:blue',zorder=5,marker='x')
-        ax.set_title('(c)')
-        ax.legend()
-        savefig('case3')
+        ax1.plot(uManifold[:,0], uManifold[:, 1], 'r', label=r'$W_u$')
+        ax1.plot(sManifold[:,0], sManifold[:, 1], 'c', label=r'$W_s$')
+        ax1.text(state0[0],state0[1],"0'")
+        ax1.text(stateC[0],stateC[1],"C'")
+        ax1.text(stateB[0],stateB[1],"B'")
+        ax1.text(stateD[0],stateD[1],"D'")
+        ax1.scatter(state0[0],state0[1],c='xkcd:blue',zorder=5,marker='x')
+        ax1.scatter(stateC[0],stateC[1],c='xkcd:blue',zorder=5,marker='x')
+        ax1.scatter(stateB[0],stateB[1],c='xkcd:blue',zorder=5,marker='x')
+        ax1.scatter(stateD[0],stateD[1],c='xkcd:blue',zorder=5,marker='x')
+        ax1.set_title('(c)')
+        ax1.legend()
+
 
 
         # In order to see the pre-images of the borders of Mf1 and Mb1, please
@@ -408,28 +408,28 @@ if __name__ == '__main__':
         inner_f = [henon.oneIter(p) for p in get_interpolated_line(C,D)]
         inner_b = [henon.oneBackIter(p) for p in get_interpolated_line(C,B)]
 
-        fig = figure(figsize=(6,6))
-        ax  = fig.add_subplot(111)
-        ax.plot(uManifold[:,0], uManifold[:, 1], 'r-',
+        # fig = figure(figsize=(6,6))
+        ax2  = fig.add_subplot(122)
+        ax2.plot(uManifold[:,0], uManifold[:, 1], 'r-',
                 lw    = 2,
                 label = r'$W_u$')
-        ax.plot(sManifold[:,0], sManifold[:, 1], 'c-',
+        ax2.plot(sManifold[:,0], sManifold[:, 1], 'c-',
                 lw    = 2,
                 label = r'$W_s$')
-        ax.plot([x for (x,_) in inner_f], [y for (_,y) in inner_f],'m-',
+        ax2.plot([x for (x,_) in inner_f], [y for (_,y) in inner_f],'m-',
                 lw     =2,
                 label = r'$Pre_f$')
-        ax.plot([x for (x,_) in inner_b], [y for (_,y) in inner_b],'b-',
+        ax2.plot([x for (x,_) in inner_b], [y for (_,y) in inner_b],'b-',
                 lw     =2,
                 label = r'$Pre_b$')
 
-        ax.text(C[0], C[1], '$M_{11}$')
-        ax.text(D[0], D[1], '$M_{01}$')
-        ax.text(B[0], B[1], '$M_{10}$')
-        ax.text(eq0[0], eq0[1], '$M_{00}$')
-        ax.legend()
-        ax.set_title('(d)')
-        savefig('Q7-3')
+        ax2.text(C[0], C[1], '$M_{11}$')
+        ax2.text(D[0], D[1], '$M_{01}$')
+        ax2.text(B[0], B[1], '$M_{10}$')
+        ax2.text(eq0[0], eq0[1], '$M_{00}$')
+        ax2.legend()
+        ax2.set_title('(d)')
+        savefig('case3')
 
     if args.case == 4:
         '''
