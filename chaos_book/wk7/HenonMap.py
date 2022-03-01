@@ -4,7 +4,7 @@ Stable and unstable manifold of Henon map (Example 15.5)
 
 from argparse          import ArgumentParser
 from numpy             import arange, argmax, argmin, array, dot, empty_like, load, savez, size, sqrt, vstack, zeros
-from matplotlib.pyplot import figure, grid, legend, rc, savefig, show
+from matplotlib.pyplot import colorbar, figure, grid, legend, rc, savefig, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
 from scipy.linalg      import eig, norm
@@ -451,46 +451,63 @@ if __name__ == '__main__':
         # spl_Mb1 = splrep([x for (x,_) in Mb1], [y for (_,y) in Mb1], s=0)
         # implement your code here to get Mf1, Mf2, Mb1, Mb2
         # hint: use the interpolation function of stable manifold
-        M = array([]).reshape(0,2) # region 0BCD
-        x_range = arange(D[0], D[0]+0.1, 0.01)
-        y_range = arange(D[1]-0.075, D[1], 0.01)
-        for i in range(size(x_range)):
-            for j in range(size(y_range)):
-                state = array([x_range[i], y_range[j]])
-                M = vstack( (M, state) )
-        Mf2_in = [(x,y) for (x,y) in Mf2 if D[0]-0.1<x and x<D[0]+0.1 and D[1]-0.075<y and y<D[1]+0.075]
+
+        Mf2_in = [(x,y) for (x,y) in Mf2 if D[0]-0.05<x and x<D[0]+0.1 and D[1]-0.075<y and y<D[1]+0.075]
         Mb2_in = [(x,y) for (x,y) in Mb2 if D[0]-0.1<x and x<D[0]+0.1 and D[1]-0.225<y and y<D[1]+0.225]
 
         p1 = array( Mf2_in[0] )
         p2 = array( Mf2_in[-1] )
         p3 = array( Mb2_in[0] )
         p4 = array( Mb2_in[-1] )
-        p = seg_intersect( p1,p2, p3,p4)
+        opposite_D = seg_intersect( p1,p2, p3,p4)
+        # M = array([]).reshape(0,2) # region 0BCD
+        x_range = arange(D[0],opposite_D[0], 0.0001)
+        y_range = arange(opposite_D[1],D[1], 0.0001)
+        a = zeros((size(x_range),size(y_range)))
+        for i in range(size(x_range)):
+            for j in range(size(y_range)):
+                # x = x_range[i]
+                # y = y_range[j]
+                x,y = henon.multiIter([x_range[i],y_range[i]], 4)[-1]
+                # for _ in range(4):
+                    # (x,y) = henon.oneIter((x,y))
+                a[i,j] = min(1,sqrt((x-x_range[i])**2 + (y-y_range[j])**2))
         # plot out your result.
-        fig = figure(figsize=(10,10))
-        ax  = fig.add_subplot(111)
+        fig = figure(figsize=(12,6))
+        ax1  = fig.add_subplot(121)
+        ax2  = fig.add_subplot(122)
         # ax.plot(M[:,0],M[:,1])
-        ax.plot(uManifold[:,0], uManifold[:, 1], 'r',label = r'$W_u$')
-        ax.plot(sManifold[:,0], sManifold[:, 1], 'c',label = r'$W_s$')
-        ax.plot([x for (x,_) in Mf1], [y for (_,y) in Mf1], 'm',label = r'$Mf_1$')
-        ax.plot([x for (x,_) in Mf2], [y for (_,y) in Mf2], 'g',label = r'$Mf_2$')
-        # ax.plot([x for (x,_) in Mf2_in], [y for (_,y) in Mf2_in], 'k',label = r'$Mf_2$')
+        ax1.plot(uManifold[:,0], uManifold[:, 1], 'r',label = r'$W_u$')
+        ax1.plot(sManifold[:,0], sManifold[:, 1], 'c',label = r'$W_s$')
+        ax1.plot([x for (x,_) in Mf1], [y for (_,y) in Mf1], 'm',label = r'$Mf_1$')
+        ax1.plot([x for (x,_) in Mf2], [y for (_,y) in Mf2], 'g',label = r'$Mf_2$')
+        ax2.plot([x for (x,_) in Mf2_in], [y for (_,y) in Mf2_in], 'g',label = r'$Mf_2$')
 
-        ax.plot([x for (x,_) in Mb1], [y for (_,y) in Mb1], 'b',label = r'$Mb_1$')
-        ax.plot([x for (x,_) in Mb2], [y for (_,y) in Mb2], 'y',label = r'$Mb_2$')
-        # ax.plot([x for (x,_) in Mb2_in], [y for (_,y) in Mb2_in], 'k',label = r'$Mf_2$')
-        ax.text(D[0], D[1], '$D$')
-        ax.scatter(p[0],p[1],c='xkcd:red',marker='x',s=50)
-        ax.set_title('(e)')
-        ax.legend()
-        ax.grid()
+        ax1.plot([x for (x,_) in Mb1], [y for (_,y) in Mb1], 'b',label = r'$Mb_1$')
+        ax1.plot([x for (x,_) in Mb2], [y for (_,y) in Mb2], 'y',label = r'$Mb_2$')
+        ax2.plot([x for (x,_) in Mb2_in], [y for (_,y) in Mb2_in], 'y',label = r'$Mf_2$')
+        ax2.text(D[0], D[1], '$D$')
+        ax2.scatter(opposite_D[0],opposite_D[1],c='xkcd:red',marker='x',s=50)
+        # ax2.plot(M[:,0],M[:,1])
+        heatmap = ax2.imshow(a,
+                             cmap          = 'hot',
+                             interpolation = 'nearest',
+                             origin        = 'lower',
+                             extent        = (x_range[0], x_range[-1], y_range[0], y_range[-1]))
+        colorbar(heatmap)
+
+        ax1.set_title('(e)')
+        ax1.legend()
+        ax1.grid()
+        ax2.legend()
         savefig('case4')
         # find a point in the top left region (the region which is closest to point D)
         # as the initial condition to find a periodic period with period 4
         # hint: use fsolve()
-        guess = array([-0.4, 0.5])
-        x = guess # the initial condition you get from this guess - TBD
+        guess = array([-0.415, 0.546])
+        x = guess#array([[-0.394, 0.548]])# from plot --opposite_D # the initial condition you get from this guess - TBD
         print (henon.multiIter(x, 4)) # check whether it is periodic
+        ax2.scatter(x[0],x[1],c='xkcd:red',marker='x',s=50)
         # if you like, you can figure out the symbolic representation
         # of this periodic orbit.
 
