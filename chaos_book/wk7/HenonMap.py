@@ -151,9 +151,12 @@ def seg_intersect(a1,a2, b1,b2) :
     num   = dot( dap, dp )
     return (num / denom.astype(float))*db + b1
 
-def detect4cycle(x,offset=0.1,epsilon=0.1):
+def detect4cycle(x):
     xs = henon.multiIter(x, 4)
-    return offset if norm(xs[2]-x)<epsilon else (xs[-1]-x)
+    a = xs[-1]-x
+    b = norm(xs[2]-x)
+    b2 = b*b
+    return a#/b2
 
 if __name__ == '__main__':
     parser = ArgumentParser('Stable and unstable manifold of Henon map (Example 15.5)')
@@ -511,8 +514,10 @@ if __name__ == '__main__':
         guess = array([-0.4, 0.55]) # [-0.415, 0.546]
         x = fsolve(detect4cycle,guess)
         print ('Found')
-        print (henon.multiIter(x, 4)) # check whether it is periodic
-        ax2.scatter(x[0],x[1],c='xkcd:green',marker='x',s=50)
+        z = detect4cycle(x)
+        cycle=henon.multiIter(x, 4)
+        print (cycle) # check whether it is periodic
+        ax2.scatter(cycle[:,0],cycle[:,1],c='xkcd:green',marker='x',s=50)
         # if you like, you can figure out the symbolic representation
         # of this periodic orbit.
 
