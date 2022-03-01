@@ -3,7 +3,7 @@ Stable and unstable manifold of Henon map (Example 15.5)
 '''
 
 from argparse          import ArgumentParser
-from numpy             import arange, argmax, argmin, array, load, savez, size, sqrt, vstack, zeros
+from numpy             import arange, argmax, argmin, array, dot, empty_like, load, savez, size, sqrt, vstack, zeros
 from matplotlib.pyplot import figure, grid, legend, rc, savefig, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
@@ -105,32 +105,51 @@ class Henon:
 
         return state
 
-'''Case 2: use scipy.optimize.fsolve() to obtain intersection points B, C, D'''
+
 def get_point(f,x0,tck):
+    '''
+    Case 2: use scipy.optimize.fsolve() to obtain intersection points B, C, D
+    Parameters:
+        f     Function to evaluate
+        x0    Point to search from
+        tck   Spline computed by splrep
+    Returns:
+        (x,y) such that f(x)=0, y = g(x), where g() is function represented by tck
+    '''
     x = fsolve(f,x0)
     y = splev(x,tck)
     return x[0],y[0]
 
 
-def get_interpolated_line(A, E,n = 25):
+def get_interpolated_line(A, E, n = 25):
     def interpolate(u):
         return (u*A[0]+(1-u)*E[0],u*A[1]+(1-u)*E[1])
     return [interpolate(i/n) for i in range(n+1)]
 
-def get_case2():
+def get_case2(file = 'case2.npz'):
     '''load needed variables from case2.'''
-    case2     = load('case2.npz', allow_pickle = True)
-    B         = case2['B']
-    C         = case2['C']
-    D         = case2['D']
-    eq0       = case2['eq0']
-    eq1       = case2['eq1']
-    tck       = case2['tck']
-    uManifold = case2['uManifold']
-    sManifold = case2['sManifold']
+    case2     = load(file, allow_pickle = True)
+    return (case2['B'], case2['C'], case2['D'], case2['eq0'], case2['eq1'], case2['tck'], case2['uManifold'], case2['sManifold'])
 
-    return B,C,D,eq0, eq1,tck, uManifold,sManifold
 
+
+# line segment a given by endpoints a1, a2
+# line segment b given by endpoints b1, b2
+# return
+def seg_intersect(a1,a2, b1,b2) :
+    '''Snarfed from https://stackoverflow.com/questions/3252194/numpy-and-line-intersections'''
+    def perp( a ) :
+        b    = empty_like(a)
+        b[0] = -a[1]
+        b[1] = a[0]
+        return b
+    da    = a2 - a1
+    db    = b2 - b1
+    dp    = a1 - b1
+    dap   = perp(da)
+    denom = dot( dap, db)
+    num   = dot( dap, dp )
+    return (num / denom.astype(float))*db + b1
 
 if __name__ == '__main__':
     parser = ArgumentParser('Stable and unstable manifold of Henon map (Example 15.5)')
@@ -423,27 +442,48 @@ if __name__ == '__main__':
         henon                                   = Henon() # use the default parameters: a=6, b=-1
         B,C,D,eq0, eq1,tck, uManifold,sManifold = get_case2()
 
-        # initialize the first/second forward/backward iteration of the border
-        Mf1 = [henon.oneIter(p) for p in get_interpolated_line(C,D,n=50)]
-        Mf2 = [henon.oneIter(p) for p in Mf1]
-        Mb1 = [henon.oneBackIter(p) for p in get_interpolated_line(C,B,n=50)] # ....first backward ....
-        Mb2 = [henon.oneBackIter(p) for p in Mb1] # ....second backward ....
 
+        # initialize the first/second forward/backward iteration of the border
+        Mf1 = [henon.oneIter(p) for p in get_interpolated_line(C,D,n=100)]
+        Mf2 = [henon.oneIter(p) for p in Mf1]
+        Mb1 = [henon.oneBackIter(p) for p in get_interpolated_line(C,B,n=50)]
+        Mb2 = [henon.oneBackIter(p) for p in Mb1]
+        # spl_Mb1 = splrep([x for (x,_) in Mb1], [y for (_,y) in Mb1], s=0)
         # implement your code here to get Mf1, Mf2, Mb1, Mb2
         # hint: use the interpolation function of stable manifold
+        M = array([]).reshape(0,2) # region 0BCD
+        x_range = arange(D[0], D[0]+0.1, 0.01)
+        y_range = arange(D[1]-0.075, D[1], 0.01)
+        for i in range(size(x_range)):
+            for j in range(size(y_range)):
+                state = array([x_range[i], y_range[j]])
+                M = vstack( (M, state) )
+        Mf2_in = [(x,y) for (x,y) in Mf2 if D[0]-0.1<x and x<D[0]+0.1 and D[1]-0.075<y and y<D[1]+0.075]
+        Mb2_in = [(x,y) for (x,y) in Mb2 if D[0]-0.1<x and x<D[0]+0.1 and D[1]-0.225<y and y<D[1]+0.225]
 
-
+        p1 = array( Mf2_in[0] )
+        p2 = array( Mf2_in[-1] )
+        p3 = array( Mb2_in[0] )
+        p4 = array( Mb2_in[-1] )
+        p = seg_intersect( p1,p2, p3,p4)
         # plot out your result.
-        fig = figure(figsize=(6,6))
+        fig = figure(figsize=(10,10))
         ax  = fig.add_subplot(111)
+        # ax.plot(M[:,0],M[:,1])
         ax.plot(uManifold[:,0], uManifold[:, 1], 'r',label = r'$W_u$')
         ax.plot(sManifold[:,0], sManifold[:, 1], 'c',label = r'$W_s$')
         ax.plot([x for (x,_) in Mf1], [y for (_,y) in Mf1], 'm',label = r'$Mf_1$')
         ax.plot([x for (x,_) in Mf2], [y for (_,y) in Mf2], 'g',label = r'$Mf_2$')
+        # ax.plot([x for (x,_) in Mf2_in], [y for (_,y) in Mf2_in], 'k',label = r'$Mf_2$')
+
         ax.plot([x for (x,_) in Mb1], [y for (_,y) in Mb1], 'b',label = r'$Mb_1$')
         ax.plot([x for (x,_) in Mb2], [y for (_,y) in Mb2], 'y',label = r'$Mb_2$')
+        # ax.plot([x for (x,_) in Mb2_in], [y for (_,y) in Mb2_in], 'k',label = r'$Mf_2$')
+        ax.text(D[0], D[1], '$D$')
+        ax.scatter(p[0],p[1],c='xkcd:red',marker='x',s=50)
         ax.set_title('(e)')
         ax.legend()
+        ax.grid()
         savefig('case4')
         # find a point in the top left region (the region which is closest to point D)
         # as the initial condition to find a periodic period with period 4
