@@ -122,6 +122,15 @@ def get_point(f,x0,tck):
 
 
 def get_interpolated_line(A, E, n = 25):
+    '''
+    Find a specified number of points on line joining two specified points
+    Used to see the pre-images of the borders of Mf1 and Mb1,
+
+    Parameters:
+        A         First specified point
+        E         Other  specified point
+        n         Number of points
+    '''
     def interpolate(u):
         return (u*A[0]+(1-u)*E[0],u*A[1]+(1-u)*E[1])
     return [interpolate(i/n) for i in range(n+1)]
@@ -129,16 +138,24 @@ def get_interpolated_line(A, E, n = 25):
 def get_case2(file = 'case2.npz'):
     '''load needed variables from case2.'''
     case2     = load(file, allow_pickle = True)
-    return (case2['B'], case2['C'], case2['D'], case2['eq0'], case2['eq1'], case2['tck'], case2['uManifold'], case2['sManifold'])
+    return tuple(case2[key] for key in ['B','C','D','eq0','eq1','tck','uManifold','sManifold'])
 
 
 
-# line segment a given by endpoints a1, a2
-# line segment b given by endpoints b1, b2
-# return
 def seg_intersect(a1,a2, b1,b2) :
-    '''Snarfed from https://stackoverflow.com/questions/3252194/numpy-and-line-intersections'''
-    def perp( a ) :
+    '''
+    Calculate interections of lines specified by endpoints
+    Parameters:
+        a1      Specify one end of line a
+        a2      Specify other end of line a
+        b1      Specify one end of line b
+        b2      Specify other end of line b
+    Returns:
+        Intersection of lines a and b
+
+    Snarfed from https://stackoverflow.com/questions/3252194/numpy-and-line-intersections
+    '''
+    def create_perpendicular( a ):
         b    = empty_like(a)
         b[0] = -a[1]
         b[1] = a[0]
@@ -146,7 +163,7 @@ def seg_intersect(a1,a2, b1,b2) :
     da    = a2 - a1
     db    = b2 - b1
     dp    = a1 - b1
-    dap   = perp(da)
+    dap   = create_perpendicular(da)
     denom = dot( dap, db)
     num   = dot( dap, dp )
     return (num / denom.astype(float))*db + b1

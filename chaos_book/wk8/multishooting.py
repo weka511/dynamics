@@ -92,15 +92,15 @@ class Multishooting:
         '''
         M, N = states_stack.shape
 
-        DF = .zeros([N*M, N*M+1])
-        dF = .zeros(N*M)
+        DF = zeros([N*M, N*M+1])
+        dF = zeros(N*M)
 
         # fill out the first row of the multishooting matrix and difference vector
         x_start = states_stack[-1,:]
         x_end = states_stack[0,:]
         states, Jacob = self.intgr_jaco(x_start, dt, nstp+1)
         fx_start = states[-1,:]
-        DF[0:N, 0:N] = .eye(N)
+        DF[0:N, 0:N] = eye(N)
         DF[0:N, -N-1:-1] = -Jacob;
         DF[0:N, -1] = - self.velo(fx_start, None)
         dF[0:N] = - (x_end - fx_start)
@@ -108,7 +108,7 @@ class Multishooting:
         # fill out row 2 to row M of multishooting matrix and difference vector
         for i in range(1, M):
             # iut your implementation here
-
+            pass   # TO DO
         return DF, dF
 
 
@@ -122,7 +122,7 @@ class Multishooting:
         '''
         M, N = states_stack.shape
         xx = states_stack
-        dF = .zeros(M*N)
+        dF = zeros(M*N)
 
         x = self.intgr(xx[-1,:], dt, nstp+1)
         dF[0:N] = - (xx[0,:] - x[-1,:])
@@ -158,15 +158,15 @@ class Multishooting:
         x_new = x;
         for i in range(maxIter):
             J, dF = self.shootingMatrix(x, dt, nstp);
-            print 'iteration number i = ' + str(i) + ' has error: ' + str(norm(dF, inf))
+            print ('iteration number i = ' + str(i) + ' has error: ' + str(norm(dF, inf)))
             if( norm(dF, inf) < tol ):
-                print 'iteration terminates at error : ' + str(norm(dF, inf))
+                print ('iteration terminates at error : ' + str(norm(dF, inf)))
                 return x, dt
-            JJ = .dot(J.T,  J) ;
-            JdF = .dot(J.T, dF);
+            JJ = dot(J.T,  J) ;
+            JdF = dot(J.T, dF);
 
-            H = JJ + lam* .diag(.diag(JJ));
-            delta_x = .linalg.solve(H, JdF);
+            H = JJ + lam* diag(diag(JJ));
+            delta_x = solve(H, JdF);
             #tmp =  gmres(H, JdF, tol = 1e-6, restart=30, maxiter = 100)
             #delta_x = tmp[0]; print tmp[1]
             for k in range(M): x_new[k,:] = x[k,:] + delta_x[k*N:(k+1)*N]
@@ -180,7 +180,7 @@ class Multishooting:
             else :
                 lam= lam * 10.0;
                 if lam> 1e10:
-                    print 'lam is too large'
+                    print ('lam is too large')
                     return x, dt
 
         return x, dt

@@ -18,7 +18,7 @@
 #   is implemented for you.
 
 ######################################################################
-from numpy             import zeros, size, array, dot, hstack, load, argmax, arange, int, vstack
+from numpy             import arange, argmax, argmin,  array, dot, hstack,  int, load, size,  vstack, zeros
 from numpy.linalg      import norm
 from matplotlib.pyplot import figure, show
 from scipy.interpolate import interp1d
@@ -34,9 +34,9 @@ G_c1 = -7.75
 G_a2 = -2.66
 
 def rk4(velo, y0, dt, nstp):
-    """
+    '''
     4th order Runge-Kutta method
-    """
+    '''
     y = zeros( (nstp, size(y0)) )
     y[0,:] = y0
     yt = y0
@@ -52,13 +52,13 @@ def rk4(velo, y0, dt, nstp):
     return y
 
 def velocity_reduced(stateVec_reduced, t):
-    """
+    '''
     velocity in the slice after reducing the continous symmetry
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     t: not used
     return: velocity at stateVect_reduced. dimension [1 x 3]
-    """
+    '''
     x1 = stateVec_reduced[0]
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
@@ -72,12 +72,12 @@ def velocity_reduced(stateVec_reduced, t):
     return velo
 
 def stabilityMatrix_reduced(stateVec_reduced):
-    """
+    '''
     calculate the stability matrix on the slice
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     return: stability matrix. Dimension [3 x 3]
-    """
+    '''
     x1 = stateVec_reduced[0]
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
@@ -90,13 +90,13 @@ def stabilityMatrix_reduced(stateVec_reduced):
     return stab
 
 def integrator_reduced(init_state, dt, nstp):
-    """
+    '''
     integrate two modes system in the slice
 
     init_state: initial state [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     dt: time step
     nstp: number of time step
-    """
+    '''
     states = rk4(velocity_reduced, init_state, dt, nstp)
     return states
 
@@ -116,7 +116,7 @@ def integrator_reduced_with_jacob(stateVec_reduced, dt, nstp):
 
     return state, Jacob
 
-
+TBD = None
 
 if __name__ == '__main__':
     parser = ArgumentParser('8.1/Q8.2|two modes system continued -- kneading theory')
@@ -125,17 +125,17 @@ if __name__ == '__main__':
                         choices = [1,2,3,4])
     args = parser.parse_args()
 
-    """
+    '''
     pre action : load data
 
-    In homework 5, we get the return map on the poincare secion in the two modes
+    In homework 5, we get the return map on the poincare section in the two modes
     system. This map could be used to locate periodic orbits. Here, we provide
     the raw data of this map.
 
     Note: the poincare intersection points are recorded in the new coordinates system.
           They should be transformed to the original coordinates to get the inital guess
           of periodic orbit
-    """
+    '''
     data = load('data.npz')
     PoincarePoints = data['PoincarePoints'] # Poincare intersection points. dimension [1382 x 2]
     arclength = data['arclength']           # arclength
@@ -150,11 +150,11 @@ if __name__ == '__main__':
     # case = 2
 
     if args.case == 1:
-        """
+        '''
         work with the symbolic dynamics of two modes system.
         You are supposed to get the initial condition of periodic
         orbit with period 4.
-        """
+        '''
         # interpolate the data points to get a smooth return map
         returnMap = interp1d(arclength[:-1], arclength[1:])
 
@@ -172,9 +172,9 @@ if __name__ == '__main__':
         # find a periodic orbit with period 4
         order = 4
         g = lambda x : uni.returnMap_iter(x, order)[-1] - x
-        guess =  # choose a guess
+        guess =  TBD# choose a guess
         # use fsolve() to get the periodic orbit 1110
-        state =  # the x coordinate of the point of orbit 1110
+        state = TBD # the x coordinate of the point of orbit 1110
         # find the closest Poincare intersection point
         idx = argmin(abs(arclength - state))
         point = PoincarePoints[idx]
@@ -195,15 +195,15 @@ if __name__ == '__main__':
         ax.plot(orbit[:,0], orbit[:,1], orbit[:,2])
         ax.scatter(original_point[0], original_point[1], original_point[2], c='r')
         ax.scatter(orbit[-1,0], orbit[-1,1], orbit[-1,2], c='k')
-        show()
+
 
 
     if args.case == 2:
-        """
+        '''
         use multishootimg method to refine the orbit you got in case 1
-        """
+        '''
         x0 = array([]) # copy the initial guess here: 'original_point' in case 1
-        T0 =  # copy the initial guess of period here
+        T0 =  TBD# copy the initial guess of period here
         M = 4 # choose 4 (= order) points on the orbit for multishooting
         nstp = int(T0/0.001/M)
         dt = T0/nstp/M
@@ -219,9 +219,9 @@ if __name__ == '__main__':
 
         # plot this periodic orbit
         fig = figure(figsize=(8,6))
-        ax = fig.add_subplot(111, projection="3d")
+        ax = fig.add_subplot(111, projection='3d')
         for i in range(M):
             states = integrator_reduced(xx[i,:], tt, nstp+1)
             ax.plot(states[:,0], states[:,1], states[:,2], 'r')
-        show()
 
+    show()
