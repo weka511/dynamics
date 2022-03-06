@@ -32,3 +32,7 @@
 8|multishooting.py|Q8.2|two modes system continued -- multi-shooting method
 -|twomodes_continue.py|Q8.1/Q8.2|two modes system continued -- kneading theory
 -|unimodal.py|Q8.1|
+10|henonMap.py||Natural Measure
+-|logisticMap.py||
+12|wk12.py||Cycle Expansion
+16|ksSub.py||Turbulence
