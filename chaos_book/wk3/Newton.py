@@ -56,15 +56,43 @@ class Poincare:
                    self.nTemplate if nTemplate==None else nTemplate)
 
     def ProjPoincare(self):
-        #Unit vectors which will span the Poincare section hyperplane are the
-        #template vector and the unit vector at z. Let us construct a matrix which
-        #projects state space vectors onto these basis:
+        '''Unit vectors which will span the Poincare section hyperplane are the
+        template vector and the unit vector at z. Let us construct a matrix which
+        projects state space vectors onto these basis'''
         e_z          = array([0, 0, 1], float)  # Unit vector in z direction
         return  array([self.sspTemplate,
                              e_z,
                              self.nTemplate], float)
 
-poincare = Poincare()
+    def get_intersections(self,sspSolution):
+        sspSolutionPoincare = array([], float)
+        for i in range(size(sspSolution, 0) - 1):
+            #Look at every instance from integration and search for Poincare
+            #section hyperplane crossings:
+            if self.UPoincare(sspSolution[i]) < 0 and self.UPoincare(sspSolution[i+1]) > 0:  #If the hyperplane equation is lesser than zero at one instance
+                                                                                    #and greater than zero at the next, this implies that there is a
+                                                                                    #zero in between
+                sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
+
+                deltat0             = (tArray[i + 1] - tArray[i]) / 2       #Initial guess for the how much time one needs to integrate
+                                                                            #starting at sspPoincare0 in order to exactly land on the Poincare
+                                                                            #section
+
+                fdeltat             = lambda deltat: self.UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
+
+                deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
+                sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
+                                                                    #flow pierces the Poincare section:
+                sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
+
+        #At this point sspSolutionPoincare is a long vector each three elements
+        #corresponding to one intersection of the flow with the Poincare section
+        #we reshape it into an N x 3 form where each row corresponds to a different
+        #intersection:
+        sspSolutionPoincare = sspSolutionPoincare.reshape(
+                                                    size(sspSolutionPoincare, 0) // 3,
+                                                    3)
+        return sspSolutionPoincare
 
 # We will first run a long trajectory of the Rossler system by starting
 # close to the eq0 in order to include its unstable manifold on the Poincare
@@ -89,42 +117,37 @@ sspSolution               = odeint(Velocity, ssp0, tArray)
 #solution. We first create an empty array to which we will append the
 #points at which the flow pierces the Poincare section:
 
-sspSolutionPoincare = array([], float)
-for i in range(size(sspSolution, 0) - 1):
-    #Look at every instance from integration and search for Poincare
-    #section hyperplane crossings:
-    if poincare.UPoincare(sspSolution[i]) < 0 and poincare.UPoincare(sspSolution[i+1]) > 0:  #If the hyperplane equation is lesser than zero at one instance
-                                                                            #and greater than zero at the next, this implies that there is a
-                                                                            #zero in between
-        sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
+poincare = Poincare()
 
-        deltat0             = (tArray[i + 1] - tArray[i]) / 2       #Initial guess for the how much time one needs to integrate
-                                                                    #starting at sspPoincare0 in order to exactly land on the Poincare
-                                                                    #section
+# sspSolutionPoincare = array([], float)
+# for i in range(size(sspSolution, 0) - 1):
+    # #Look at every instance from integration and search for Poincare
+    # #section hyperplane crossings:
+    # if poincare.UPoincare(sspSolution[i]) < 0 and poincare.UPoincare(sspSolution[i+1]) > 0:  #If the hyperplane equation is lesser than zero at one instance
+                                                                            # #and greater than zero at the next, this implies that there is a
+                                                                            # #zero in between
+        # sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
 
-        fdeltat             = lambda deltat: poincare.UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
+        # deltat0             = (tArray[i + 1] - tArray[i]) / 2       #Initial guess for the how much time one needs to integrate
+                                                                    # #starting at sspPoincare0 in order to exactly land on the Poincare
+                                                                    # #section
 
-        deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
-        sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
-                                                            #flow pierces the Poincare section:
-        sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
+        # fdeltat             = lambda deltat: poincare.UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
 
-#At this point sspSolutionPoincare is a long vector each three elements
-#corresponding to one intersection of the flow with the Poincare section
-#we reshape it into an N x 3 form where each row corresponds to a different
-#intersection:
-sspSolutionPoincare = sspSolutionPoincare.reshape(
-                                            size(sspSolutionPoincare, 0) // 3,
-                                            3)
+        # deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
+        # sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
+                                                            # #flow pierces the Poincare section:
+        # sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
 
+# #At this point sspSolutionPoincare is a long vector each three elements
+# #corresponding to one intersection of the flow with the Poincare section
+# #we reshape it into an N x 3 form where each row corresponds to a different
+# #intersection:
+# sspSolutionPoincare = sspSolutionPoincare.reshape(
+                                            # size(sspSolutionPoincare, 0) // 3,
+                                            # 3)
 
-#Unit vectors which will span the Poincare section hyperplane are the
-#template vector and the unit vector at z. Let us construct a matrix which
-#projects state space vectors onto these basis:
-# e_z          = array([0, 0, 1], float)  # Unit vector in z direction
-# ProjPoincare = array([sspTemplate,
-                             # e_z,
-                             # nTemplate], float)
+sspSolutionPoincare = poincare.get_intersections(sspSolution)
 ProjPoincare = poincare.ProjPoincare()
 
 #sspSolutionPoincare has column vectors on its rows. We act on the
@@ -392,7 +415,7 @@ ax.plot(periodicOrbit[:, 0],
         periodicOrbit[:, 1],
         periodicOrbit[:, 2],
         color='xkcd:purple',
-        label='periodicOrbit')
+        label='Periodic Orbit')
 ax.legend()
 
 show()  # Show the figures
