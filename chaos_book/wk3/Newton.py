@@ -90,6 +90,18 @@ class Poincare:
         #intersection:
         return sspSolutionPoincare.reshape(size(sspSolutionPoincare, 0) // 3, 3)
 
+    def createPoincareSection(self,ProjPoincare,sspSolutionPoincare):
+        #sspSolutionPoincare has column vectors on its rows. We act on the
+        #transpose of this matrix to project each state space point onto Poincare
+        #basis by a simple matrix multiplication:
+        PoincareSection = dot(ProjPoincare, sspSolutionPoincare.transpose())
+        PoincareSection =  PoincareSection.transpose()   #We return to the usual N x 3 form by another transposition
+        #Third column of this matrix should be zero if everything is correct, so we
+        #discard it:
+
+        PoincareSection = PoincareSection[:, 0:2]  # Does this actually do anything?
+        return PoincareSection
+
 # We will first run a long trajectory of the Rossler system by starting
 # close to the eq0 in order to include its unstable manifold on the Poincare
 # section. Let us start by repeating what we have done in the stability
@@ -116,16 +128,7 @@ sspSolution               = odeint(Velocity, ssp0, tArray)
 poincare            = Poincare()
 sspSolutionPoincare = poincare.get_intersections(sspSolution)
 ProjPoincare        = poincare.ProjPoincare()
-
-#sspSolutionPoincare has column vectors on its rows. We act on the
-#transpose of this matrix to project each state space point onto Poincare
-#basis by a simple matrix multiplication:
-PoincareSection = dot(ProjPoincare, sspSolutionPoincare.transpose())
-PoincareSection =  PoincareSection.transpose()   #We return to the usual N x 3 form by another transposition
-#Third column of this matrix should be zero if everything is correct, so we
-#discard it:
-
-PoincareSection = PoincareSection[:, 0:2]  # Does this actually do anything?
+PoincareSection     = poincare.createPoincareSection(ProjPoincare,sspSolutionPoincare)
 
 # We are now going to compute the pairwise distances between PoincareSection
 # elements in order to sort them according to the increasing distance
