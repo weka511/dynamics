@@ -9,46 +9,62 @@ from Rossler                import Flow, StabilityMatrix, Velocity, Jacobian
 from scipy.interpolate      import splev,  splprep, splrep
 from scipy.spatial.distance import pdist, squareform
 
-def zRotation(theta):
-    """
-    Rotation matrix about z-axis
-    Input:
-    theta: Rotation angle (radians)
-    Output:
-    Rz: Rotation matrix about z-axis
-    """
-    return array([[cos(theta), -sin(theta), 0],
-                  [sin(theta), cos(theta),  0],  # Simon
-                  [0,          0,           1]],
-                 float)  # Simon
 
 
-thetaPoincare = 0.0 #Angle between the Poincare section hyperplane and the x-axis:
+class Poincare:
+    def __init__(self,
+                 thetaPoincare = 0.0#Angle between the Poincare section hyperplane and the x-axis
+                ):
+    #Define vectors which will be on and orthogonal to the Poincare section
+    #hyperplane:
+        e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
+        self.sspTemplate = dot(self.zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
+        self.nTemplate   = dot(self.zRotation(pi/2), self.sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
 
-#Define vectors which will be on and orthogonal to the Poincare section
-#hyperplane:
+    def zRotation(self,theta):
+        """
+        Rotation matrix about z-axis
+        Input:
+        theta: Rotation angle (radians)
+        Output:
+        Rz: Rotation matrix about z-axis
+        """
+        return array([[cos(theta), -sin(theta), 0],
+                      [sin(theta), cos(theta),  0],  # Simon
+                      [0,          0,           1]],
+                     float)  # Simon
 
-e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
-sspTemplate = dot(zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
-nTemplate   = dot(zRotation(pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
+    #Define the Poincare section hyperplane equation as a Lambda function based on
+    #the UPoincare from Poincare module, using our new sspTemplate and nTemplate:
+    # UPoincare = lambda ssp: Poincare.UPoincare(ssp, sspTemplate, nTemplate)
 
-#Define the Poincare section hyperplane equation as a Lambda function based on
-#the UPoincare from Poincare module, using our new sspTemplate and nTemplate:
-# UPoincare = lambda ssp: Poincare.UPoincare(ssp, sspTemplate, nTemplate)
+    def UPoincare(self,ssp,
+                  sspTemplate=None,
+                  nTemplate=None):
+        """
+        Plane equation for the Poincare section hyperplane which includes z-axis
+        and makes an angle theta with the x-axis see ChaosBook ver. 14, fig. 3.2
+        Inputs:
+        ssp: State space point at which the Poincare hyperplane equation will be
+             evaluated
+        Outputs:
+        U: Hyperplane equation which should be satisfied on the Poincare section
+           U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
+        """
 
-def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
-    """
-    Plane equation for the Poincare section hyperplane which includes z-axis
-    and makes an angle theta with the x-axis see ChaosBook ver. 14, fig. 3.2
-    Inputs:
-    ssp: State space point at which the Poincare hyperplane equation will be
-         evaluated
-    Outputs:
-    U: Hyperplane equation which should be satisfied on the Poincare section
-       U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
-    """
+        return dot((ssp - (self.sspTemplate if sspTemplate==None else sspTemplate)),
+                   self.nTemplate if nTemplate==None else nTemplate)
 
-    return dot((ssp - sspTemplate) , nTemplate)
+    def ProjPoincare(self):
+        #Unit vectors which will span the Poincare section hyperplane are the
+        #template vector and the unit vector at z. Let us construct a matrix which
+        #projects state space vectors onto these basis:
+        e_z          = array([0, 0, 1], float)  # Unit vector in z direction
+        return  array([self.sspTemplate,
+                             e_z,
+                             self.nTemplate], float)
+
+poincare = Poincare()
 
 # We will first run a long trajectory of the Rossler system by starting
 # close to the eq0 in order to include its unstable manifold on the Poincare
@@ -77,7 +93,7 @@ sspSolutionPoincare = array([], float)
 for i in range(size(sspSolution, 0) - 1):
     #Look at every instance from integration and search for Poincare
     #section hyperplane crossings:
-    if UPoincare(sspSolution[i]) < 0 and UPoincare(sspSolution[i+1]) > 0:  #If the hyperplane equation is lesser than zero at one instance
+    if poincare.UPoincare(sspSolution[i]) < 0 and poincare.UPoincare(sspSolution[i+1]) > 0:  #If the hyperplane equation is lesser than zero at one instance
                                                                             #and greater than zero at the next, this implies that there is a
                                                                             #zero in between
         sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
@@ -86,7 +102,7 @@ for i in range(size(sspSolution, 0) - 1):
                                                                     #starting at sspPoincare0 in order to exactly land on the Poincare
                                                                     #section
 
-        fdeltat             = lambda deltat: UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
+        fdeltat             = lambda deltat: poincare.UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
 
         deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
         sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
@@ -105,10 +121,12 @@ sspSolutionPoincare = sspSolutionPoincare.reshape(
 #Unit vectors which will span the Poincare section hyperplane are the
 #template vector and the unit vector at z. Let us construct a matrix which
 #projects state space vectors onto these basis:
-e_z          = array([0, 0, 1], float)  # Unit vector in z direction
-ProjPoincare = array([sspTemplate,
-                             e_z,
-                             nTemplate], float)
+# e_z          = array([0, 0, 1], float)  # Unit vector in z direction
+# ProjPoincare = array([sspTemplate,
+                             # e_z,
+                             # nTemplate], float)
+ProjPoincare = poincare.ProjPoincare()
+
 #sspSolutionPoincare has column vectors on its rows. We act on the
 #transpose of this matrix to project each state space point onto Poincare
 #basis by a simple matrix multiplication:
@@ -248,7 +266,7 @@ sspfixed = dot(append(PoincareSectionfixed, 0.0), ProjPoincare)
 #We will now find how much time does it takes for a trajectory which starts
 #at this point to intersect the Poincare section for a second time, to do
 #that we update our lambda function fdeltat for sspfixed:
-fdeltat = lambda deltat: UPoincare(Flow(sspfixed, deltat))
+fdeltat = lambda deltat: poincare.UPoincare(Flow(sspfixed, deltat))
 #In order to solve for this time, we need an initial guess. We guess it by
 #dividing the total integration time of our simulation by the number of
 #intersections with the Poincare section:
@@ -286,7 +304,7 @@ while max(abs(error)) > tol:
     print(f'Iteration {k}')
     Newton[0:3, 0:3] = 1-Jacobian(sspfixed,Tnext)     #First 3x3 block is 1 - J^t(x)
     Newton[0:3, 3]  = -Velocity(sspfixed,Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
-    Newton[3, 0:3]  = nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
+    Newton[3, 0:3]  = poincare.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
     Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
     sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
     period          = period + Delta[3]
