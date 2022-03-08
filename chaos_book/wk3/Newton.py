@@ -9,16 +9,15 @@ from Rossler                import Flow, StabilityMatrix, Velocity, Jacobian
 from scipy.interpolate      import splev,  splprep, splrep
 from scipy.spatial.distance import pdist, squareform
 
-
-
 class Poincare:
     def __init__(self,
                  thetaPoincare = 0.0#Angle between the Poincare section hyperplane and the x-axis
                 ):
     #Define vectors which will be on and orthogonal to the Poincare section
     #hyperplane:
-        e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
-        self.sspTemplate = dot(self.zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
+        self.e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
+        self.e_z         = array([0, 0, 1], float)  # Unit vector in z direction
+        self.sspTemplate = dot(self.zRotation(thetaPoincare), self.e_x)  #Template vector to define the Poincare section hyperplane
         self.nTemplate   = dot(self.zRotation(pi/2), self.sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
 
     def zRotation(self,theta):
@@ -59,9 +58,9 @@ class Poincare:
         '''Unit vectors which will span the Poincare section hyperplane are the
         template vector and the unit vector at z. Let us construct a matrix which
         projects state space vectors onto these basis'''
-        e_z          = array([0, 0, 1], float)  # Unit vector in z direction
+
         return  array([self.sspTemplate,
-                             e_z,
+                             self.e_z,
                              self.nTemplate], float)
 
     def get_intersections(self,sspSolution):
@@ -89,10 +88,7 @@ class Poincare:
         #corresponding to one intersection of the flow with the Poincare section
         #we reshape it into an N x 3 form where each row corresponds to a different
         #intersection:
-        sspSolutionPoincare = sspSolutionPoincare.reshape(
-                                                    size(sspSolutionPoincare, 0) // 3,
-                                                    3)
-        return sspSolutionPoincare
+        return sspSolutionPoincare.reshape(size(sspSolutionPoincare, 0) // 3, 3)
 
 # We will first run a long trajectory of the Rossler system by starting
 # close to the eq0 in order to include its unstable manifold on the Poincare
@@ -117,38 +113,9 @@ sspSolution               = odeint(Velocity, ssp0, tArray)
 #solution. We first create an empty array to which we will append the
 #points at which the flow pierces the Poincare section:
 
-poincare = Poincare()
-
-# sspSolutionPoincare = array([], float)
-# for i in range(size(sspSolution, 0) - 1):
-    # #Look at every instance from integration and search for Poincare
-    # #section hyperplane crossings:
-    # if poincare.UPoincare(sspSolution[i]) < 0 and poincare.UPoincare(sspSolution[i+1]) > 0:  #If the hyperplane equation is lesser than zero at one instance
-                                                                            # #and greater than zero at the next, this implies that there is a
-                                                                            # #zero in between
-        # sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
-
-        # deltat0             = (tArray[i + 1] - tArray[i]) / 2       #Initial guess for the how much time one needs to integrate
-                                                                    # #starting at sspPoincare0 in order to exactly land on the Poincare
-                                                                    # #section
-
-        # fdeltat             = lambda deltat: poincare.UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
-
-        # deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
-        # sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
-                                                            # #flow pierces the Poincare section:
-        # sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
-
-# #At this point sspSolutionPoincare is a long vector each three elements
-# #corresponding to one intersection of the flow with the Poincare section
-# #we reshape it into an N x 3 form where each row corresponds to a different
-# #intersection:
-# sspSolutionPoincare = sspSolutionPoincare.reshape(
-                                            # size(sspSolutionPoincare, 0) // 3,
-                                            # 3)
-
+poincare            = Poincare()
 sspSolutionPoincare = poincare.get_intersections(sspSolution)
-ProjPoincare = poincare.ProjPoincare()
+ProjPoincare        = poincare.ProjPoincare()
 
 #sspSolutionPoincare has column vectors on its rows. We act on the
 #transpose of this matrix to project each state space point onto Poincare
@@ -343,8 +310,8 @@ print("Period:", period)
 tArray        = linspace(0, period, 1000)  # Time array for solution integration
 periodicOrbit = odeint(Velocity, sspfixed, tArray)
 
-fig  = figure()
-ax   = fig.gca(projection='3d')
+fig  = figure(figsize=(12,12))
+ax = fig.add_subplot(2, 2, 1, projection='3d')
 ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
         linewidth = 0.5,
         label     = 'Rossler')
@@ -362,8 +329,7 @@ ax.set_zlabel('$z$')
 ax.set_title('Poincare Recurrences for Rossler')
 ax.legend()
 
-fig = figure()
-ax  = fig.gca()
+ax = fig.add_subplot(2, 2, 2)
 ax.plot(PoincareSection[:, 0], PoincareSection[:, 1], '.r',
         markersize = 5,
         label      = 'Poincare Section')
@@ -381,8 +347,7 @@ ax.set_xlabel('$\\hat{x}\'$')
 ax.set_ylabel('$z$')
 ax.legend()
 
-fig = figure(figsize=(8, 8))
-ax  = fig.gca()
+ax = fig.add_subplot(2, 2, 3)
 ax.set_aspect('equal')
 ax.plot(sn1, sn2, '.r',
         markersize = 5,
@@ -395,10 +360,9 @@ ax.plot(sArray, sArray, 'k',
 ax.set_xlabel('$s_n$')
 ax.set_ylabel('$s_{n+1}$')  # Set y label
 ax.set_title('Return map')
-ax.legend()
+ax.legend(loc = 'right')
 
-fig = figure()
-ax   = fig.gca(projection='3d')
+ax = fig.add_subplot(2, 2, 4, projection='3d')
 ax.set_title('Periodic Orbit')
 ax.plot(sspfixedSolution[:, 0],
         sspfixedSolution[:, 1],
