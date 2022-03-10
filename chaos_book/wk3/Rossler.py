@@ -36,10 +36,12 @@ def Flow(ssp0, deltat):
     Lagrangian description of the flow:
     This function integrates Rossler equation starting at ssp0 for deltat, and
     returns the final state space point.
-    Inputs:
+
+    Parameters:
         ssp0: Initial state space point
         deltat: Integration time
-    Outputs:
+
+    Returns:
         sspdeltat: Final state space point
     '''
 
