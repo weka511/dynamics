@@ -25,7 +25,7 @@
 -|twoModes.py|Q5.4|Two modes system continued: Poincaré return map
 6|tentMap.py|Q6.3|Full tent map (Chapter 14 Example 14.8, 14.10)
 -|q6-3.py|Q6.3|Explore instability on tent map
--|q6-5.py|Q6.5|Work out which path impossile for golden mean
+-|q6-5.py|Q6.5|Work out which path impossible for golden mean tent map
 7|henonMap.py|Q7.1|Stable and unstable manifold of Henon map (Example 15.5)
 -|henonMap.py|Q7.2|Henon map continued -- iteration of region 0BCD
 -|henonMap.py|Q7.3|Henon map continued -- periodic orbits
