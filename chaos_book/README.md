@@ -19,6 +19,7 @@
 -|Newton.py|Q3.1| Shortest periodic orbit of the Rössler system
 4|Lorentz.py|Q4.3| Symmetry of Lorenz Flow
 -|Lorentz.py|Q4.4| Symmetry of Lorenz Flow (continued)
+-|mirandastone.py|Ex 11.5|[Proto-Lorentz system](https://chaosbook.org/library/Mir93.pdf)
 5|twoModes.py|Q5.2|Two modes system (Chapter 13 Exercise 13.7)
 -|twoModes.py|Q5.3|Two modes system continued: relative equilibria
 -|twoModes.py|Q5.4|Two modes system continued: Poincaré return map
