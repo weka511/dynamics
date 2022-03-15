@@ -4,7 +4,7 @@
 
 #| File | Homework |Remarks
 --|-------------------|--------|---------------------------------------------------------------------------------------------------
--|chaos.tex||Miscellaneous problems
+-|chaos.tex||Miscellaneous problems and proofs from [Chaos Book](http://chaosbook.org/)
 1|Poincare.py|Q1.5| Poincaré sections and return maps of the Rössler system
 -|Rossler.py|Q1.4| Integrating Rössler system
 -|RungeKutta.py|Q1.3| Runge-Kutta integration

@@ -19,6 +19,7 @@ Miscellaneous calculations  from \cite{ChaosBook}
 
 \section{Lorenz Equations}
 
+\subsection{Lorenz Equations}
 \begin{align*}
 	\dot{x} =& \sigma(y-x) \numberthis \label{eq:lorenz:1}\\
 	\dot{y} =& \rho x -y - xz \numberthis \label{eq:lorenz:2}\\
@@ -42,6 +43,44 @@ One solution is $(x,y,z)= (0,0,0)$. The other solution is
 	x^2 =& b(\rho-1)\\
 	x =& \pm \sqrt{ b(\rho-1)}\\
 	(x,y,z)=& (\pm \sqrt{ b(\rho-1)},\pm \sqrt{ b(\rho-1)},\rho-1)
+\end{align*}
+
+\subsection{Pseudo-Lorenz}
+
+In \eqref{eq:lorenz:1},  \eqref{eq:lorenz:2}, and \eqref{eq:lorenz:3} define
+\begin{align*}
+	u =& x^2-y^2 \numberthis \label{eq:miranda:stone:1}\\
+	v =& 2 x y \numberthis \label{eq:miranda:stone:2}\\
+	N =& \sqrt{u^2+v^2}\\
+	=& \sqrt{(x^2-y^2)^2 + 4x^2y^2}\\
+	=& \sqrt{x^4 - 2 x^2 y^2 + y^4  + 4x^2y^2}\\
+	=& \sqrt{x^4 + 2 x^2 y^2 + y^4}\\
+	=& \sqrt{(x^2+y^2)^2}\\
+	=& x^2+y^2 \numberthis \label{eq:miranda:stone:N}
+\end{align*}
+
+\begin{align*}
+	N+u= & x^2+y^2 + x^2 - y^2 \text{, from\eqref{eq:miranda:stone:1} and \eqref{eq:miranda:stone:N}} \\
+	=& 2 x^2 \\
+	x^2 =& \frac{N+u}{2}\numberthis \label{eq:miranda:stone:x}\\
+	N - u =& x^2+y^2 - x^2 + y^2 \text{, from\eqref{eq:miranda:stone:2} and \eqref{eq:miranda:stone:N}}\\
+	=& 2 y^2 \\
+	y^2 =& \frac{N-u}{2}\numberthis \label{eq:miranda:stone:y}	
+\end{align*}
+
+\begin{align*}
+	\dot{u} =& 2 x \dot{x} - 2 y \dot{y} \text{, from \eqref{eq:miranda:stone:1}}\\
+	=& 2x\sigma(y-x)-2y(\rho x - y -xz) \text{, from \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2}}\\
+	=&( \sigma - \rho)(2xy) -2\sigma x^2  + 2y^2 + 2xyz\\
+	=& ( \sigma - \rho) v -\sigma (N+u) + (N-u) + vz \text{, using \eqref{eq:miranda:stone:2}, \eqref{eq:miranda:stone:x} and \eqref{eq:miranda:stone:y}}\\ 
+	=& ( \sigma - \rho) v + (1-\sigma)N - (1+\sigma) +vz \numberthis \label{eq:miranda:stone:de:u}\\
+	\dot{v} =& 2 y \dot{x} + x \dot{y} \text{, from \eqref{eq:miranda:stone:2}}\\
+	=& 2\sigma(y-x)y+2x(\rho x-y-xz)  \text{, from \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2}}\\
+	=& 2 \sigma y^2 -2 \sigma x y + 2\rho x^2 -2xy -2 x^2 z\\
+	=&  \sigma (N-u) - \sigma v + \rho (N+u) -v - (N+u) z \text{, using \eqref{eq:miranda:stone:2}, \eqref{eq:miranda:stone:x} and \eqref{eq:miranda:stone:y}}\\
+	=& (\rho-\sigma) u - (\sigma+1)v + (\rho+\sigma)N - (N+u) z \numberthis \label{eq:miranda:stone:de:v}\\
+	\dot{z} =& \frac{1}{2} 2xy - bz \text{, From \eqref{eq:lorenz:3}} \\
+	=& \frac{1}{2}v - z \text{, from \eqref{eq:miranda:stone:2}} \numberthis \label{eq:miranda:stone:de:z}
 \end{align*}
 \section{Homework 2}
 
