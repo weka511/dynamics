@@ -47,10 +47,10 @@ One solution is $(x,y,z)= (0,0,0)$. The other solution is
 
 \subsection{Pseudo-Lorenz}
 
-In \eqref{eq:lorenz:1},  \eqref{eq:lorenz:2}, and \eqref{eq:lorenz:3} define
+Following \cite{miranda1993proto}, we define new variables in \eqref{eq:lorenz:1},  \eqref{eq:lorenz:2}, and \eqref{eq:lorenz:3}.
 \begin{align*}
 	u =& x^2-y^2 \numberthis \label{eq:miranda:stone:1}\\
-	v =& 2 x y \numberthis \label{eq:miranda:stone:2}\\
+	v =& 2 x y \text{, and}\numberthis \label{eq:miranda:stone:2}\\
 	N =& \sqrt{u^2+v^2}\\
 	=& \sqrt{(x^2-y^2)^2 + 4x^2y^2}\\
 	=& \sqrt{x^4 - 2 x^2 y^2 + y^4  + 4x^2y^2}\\
@@ -59,22 +59,24 @@ In \eqref{eq:lorenz:1},  \eqref{eq:lorenz:2}, and \eqref{eq:lorenz:3} define
 	=& x^2+y^2 \numberthis \label{eq:miranda:stone:N}
 \end{align*}
 
+The following identities will be useful.
 \begin{align*}
-	N+u= & x^2+y^2 + x^2 - y^2 \text{, from\eqref{eq:miranda:stone:1} and \eqref{eq:miranda:stone:N}} \\
-	=& 2 x^2 \\
+	N+u= & x^2+y^2 + x^2 - y^2 \text{, from \eqref{eq:miranda:stone:1} and \eqref{eq:miranda:stone:N}} \\
+	=& 2 x^2 \text{, whence}\\
 	x^2 =& \frac{N+u}{2}\numberthis \label{eq:miranda:stone:x}\\
 	N - u =& x^2+y^2 - x^2 + y^2 \text{, from\eqref{eq:miranda:stone:2} and \eqref{eq:miranda:stone:N}}\\
-	=& 2 y^2 \\
+	=& 2 y^2 \text{, whence}\\
 	y^2 =& \frac{N-u}{2}\numberthis \label{eq:miranda:stone:y}	
 \end{align*}
 
+We transform the Lorenz equation to the new coordinates.
 \begin{align*}
 	\dot{u} =& 2 x \dot{x} - 2 y \dot{y} \text{, from \eqref{eq:miranda:stone:1}}\\
 	=& 2x\sigma(y-x)-2y(\rho x - y -xz) \text{, from \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2}}\\
-	=&( \sigma - \rho)(2xy) -2\sigma x^2  + 2y^2 + 2xyz\\
+	=&( \sigma - \rho)(2xy) -2\sigma x^2  + 2y^2 + (2xy)z\\
 	=& ( \sigma - \rho) v -\sigma (N+u) + (N-u) + vz \text{, using \eqref{eq:miranda:stone:2}, \eqref{eq:miranda:stone:x} and \eqref{eq:miranda:stone:y}}\\ 
-	=& ( \sigma - \rho) v + (1-\sigma)N - (1+\sigma) +vz \numberthis \label{eq:miranda:stone:de:u}\\
-	\dot{v} =& 2 y \dot{x} + x \dot{y} \text{, from \eqref{eq:miranda:stone:2}}\\
+	=& ( \sigma - \rho) v + (1-\sigma)N - (1+\sigma)u +vz \numberthis \label{eq:miranda:stone:de:u}\\
+	\dot{v} =& 2 \dot{x} y + 2 x \dot{y} \text{, from \eqref{eq:miranda:stone:2}}\\
 	=& 2\sigma(y-x)y+2x(\rho x-y-xz)  \text{, from \eqref{eq:lorenz:1} and \eqref{eq:lorenz:2}}\\
 	=& 2 \sigma y^2 -2 \sigma x y + 2\rho x^2 -2xy -2 x^2 z\\
 	=&  \sigma (N-u) - \sigma v + \rho (N+u) -v - (N+u) z \text{, using \eqref{eq:miranda:stone:2}, \eqref{eq:miranda:stone:x} and \eqref{eq:miranda:stone:y}}\\
