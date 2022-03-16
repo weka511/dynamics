@@ -3,9 +3,9 @@
 # investigate the escape rate in Logistic map.
 # please complete the experiment part
 ###################################################
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.stats import linregress
+from numpy             import ones
+from matplotlib.pyplot import figure, show
+from scipy.stats       import linregress
 
 class Logistic:
     def __init__(self, A):
@@ -20,13 +20,13 @@ class Logistic:
         for i in range(n):
             tmpx = self.oneIter(tmpx)
             y.append(tmpx)
-            
+
         return y
 
     def doesEscape(self, x, n):
         """
         determine whether the mapping sequence is escaping or not
-        parameters: 
+        parameters:
               x  initial point
               n  number of iteration
         return :
@@ -39,7 +39,7 @@ class Logistic:
             tmpx = self.oneIter(tmpx)
             if tmpx <= 1 and tmpx >=0:
                 escape[i] = 0
-            else: 
+            else:
                 break
 
         return escape
@@ -52,5 +52,5 @@ if __name__ == '__main__':
     # start with a large number of initial conditions and iterate
     # for a certain number of steps, then find out the escape ratio.
     #  repeat this process for server different iteration steps.
-    
-    
+
+
