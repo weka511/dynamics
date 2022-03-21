@@ -28,18 +28,17 @@ from unimodal          import Unimodal
 from argparse          import ArgumentParser
 
 
-# globle coefficients
 G_mu1 = -2.8
-G_c1 = -7.75
-G_a2 = -2.66
+G_c1  = -7.75
+G_a2  = -2.66
 
 def rk4(velo, y0, dt, nstp):
     '''
     4th order Runge-Kutta method
     '''
-    y = zeros( (nstp, size(y0)) )
+    y      = zeros( (nstp, size(y0)) )
     y[0,:] = y0
-    yt = y0
+    yt     = y0
     for i in range(1, nstp):
         k1 = velo(yt, None)
         k2 = velo(yt+0.5*dt*k1, None)
@@ -97,8 +96,8 @@ def integrator_reduced(init_state, dt, nstp):
     dt: time step
     nstp: number of time step
     '''
-    states = rk4(velocity_reduced, init_state, dt, nstp)
-    return states
+
+    return rk4(velocity_reduced, init_state, dt, nstp)
 
 def integrator_reduced_with_jacob(stateVec_reduced, dt, nstp):
     def vTotal(y, t):
@@ -109,10 +108,10 @@ def integrator_reduced_with_jacob(stateVec_reduced, dt, nstp):
         return hstack((v, AJ.reshape(9)))
 
     init_J = eye(3)
-    y0 = hstack( (stateVec_reduced, init_J.reshape(9)))
-    y = rk4(vTotal, y0, dt, nstp)
-    state = y[:, 0:3];
-    Jacob = y[-1, 3:].reshape(3,3)
+    y0     = hstack( (stateVec_reduced, init_J.reshape(9)))
+    y      = rk4(vTotal, y0, dt, nstp)
+    state  = y[:, 0:3];
+    Jacob  = y[-1, 3:].reshape(3,3)
 
     return state, Jacob
 
@@ -122,7 +121,7 @@ if __name__ == '__main__':
     parser = ArgumentParser('8.1/Q8.2|two modes system continued -- kneading theory')
     parser.add_argument('case',
                         type    = int,
-                        choices = [1,2,3,4])
+                        choices = [1,2])
     args = parser.parse_args()
 
     '''
@@ -136,18 +135,14 @@ if __name__ == '__main__':
           They should be transformed to the original coordinates to get the inital guess
           of periodic orbit
     '''
-    data = load('data.npz')
+    data           = load('data.npz')
     PoincarePoints = data['PoincarePoints'] # Poincare intersection points. dimension [1382 x 2]
-    arclength = data['arclength']           # arclength
-    time = data['time'] # the time stamp for each Poincare intersection point
-    req = data['req']   # relative equilibrium
-    # the Px, Py, Pz axes of the new cooridinate system
-    Px = data['Px']
-    Py = data['Py']
-    Pz = data['Pz']
-
-
-    # case = 2
+    arclength      = data['arclength']      # arclength
+    time           = data['time']           # the time stamp for each Poincare intersection point
+    req            = data['req']            # relative equilibrium
+    Px             = data['Px']             # the Px, Py, Pz axes of the new coordinate system
+    Py             = data['Py']
+    Pz             = data['Pz']
 
     if args.case == 1:
         '''
@@ -158,7 +153,7 @@ if __name__ == '__main__':
         # interpolate the data points to get a smooth return map
         returnMap = interp1d(arclength[:-1], arclength[1:])
 
-        # locate the critial point in a crude way
+        # locate the critical point in a crude way
         x = arange(0.0001,1.8,0.0001)
         y = returnMap(x)
         C = x[argmax(y)] # critical point
@@ -176,7 +171,7 @@ if __name__ == '__main__':
         # use fsolve() to get the periodic orbit 1110
         state = TBD # the x coordinate of the point of orbit 1110
         # find the closest Poincare intersection point
-        idx = argmin(abs(arclength - state))
+        idx   = argmin(abs(arclength - state))
         point = PoincarePoints[idx]
 
         # transform the point to the original coordinate
@@ -186,7 +181,7 @@ if __name__ == '__main__':
         T0 = time[idx+order]-time[idx]
 
         nstp = int(T0/0.001)
-        dt = T0/nstp
+        dt   = T0/nstp
         orbit = integrator_reduced(original_point, dt, nstp+1)
         print (norm(orbit[-1,:] - orbit[0,:])) # print the error of this guess
 

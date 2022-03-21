@@ -12,15 +12,18 @@ def Velocity(stateVec, t):
     z = stateVec[2]
     N = sqrt(u*u + v*v)
 
-    return array([-(sigma+1)* u + (sigma-rho)*v + (1-sigma)*N + v*z,
-                 (rho-sigma)*u - (sigma+1)*v + (rho+sigma)*N -(u+N)*z,
-                 v/2-beta*z],
-                 float)
+    return array(
+        [
+            -(sigma+1)* u + (sigma-rho)*v + (1-sigma)*N + v*z,
+            (rho-sigma)*u - (sigma+1)*v + (rho+sigma)*N -(u+N)*z,
+            v/2-beta*z
+            ],
+        float)
 
 if __name__=='__main__':
     tInitial = 0
-    tFinal   = 10
-    Nt       = 10000
+    tFinal   = 100
+    Nt       = 100000
 
     tArray   = linspace(tInitial, tFinal, Nt)  # Time array for solution
     ssp0     = array([10,
@@ -35,7 +38,7 @@ if __name__=='__main__':
     fig = figure(figsize=(12,12))
     ax  = fig.add_subplot(1, 1, 1, projection='3d')
 
-    ax.plot(ut, vt, zt)
+    ax.plot(ut, vt, zt, color='xkcd:purple', linewidth=0.5)
     ax.set_xlabel('u')
     ax.set_ylabel('v')
     ax.set_zlabel('z')

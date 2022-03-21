@@ -1,6 +1,6 @@
 '''Q3.1 Shortest periodic orbit of the Rössler system '''
 
-from matplotlib.pyplot      import figure, show
+from matplotlib.pyplot      import figure, savefig, show
 from numpy                  import abs, append, argmin, argsort, argwhere, array, dot, cos, linspace, max, pi, real, sin, size, zeros
 from numpy.linalg           import eig, inv, norm
 from scipy.integrate        import odeint
@@ -130,29 +130,15 @@ class PoincareSectionBuilder:
         if you are not lucky. Now we are going to do a better job and parametrize
         the Poincare section intersections according to arc lengths.
         '''
-        Distance = squareform(pdist(PoincareSection))
-        #Distance is a matrix which contains Euclidean distance between ith and
-        #jth elements of PoincareSection in its element [i,j]
-
-        #Now we are going to Sort the elements of the Poincare section according to
-        #increasing distances:
-        self.SortedPoincareSection = PoincareSection.copy()  # Copy PoincareSection into
-                                                        # a new variable
-        #Create a zero-array to assign arclengths of the Poincare section points
-        #after sorting:
-        self.ArcLengths = zeros(size(self.SortedPoincareSection, 0))
-        # Create another zero-array to assign the arclengths of the Poincare section
-        # points keeping their dynamical order for use in the return map
-        self.sn = zeros(size(PoincareSection, 0))
+        Distance                   = squareform(pdist(PoincareSection)) #  Euclidean distance between ith and jth elements of PoincareSection
+        self.SortedPoincareSection = PoincareSection.copy()
+        self.ArcLengths            = zeros(size(self.SortedPoincareSection, 0)) # arclengths of the Poincare section points after sorting:
+        self.sn                    = zeros(size(PoincareSection, 0))        # Arclengths in dynamical order for use in the return map
         for k in range(size(self.SortedPoincareSection, 0) - 1):
-            #Find the element which is closest to the kth point:
-            m = argmin(Distance[k, k + 1:]) + k + 1
-            #Hold the (k+1)th row in the dummy vector:
-            dummyPoincare = self.SortedPoincareSection[k + 1, :].copy()
-            #Replace (k+1)th row with the closest point:
-            self.SortedPoincareSection[k + 1, :] = self.SortedPoincareSection[m, :]
-            #Assign the previous (k+1)th row to the mth row:
-            self.SortedPoincareSection[m, :] = dummyPoincare
+            m             = argmin(Distance[k, k + 1:]) + k + 1            #Find the element which is closest to the kth point:
+            dummyPoincare = self.SortedPoincareSection[k + 1, :].copy()    #Hold the (k+1)th row in the dummy vector:
+            self.SortedPoincareSection[k + 1, :] = self.SortedPoincareSection[m, :]             #Replace (k+1)th row with the closest point:
+            self.SortedPoincareSection[m, :] = dummyPoincare            #Assign the previous (k+1)th row to the mth row:
 
             #Rearrange the distance matrix according to the new form of the
             #self.SortedPoincareSection array:
@@ -167,12 +153,11 @@ class PoincareSectionBuilder:
             Distance[k + 1, :] = Distance[m, :]
             Distance[m, :] = dummyRow
 
-            #Assign the arclength of (k+1)th element:
-            self.ArcLengths[k + 1] = self.ArcLengths[k] + Distance[k, k + 1]
-            #Find this point in the PoincareSection array and assign sn to its
-            #corresponding arclength:
+            self.ArcLengths[k + 1] = self.ArcLengths[k] + Distance[k, k + 1]           #Assign the arclength of (k+1)th element:
+
             self.sn[argwhere(PoincareSection[:, 0]
-                           == self.SortedPoincareSection[k + 1, 0])] = self.ArcLengths[k + 1]
+                           == self.SortedPoincareSection[k + 1, 0])] = self.ArcLengths[k + 1] # Find this point in the PoincareSection
+                                                                                              # array and assign sn to its corresponding arclength:
 
     def prepare_to_interpolate(self):
         '''Parametric spline interpolation to the Poincare section'''
@@ -195,6 +180,36 @@ class PoincareSectionBuilder:
         xy = array([interpolation[0], interpolation[1]], float).transpose()
         return xy
 
+def get_periodic_orbit(Tnext, sspfixed, poincare,
+                       tol  = 1e-9,
+                       kmax = 20):
+
+    #Lastly, we are going to refine our guesses to find the periodic orbit
+    #exactly. We are going to use Newton-Raphson scheme
+    #(eq. 13.9 from ChaosBook.org version14.5.7)
+    #We start by setting our tolerance, and calculating initial error:
+
+    period     = Tnext.copy()  # copy Tnext to a new variable period
+    error      = zeros(4)  # Initiate the error vector
+    Delta      = zeros(4)  # Initiate the delta vector
+    error[0:3] = Flow(sspfixed, period) - sspfixed
+    Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+    k          = 0
+    #We are going to iterate the newton method until the maximum value of the
+    #absolute error meets the tolerance:
+    while max(abs(error)) > tol and k <= kmax:
+        k += 1
+        print(f'Iteration {k}')
+        Newton[0:3, 0:3] = 1 - Jacobian(sspfixed,Tnext)     #First 3x3 block is 1 - J^t(x)
+        Newton[0:3, 3]   = -Velocity(sspfixed,Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
+        Newton[3, 0:3]   = poincare.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
+        Delta            = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
+        sspfixed         = sspfixed + Delta[0:3]   #Update our guesses:
+        period           = period + Delta[3]
+        error[0:3]       = Flow(sspfixed, period) - sspfixed #Compute the new errors:
+    if k > kmax:
+        print(f'Passed the maximum number of iterations {kmax}')
+    return sspfixed,period
 
 if __name__=='__main__':
 
@@ -254,7 +269,7 @@ if __name__=='__main__':
 
     # Construct tck of the spline rep
     tckReturn = splrep(sn1,sn2)
-    snPlus1 = splev(sArray, tckReturn)  # Evaluate spline
+    snPlus1   = splev(sArray, tckReturn)  # Evaluate spline
 
     # Finally, find the fixed point of this map:
     # In order to solve with fsolve, construct a lambda function which would be
@@ -285,50 +300,20 @@ if __name__=='__main__':
     #dividing the total integration time of our simulation by the number of
     #intersections with the Poincare section:
     Tguess = tFinal / size(PoincareSection, 0)
-    Tnext = fsolve(fdeltat, Tguess)[0]  # Note that we pick the 0th element of the
-                                        # array returned by fsolve, this is because
-                                        # fsolve returns a numpy array even if the
-                                        # problem is one dimensional
+    Tnext  = fsolve(fdeltat, Tguess)[0]  # Note that we pick the 0th element of the
+                                         # array returned by fsolve, this is because
+                                         # fsolve returns a numpy array even if the
+                                         # problem is one dimensional
     #Let us integrate to see if this was a good guess:
     #Time array for solution from 0 to Tnext:
     tArray = linspace(0, Tnext, 100)
     #Integration:
     sspfixedSolution = odeint(Velocity, sspfixed, tArray)
 
-    #Lastly, we are going to refine our guesses to find the periodic orbit
-    #exactly. We are going to use Newton-Raphson scheme
-    #(eq. 13.9 from ChaosBook.org version14.5.7)
-    #We start by setting our tolerance, and calculating initial error:
-    tol        = 1e-9
-    period     = Tnext.copy()  # copy Tnext to a new variable period
-    error      = zeros(4)  # Initiate the error vector
-    Delta      = zeros(4)  # Initiate the delta vector
-    error[0:3] = Flow(sspfixed, period) - sspfixed
-    Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+    sspfixed,period  = get_periodic_orbit(Tnext,sspfixed, poincare)
 
-    k    = 0
-    kmax = 20
-    #We are going to iterate the newton method until the maximum value of the
-    #absolute error meets the tolerance:
-    while max(abs(error)) > tol:
-        if k > kmax:
-            print('Passed the maximum number of iterations')
-            break
-        k += 1
-        print(f'Iteration {k}')
-        Newton[0:3, 0:3] = 1-Jacobian(sspfixed,Tnext)     #First 3x3 block is 1 - J^t(x)
-        Newton[0:3, 3]  = -Velocity(sspfixed,Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
-        Newton[3, 0:3]  = poincare.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
-        Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
-        sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
-        period          = period + Delta[3]
-        error[0:3]      = Flow(sspfixed, period) - sspfixed #Compute the new errors:
-
-
-    print('Shortest periodic orbit is at: ', sspfixed[0],
-                                             sspfixed[1],
-                                             sspfixed[2])
-    print('Period:', period)
+    print(f'Shortest periodic orbit is at: ({sspfixed[0]}, {sspfixed[1]}, {sspfixed[2]})')
+    print(f'Period: {period}')
 
     #Let us integrate the periodic orbit:
     tArray        = linspace(0, period, 1000)  # Time array for solution integration
@@ -339,33 +324,29 @@ if __name__=='__main__':
     ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
             linewidth = 0.5,
             label     = 'Rossler')
-
     ax.plot(poincare.sspSolutionPoincare[:, 0],
             poincare.sspSolutionPoincare[:, 1],
             poincare.sspSolutionPoincare[:, 2], '.r',
             markersize = 4,
             label      = 'Recurrences')
-
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
     ax.set_zlabel('$z$')
-
     ax.set_title('Poincare Recurrences for Rossler')
     ax.legend()
 
     ax = fig.add_subplot(2, 2, 2)
     ax.plot(PoincareSection[:, 0], PoincareSection[:, 1], '.r',
             markersize = 5,
+            marker     = '+',
             label      = 'Poincare Section')
-
     ax.plot(poincare.SortedPoincareSection[:, 0], poincare.SortedPoincareSection[:, 1],'.b',
-             markersize = 3,
-            label = 'Sorted Poincare Section')
-
+            markersize = 3,
+            marker     = 'X',
+            label      = 'Sorted')
     ax.plot(InterpolatedPoincareSection[:, 0], InterpolatedPoincareSection[:, 1],'.g',
             markersize = 1,
-            label = 'Interpolated Poincare Section')
-
+            label      = 'Interpolated')
     ax.set_title('Poincare Section, showing Interpolation')
     ax.set_xlabel('$\\hat{x}\'$')
     ax.set_ylabel('$z$')
@@ -375,24 +356,25 @@ if __name__=='__main__':
     ax.set_aspect('equal')
     ax.plot(sn1, sn2, '.r',
             markersize = 5,
-            label='sn1:sn2')
-
+            marker     = '+',
+            label      = 'Arclengths')
     ax.plot(sArray, snPlus1,'.b',
-            label = 'sArray:snPlus1')
-    ax.plot(sArray, sArray, 'k',
-            label= '$s_n=s_{n+1}$')
+            label      = 'Interpolated',
+            markersize = 1,
+            linewidth  = 0.5)
+    ax.plot(sArray, sArray, 'k')
     ax.set_xlabel('$s_n$')
     ax.set_ylabel('$s_{n+1}$')  # Set y label
     ax.set_title('Return map')
-    ax.legend(loc = 'right')
+    ax.legend(loc = 'lower center')
 
     ax = fig.add_subplot(2, 2, 4, projection='3d')
     ax.set_title('Periodic Orbit')
     ax.plot(sspfixedSolution[:, 0],
             sspfixedSolution[:, 1],
             sspfixedSolution[:, 2],
-            color='xkcd:green',
-            label='sspfixedSolution')
+            color = 'xkcd:green',
+            label = 'Approx Periodic Orbit')
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
     ax.set_zlabel('$z$')
@@ -400,8 +382,8 @@ if __name__=='__main__':
     ax.plot(periodicOrbit[:, 0],
             periodicOrbit[:, 1],
             periodicOrbit[:, 2],
-            color='xkcd:purple',
-            label='Periodic Orbit')
+            color = 'xkcd:purple',
+            label = 'Periodic Orbit')
     ax.legend()
-
-    show()  # Show the figures
+    savefig('Newton')
+    show()
