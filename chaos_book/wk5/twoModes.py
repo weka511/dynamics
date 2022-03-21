@@ -5,17 +5,20 @@
 # velocity_phase(), stabilityMatrix_reduced(), groupTransform()
 # and reduceSymmetry(), and set case = 1 to validate your code
 #
-# velocity()                 DONE
-# velocity_reduced()         TODO
-# velocity_phase()           TODO
-# stabilityMatrix_reduced()  TODO
-# groupTransform()           TODO
-# reduceSymmetry()           TODO
-#
 # Next, complete case2, and case3.
+# case1                        WIP
+#   velocity()                 DONE
+#   velocity_reduced()         TODO
+#   velocity_phase()           TODO
+#   stabilityMatrix_reduced()  TODO
+#   groupTransform()           DONE
+#   reduceSymmetry()           TODO
+# case2                        TODO
+# case3                        TODP
+
 ############################################################
 from argparse             import ArgumentParser
-from numpy                import abs, arange, array, pi, round
+from numpy                import abs, arange, array, cos, dot, pi, round, sin
 from matplotlib.pyplot    import figure, show
 from mpl_toolkits.mplot3d import Axes3D
 from numpy.random         import rand
@@ -117,15 +120,22 @@ def stabilityMatrix_reduced(stateVec_reduced):
 
 def groupTransform(state, phi):
     '''
-    perform group transform on a perticular state. Symmetry group is 'g(phi)'
+    perform group transform on a particular state. Symmetry group is 'g(phi)'
     and state is 'x'. the transformed state is ' xp = g(phi) * x '
 
     state: state in the full state space. Dimension [1 x 4]
     phi: group angle. in range [0, 2*pi]
     return: the transformed state. Dimension [1 x 4]
     '''
-    state_transformed = TBP
-
+    c1 = cos(phi)
+    s1 = sin(phi)
+    c2 = cos(2*phi)
+    s2 = sin(2*phi)
+    T  = array([[c1, -s1, 0, 0],
+                [s1, c1,  0, 0],
+                [0,   0,   c2, -s2],
+                [0,   0,   s2,  c2]])
+    state_transformed = dot(T,state)
     return  state_transformed
 
 def reduceSymmetry(states):
@@ -156,6 +166,7 @@ def plotFig(orbit,
     ax  = fig.add_subplot(111, projection='3d')
     ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
             markersize = markersize,
+            linewidth  = 0.5,
             c          = colour)
     ax.set_title(title)
 
@@ -163,7 +174,7 @@ def plotFig(orbit,
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser('Q4.3 Symmetry of Lorenz Flow')
+    parser = ArgumentParser('Q5.2-Q5.4: Two modes system, Chapter 13 Exercise 13.7')
     parser.add_argument('case',
                         type    = int,
                         choices = [1,2,3,4])
@@ -172,14 +183,12 @@ if __name__ == '__main__':
     if args.case == 1:
         '''
         validate your implementation.
-        We generate an ergodic trajectory, and then use two
-        different methods to obtain the corresponding trajectory in slice.
-        The first method
-        is post-processing. The second method utilizes the dynamics in
-        the slice directly.
+        We generate an ergodic trajectory, and then use two different methods to obtain
+        the corresponding trajectory in slice.  The first method is post-processing.
+        The second method utilizes the dynamics in the slice directly.
         '''
         x0             = 0.1*rand(4) # random inital state
-        # x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
+        x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
         dt             = 0.005
         nstp           = 500.0 / dt
         orbit          = integrator(x0, dt, nstp) # trajectory in the full state space
