@@ -12,13 +12,13 @@
 #   velocity_phase()           TODO
 #   stabilityMatrix_reduced()  TODO
 #   groupTransform()           DONE
-#   reduceSymmetry()           TODO
+#   reduceSymmetry()           DONE
 # case2                        TODO
 # case3                        TODP
 
 ############################################################
 from argparse             import ArgumentParser
-from numpy                import abs, arange, array, cos, dot, pi, round, sin
+from numpy                import abs, arange, array, arctan2, cos, dot, pi, round, sin, zeros
 from matplotlib.pyplot    import figure, show
 from mpl_toolkits.mplot3d import Axes3D
 from numpy.random         import rand
@@ -138,7 +138,7 @@ def groupTransform(state, phi):
     state_transformed = dot(T,state)
     return  state_transformed
 
-def reduceSymmetry(states):
+def reduceSymmetry(states,show_phi=False):
     '''
     tranform states in the full state space into the slice.
     Hint: use numpy.arctan2(y,x)
@@ -150,12 +150,18 @@ def reduceSymmetry(states):
     '''
 
     if states.ndim == 1: # if the state is one point
-        pass #TBP
-
+        phi           = - arctan2(states[1],states[0])
+        reducedStates = groupTransform(states, phi)
+        reducedStates = [reducedStates[i] for i in [0,2,3]]
+        if show_phi: return reducedStates,phi
     if states.ndim == 2: # if they are a sequence of state points
-        pass #TBP
+        reducedStates = zeros((states.shape[0],3))
+        for i in range(states.shape[0]):
+            reducedStates[i,:] = reduceSymmetry(states[i,:])
 
     return reducedStates
+
+
 
 
 def plotFig(orbit,
@@ -187,16 +193,21 @@ if __name__ == '__main__':
         the corresponding trajectory in slice.  The first method is post-processing.
         The second method utilizes the dynamics in the slice directly.
         '''
+        z1,phi1=reduceSymmetry(array([1,2,3,4]),show_phi=True)
+        z2,phi2=reduceSymmetry(array([-2,1,-3,-4]),show_phi=True)
+        print (z1)
+        print (z2)
+        print ((phi1-phi2)/(pi/2))
         x0             = 0.1*rand(4) # random inital state
         x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
         dt             = 0.005
         nstp           = 500.0 / dt
         orbit          = integrator(x0, dt, nstp) # trajectory in the full state space
-        # reduced_orbit  = reduceSymmetry(orbit) # trajectory in the slice by reducing the symmety
+        reduced_orbit  = reduceSymmetry(orbit) # trajectory in the slice by reducing the symmety
         # reduced_orbit2 = integrator_reduced(x0_reduced, dt, nstp) # trajectory in the slice by integration in slice
 
         plotFig(orbit[:,0:3])
-        # plotFig(reduced_orbit[:,0:3])
+        plotFig(reduced_orbit[:,0:3])
         # plotFig(reduced_orbit2[:,0:3])
 
         # print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
