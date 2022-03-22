@@ -6,19 +6,19 @@
 # and reduceSymmetry(), and set case = 1 to validate your code
 #
 # Next, complete case2, and case3.
-# case1                        WIP
-#   velocity()                 DONE
-#   velocity_reduced()         TODO
-#   velocity_phase()           TODO
-#   stabilityMatrix_reduced()  TODO
-#   groupTransform()           DONE
-#   reduceSymmetry()           DONE
-# case2                        TODO
-# case3                        TODP
+# case1                       WIP
+#   velocity                  DONE
+#   velocity_reduced          WIP
+#   velocity_phase            TODO
+#   stabilityMatrix_reduced   TODO
+#   groupTransform            DONE
+#   reduceSymmetry            DONE
+# case2                       TODO
+# case3                       TODO
 
 ############################################################
 from argparse             import ArgumentParser
-from numpy                import abs, arange, array, arctan2, cos, dot, pi, round, sin, zeros
+from numpy                import abs, arange, array, arctan2, cos, dot, eye, isclose,  pi, round, sin, zeros
 from matplotlib.pyplot    import figure, show
 from mpl_toolkits.mplot3d import Axes3D
 from numpy.random         import rand
@@ -28,7 +28,7 @@ from scipy.optimize       import fsolve
 mu1 = -2.8
 c1  = -7.75
 a2  = -2.66
-TBP = None
+TBP = None              #FIXME
 
 def velocity(stateVec, t):
     '''
@@ -59,12 +59,21 @@ def velocity_reduced(stateVec_reduced, t):
     return: velocity at stateVect_reduced. dimension [1 x 3]
     '''
     x1 = stateVec_reduced[0]
+    y1 = 0
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
 
-    velo = TBP
+    velo        = velocity([x1,y1,x2,y2], t)
+    d_phi       = arctan2(velo[1],-velo[0]) #velo[1]/velo[0]
 
-    return velo
+    # T           = array([[0, -1, 0,  0],
+                         # [1,  0, 0,  0],
+                         # [0,  0, 0, -2],
+                         # [0,  0, 2,  0]])
+    # A            = eye(4) - d_phi*T
+    velo_reduced =  groupTransform(velo,d_phi) #dot(A,velo)
+    velo3        = [velo_reduced[i] for i in [0,2,3]]
+    return velo3
 
 def velocity_phase(stateVec_reduced):
     '''
@@ -99,6 +108,7 @@ def integrator_reduced(init_state, dt, nstp):
     nstp: number of time step
     '''
     states = odeint(velocity_reduced, init_state, arange(0, dt*nstp, dt))
+
     return states
 
 def stabilityMatrix_reduced(stateVec_reduced):
@@ -131,11 +141,11 @@ def groupTransform(state, phi):
     s1 = sin(phi)
     c2 = cos(2*phi)
     s2 = sin(2*phi)
-    T  = array([[c1, -s1, 0, 0],
+    g  = array([[c1, -s1, 0, 0],
                 [s1, c1,  0, 0],
                 [0,   0,   c2, -s2],
                 [0,   0,   s2,  c2]])
-    state_transformed = dot(T,state)
+    state_transformed = dot(g,state)
     return  state_transformed
 
 def reduceSymmetry(states,show_phi=False):
@@ -186,29 +196,27 @@ if __name__ == '__main__':
                         choices = [1,2,3,4])
     args = parser.parse_args()
 
-    if args.case == 1:
-        '''
-        validate your implementation.
-        We generate an ergodic trajectory, and then use two different methods to obtain
-        the corresponding trajectory in slice.  The first method is post-processing.
-        The second method utilizes the dynamics in the slice directly.
-        '''
+    if args.case == 1:       # validate your implementation.
         z1,phi1=reduceSymmetry(array([1,2,3,4]),show_phi=True)
         z2,phi2=reduceSymmetry(array([-2,1,-3,-4]),show_phi=True)
-        print (z1)
-        print (z2)
-        print ((phi1-phi2)/(pi/2))
-        x0             = 0.1*rand(4) # random inital state
+        assert(isclose(z1,z2).all())
+        assert phi1-phi2==pi/2
+
+        # We generate an ergodic trajectory, and then use two different methods to obtain
+        # the corresponding trajectory in slice.  The first method is post-processing.
+        # The second method utilizes the dynamics in the slice directly.
+
+        x0             = 0.1 * rand(4)      # random initial state
         x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
         dt             = 0.005
         nstp           = 500.0 / dt
-        orbit          = integrator(x0, dt, nstp) # trajectory in the full state space
-        reduced_orbit  = reduceSymmetry(orbit) # trajectory in the slice by reducing the symmety
-        # reduced_orbit2 = integrator_reduced(x0_reduced, dt, nstp) # trajectory in the slice by integration in slice
+        orbit          = integrator(x0, dt, nstp)                 # trajectory in the full state space
+        reduced_orbit  = reduceSymmetry(orbit)                    # trajectory in the slice by reducing the symmety
+        reduced_orbit2 = integrator_reduced(x0_reduced, dt, nstp) # trajectory in the slice by integration in slice
 
         plotFig(orbit[:,0:3])
         plotFig(reduced_orbit[:,0:3])
-        # plotFig(reduced_orbit2[:,0:3])
+        plotFig(reduced_orbit2[:,0:3])
 
         # print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
