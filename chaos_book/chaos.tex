@@ -168,9 +168,55 @@ Substitute $r=1+\delta r$ in \eqref{eq:dot_r}
 \end{align*}
 So the contracting Floquet exponent is $-2$.
 
+\section{Homework 5}
 
+\begin{align*}
+	\dot{z_1} =& \mu_1 z_1 - z_1 \vert z_1 \vert^2 + c_1 \bar{z_1} z_2  \numberthis \label{eq:dot_z1}\\
+	\dot{z_2} =& (1-i)z_2 + a_2z_2 \vert z_1 \vert^2+z_1^2  \numberthis \label{eq:dot_z2}
+\end{align*}
+Differentiating \eqref{eq:dot_z1}
+\begin{align*}
+	\dot{x_1} + i\dot{y_1}=& \mu_1(x_1+i y_1) - (x_1+i y_1)  \underbrace{(x_1^2+ y_1^2)}_\text{$= r^2$}  + c_1 \bar{(x_1-i y_1)} (x_2+i y_2)\\
+	=& \big[\mu_1 x_1 + r^2 x_1 +c_1(x_1x_2+y_1y_2)\big]+ i\big[\mu_1y_1 + r^2 y_1 +c_1(x_1y_2-x_2y_1)\big]\\
+	\dot{x_1} =&\mu_1 x_1 + r^2 x_1 +c_1(x_1x_2+y_1y_2)  \numberthis \label{eq:dot_x1}\\
+	\dot{y_1}=& \mu_1y_1 + r^2 y_1 +c_1(x_1y_2-x_2y_1)  \numberthis \label{eq:dot_y1}
+\end{align*}
+Differentiating \eqref{eq:dot_z2}
+\begin{align*}
+	\dot{x_2} + i\dot{y_2} =& (1-i)(x_2+i y_2) + a_2(x_2+i y_2) (x_1^2+ y_1^2)+(x_1+i y_1)^2\\
+	=& \big[x_2+y_2 + a_2 r^2 x_2 +x_1^2-y_1^2\big] + i\big[y_2-x_2+a_2 r^2 y_2 + 2 x_1y_1\big]\\
+	\dot{x_2} =&x_2+y_2 + a_2 r^2 x_2 +x_1^2-y_1^2 \numberthis \label{eq:dot_x2}\\
+	\dot{y_2}=& y_2-x_2+a_2 r^2 y_2 + 2 x_1y_1  \numberthis \label{eq:dot_y2}
+\end{align*}
 
+\begin{align*}
+	\vec{x}=& \begin{bmatrix}
+		x_1&y_1&x_2&y_2
+	\end{bmatrix}^T\\
+	A_{ij} =&\frac{\partial \dot{x}_i}{\partial x_j}
+\end{align*}
 
+Taking partial derivatives of \eqref{eq:dot_x1}, \eqref{eq:dot_y1}, \eqref{eq:dot_x2}. and \eqref{eq:dot_y2}
+\begin{align*}
+	A =& \begin{bmatrix}
+		\frac{\partial \dot{x_1}}{\partial {x_1}}&\frac{\partial \dot{x_1}}{\partial {y_1}}&\frac{\partial \dot{x_1}}{\partial {x_2}}&\frac{\partial \dot{x_1}}{\partial {y_2}}\\
+		\frac{\partial \dot{y_1}}{\partial {x_1}}&\frac{\partial \dot{y_1}}{\partial {y_1}}&\frac{\partial \dot{y_1}}{\partial {x_2}}&\frac{\partial \dot{y_1}}{\partial {y_2}}\\
+		\frac{\partial \dot{x_2}}{\partial {x_1}}&\frac{\partial \dot{x_2}}{\partial {y_1}}&\frac{\partial \dot{x_2}}{\partial {x_2}}&\frac{\partial \dot{x_2}}{\partial {y_2}}\\
+		\frac{\partial \dot{y_2}}{\partial {x_1}}&\frac{\partial \dot{y_2}}{\partial {y_1}}&\frac{\partial \dot{y_2}}{\partial {x_2}}&\frac{\partial \dot{y_2}}{\partial {y_2}}
+	\end{bmatrix}\\
+	=& \begin{bmatrix}
+		-2x_1x_1 + \mu_1-r^2+x_2&-2y_1x_1+c_1y_2&c_1x_1&c_1y_1\\
+		-2 x_1y_1 +c_1 y_2&-2y_1y_1+\mu_1-r^2-c_1x_2&-c_1y_1&c_1x_1\\
+		2x_1+2a_2x_2x_1&-2y_1+2a_2x_2y_1&1+a_2r^2&1\\
+		2y_1+2a_2 y_2 x_1&2x_1+2a_2y_2y_1&-1&1+a_2 r^2
+	\end{bmatrix}\\
+ =& \begin{bmatrix}
+		\mu_1-3x_1^2+c_1x_2-y_1^2&c_1y_2-2x_1y_1&c_1x_1&c_1y_1\\
+		c_1y_2-2x_1y_1&\mu_1-x_1^2-c_1x_2-3y_1^2&-c_1y_1&c_1x_1\\
+		2x_1+2a_2x_1x_2&2a_2x_2y_1-2y_1&1+a_2(x_1^2+y_1^2)&1\\
+		2y_1+2a_2x_1y_2&2x_1+2a_2y_1y_2&-1&1+a_2(x_1^2+ y_1^2)
+	\end{bmatrix}\numberthis \label{eq:stability}
+\end{align*}
 
 \section{Homework 6}
 
