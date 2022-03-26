@@ -144,18 +144,18 @@ def groupTransform(state, phi):
     perform group transform on a particular state. Symmetry group is 'g(phi)'
     and state is 'x'. the transformed state is ' xp = g(phi) * x '
 
-    state: state in the full state space. Dimension [1 x 4]
-    phi: group angle. in range [0, 2*pi]
+    state:  state in the full state space. Dimension [1 x 4]
+    phi:    group angle. in range [0, 2*pi]
     return: the transformed state. Dimension [1 x 4]
     '''
-    c1 = cos(phi)
-    s1 = sin(phi)
-    c2 = cos(2*phi)
-    s2 = sin(2*phi)
-    g  = array([[c1, -s1, 0, 0],
-                [s1, c1,  0, 0],
-                [0,   0,   c2, -s2],
-                [0,   0,   s2,  c2]])
+    c1                = cos(phi)
+    s1                = sin(phi)
+    c2                = cos(2*phi)
+    s2                = sin(2*phi)
+    g                 = array([[c1, -s1, 0, 0],
+                               [s1, c1,  0, 0],
+                               [0,   0,   c2, -s2],
+                               [0,   0,   s2,  c2]])
     state_transformed = dot(g,state)
     return  state_transformed
 
@@ -200,7 +200,40 @@ def plotFig(orbit,
             c          = colour)
     ax.set_title(title)
 
+class MultiPlotter:
+    def __init__(self,
+                 nrows  = 2,
+                 ncols  = 2,
+                 name   = 'twoModes',
+                 width  = 12,
+                 height = 12):
+        self.nrows  = nrows
+        self.ncols  = ncols
+        self.seq    = 0
+        self.name   = name
+        self.width  = width
+        self.height = height
 
+    def __enter__(self):
+        self.fig = figure(figsize=(self.width,self.height))
+        return self
+
+    def plot(self,orbit,
+            title      = 'Orbit',
+            markersize = 0.5,
+            colour     = 'xkcd:blue'):
+        self.seq += 1
+        ax = self.fig.add_subplot(self.nrows, self.ncols, self.seq,
+                                  projection = '3d')
+        ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
+                markersize = markersize,
+                linewidth  = 0.5,
+                c          = colour)
+        ax.set_title(title)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.fig.tight_layout()
+        self.fig.savefig(self.name)
 
 if __name__ == '__main__':
 
@@ -212,6 +245,7 @@ if __name__ == '__main__':
                         type = int,
                         help = 'Seed for random number generator')
     args = parser.parse_args()
+    rng  = RandomState(args.seed)
 
     if args.case == 1:       # validate your implementation.
         # Start by verifying thansformations given in Homework
@@ -225,7 +259,7 @@ if __name__ == '__main__':
         # We generate an ergodic trajectory, and then use two different methods to obtain
         # the corresponding trajectory in slice.  The first method is post-processing.
         # The second method utilizes the dynamics in the slice directly.
-        rng            = RandomState(args.seed)
+
         x0             = 0.1 * rng.rand(4)      # random initial state
         x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
         dtau           = 0.005
@@ -233,10 +267,13 @@ if __name__ == '__main__':
         orbit          = integrator(x0, dtau, nstp)                 # trajectory in the full state space
         reduced_orbit  = reduceSymmetry(orbit)                      # trajectory in the slice by reducing the symmety
         reduced_orbit2 = integrator_reduced(x0_reduced, dtau, nstp) # trajectory in the slice by integration in slice
-
-        plotFig(orbit[:,0:3])
-        plotFig(reduced_orbit[:,0:3])
-        plotFig(reduced_orbit2[:,0:3])
+        with MultiPlotter() as plotter:
+            plotter.plot(orbit[:,0:3],
+                         title = 'Full')
+            plotter.plot(reduced_orbit[:,0:3],
+                         title = 'Reduced')
+            plotter.plot(reduced_orbit2[:,0:3],
+                         title = 'In Slice')
 
         print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
@@ -246,16 +283,16 @@ if __name__ == '__main__':
         Try reasonable guess to find relative equilibria.
         One possible way: numpy.fsolve
         '''
-        guess = TBP # a relative good guess
+        guess    = TBP # a relative good guess
         # implement your method to find relative equilibrium
-        req =  TBP# relative equilibrium
+        req      =  TBP# relative equilibrium
 
         # see how relative equilibrium drifts in the full state space
         req_full = array([req[0], 0, req[1], req[2]])
-        dtau    = 0.005
-        T     =  abs(2 * pi /  velocity_phase(req))
-        nstp  = round(T / dtau)
-        orbit = integrator(req_full, dtau, nstp)
+        dtau     = 0.005
+        T        =  abs(2 * pi /  velocity_phase(req))
+        nstp     = round(T / dtau)
+        orbit    = integrator(req_full, dtau, nstp)
         plotFig(orbit[:,0:3])
 
     if args.case == 3:
