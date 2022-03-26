@@ -9,7 +9,7 @@
 # case1                       WIP
 #   velocity                  DONE
 #   velocity_reduced          WIP
-#   velocity_phase            TODO
+#   velocity_phase            WIP
 #   stabilityMatrix_reduced   TODO
 #   groupTransform            DONE
 #   reduceSymmetry            DONE
@@ -50,7 +50,7 @@ def velocity(stateVec, t):
             x2 + y2 + x1**2 - y1**2 + a2*x2*r2,
             -x2 + y2 + 2*x1*y1 + a2*y2*r2]
 
-def velocity_reduced(stateVec_reduced, t):
+def velocity_reduced(stateVec_reduced, tau):
     '''
     velocity in the slice after reducing the continous symmetry
 
@@ -63,15 +63,18 @@ def velocity_reduced(stateVec_reduced, t):
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
 
-    velo        = velocity([x1,y1,x2,y2], t)
-    d_phi       = arctan2(velo[1],-velo[0]) #velo[1]/velo[0]
+    velo        = velocity([x1,y1,x2,y2], tau)
+    # d_phi       = -arctan2(velo[1],velo[0]) #velo[1]/velo[0]
 
-    # T           = array([[0, -1, 0,  0],
-                         # [1,  0, 0,  0],
-                         # [0,  0, 0, -2],
-                         # [0,  0, 2,  0]])
-    # A            = eye(4) - d_phi*T
-    velo_reduced =  groupTransform(velo,d_phi) #dot(A,velo)
+    T           = array([[0, -1, 0,  0],
+                         [1,  0, 0,  0],
+                         [0,  0, 0, -2],
+                         [0,  0, 2,  0]])
+    # # A            = eye(4) - d_phi*T
+    #velo_reduced =  groupTransform(velo,d_phi) #dot(A,velo)
+    t = array([0,x1,0,0])#-2*y2, 2*x2])
+    phi = velocity_phase(stateVec_reduced)
+    velo_reduced = velo - phi*t               # Equation 13.32
     velo3        = [velo_reduced[i] for i in [0,2,3]]
     return velo3
 
@@ -82,32 +85,36 @@ def velocity_phase(stateVec_reduced):
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     Note: phase velocity only depends on the state vector
     '''
-
-    velo_phase = TBP
-
+    x1         = stateVec_reduced[0]
+    y1         = 0
+    x2         = stateVec_reduced[1]
+    y2         = stateVec_reduced[2]
+    r2         = x1**2 + y1**2
+    v2         = (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
+    velo_phase = -v2/x1                  # Equation 13.33
     return velo_phase
 
 
-def integrator(init_state, dt, nstp):
+def integrator(init_state, dtau, nstp):
     '''
     integrate two modes system in the full state sapce.
 
     init_state: initial state [x1, y1, x2, y2]
-    dt: time step
+    dtau: time step
     nstp: number of time step
     '''
-    states = odeint(velocity, init_state, arange(0, dt*nstp, dt))
+    states = odeint(velocity, init_state, arange(0, dtau*nstp, dtau))
     return states
 
-def integrator_reduced(init_state, dt, nstp):
+def integrator_reduced(init_state, dtau, nstp):
     '''
     integrate two modes system in the slice
 
     init_state: initial state [\hat{x}_1, \hat{x}_2, \hat{y}_2]
-    dt: time step
+    dtau: time step
     nstp: number of time step
     '''
-    states = odeint(velocity_reduced, init_state, arange(0, dt*nstp, dt))
+    states = odeint(velocity_reduced, init_state, arange(0, dtau*nstp, dtau))
 
     return states
 
@@ -118,10 +125,13 @@ def stabilityMatrix_reduced(stateVec_reduced):
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     return: stability matrix. Dimension [3 x 3]
     '''
+
     x1 = stateVec_reduced[0]
+    y1 = 0
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
-
+    velo        = velocity([x1,y1,x2,y2], None)
+    d_phi       = arctan2(velo[1],-velo[0])
     stab = TBP
 
     return stab
@@ -150,7 +160,7 @@ def groupTransform(state, phi):
 
 def reduceSymmetry(states,show_phi=False):
     '''
-    tranform states in the full state space into the slice.
+    transform states in the full state space into the slice.
     Hint: use numpy.arctan2(y,x)
     Note: this function should be able to reduce the symmetry
     of a single state and that of a sequence of states.
@@ -232,10 +242,10 @@ if __name__ == '__main__':
 
         # see how relative equilibrium drifts in the full state space
         req_full = array([req[0], 0, req[1], req[2]])
-        dt    = 0.005
+        dtau    = 0.005
         T     =  abs(2 * pi /  velocity_phase(req))
-        nstp  = round(T / dt)
-        orbit = integrator(req_full, dt, nstp)
+        nstp  = round(T / dtau)
+        orbit = integrator(req_full, dtau, nstp)
         plotFig(orbit[:,0:3])
 
     if args.case == 3:
@@ -274,9 +284,9 @@ if __name__ == '__main__':
 
         # produce an ergodic trajectory started from relative equilbirum
         x0_reduced = req + 0.0001*Vr;
-        dt = 0.005
-        nstp = 800.0 / dt
-        orbit = integrator_reduced(x0_reduced, dt, nstp);
+        dtau = 0.005
+        nstp = 800.0 / dtau
+        orbit = integrator_reduced(x0_reduced, dtau, nstp);
         # project this orbit to the new basis [Px, Py, Pz],
         # also make the relative equilibrium be the origin.
         # To check your answer, you can set 'orbit = req' on purpose and see
