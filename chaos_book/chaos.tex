@@ -128,7 +128,7 @@ We transform the Lorenz equation to the new coordinates.
 \end{align*}
 \section{Homework 2}
 
-\subsection{Homework, Q1.3 Floquet Multipliers}
+\subsection{Q1.3 Floquet Multipliers}
 
 From \cite[Q1.3]{ChaosBook}
 \begin{align*}
@@ -151,8 +151,10 @@ Substituting \eqref{eq:dot_q} and \eqref{eq:dot_p} in \eqref{eq:dot_q_polar} and
 	=&-r \dot{\theta} \numberthis \label{eq:dot_theta}
 \end{align*}
 \begin{figure}[H]
-	\caption{From \eqref{eq:dot_theta} the solution circles clockwise.}
-	\includegraphics[width=\textwidth]{wk2/floquet.png}
+	\begin{center}
+		\caption{From \eqref{eq:dot_theta} the solution circles clockwise.}
+		\includegraphics[width=0.65\textwidth]{wk2/floquet.png}
+	\end{center}
 \end{figure}
 From \eqref{eq:dot_r0}
 \begin{align*}
@@ -173,13 +175,28 @@ So the contracting Floquet exponent is $-2$.
 
 \section{Homework 5}
 
+The two modes equations from \cite{ChaosBook}
 \begin{align*}
 	\dot{z_1} =& \mu_1 z_1 - z_1 \vert z_1 \vert^2 + c_1 \bar{z_1} z_2  \numberthis \label{eq:dot_z1}\\
 	\dot{z_2} =& (1-i)z_2 + a_2z_2 \vert z_1 \vert^2+z_1^2  \numberthis \label{eq:dot_z2}
 \end{align*}
-Differentiating \eqref{eq:dot_z1}
+
+
+\begin{thm}[Invariance of the two modes system]
+	Equations \eqref{eq:dot_z1} and \eqref{eq:dot_z2} are invariant under $z_1 \rightarrow e^{i\theta} z_1,\; z_2 \rightarrow e^{2i\theta} z_2$.
+\end{thm}
+\begin{proof}
+	If we apply the transformation, the equations become:
+	\begin{align*}
+		e^{i\theta} \dot{z_1} =& e^{i\theta} \mu_1 z_1 - e^{i\theta} z_1 \vert z_1 \vert^2 + c_1 \cancel{e^{-i\theta}}   \bar{z_1} e^{\cancel{2}i\theta} z_2 \\
+		e^{2i\theta}\dot{z_2} =& e^{2i\theta} (1-i)z_2 + e^{2i\theta} a_2z_2 \vert z_1 \vert^2+\underbrace{(e^{i\theta}z_1)^2}_\text{$= e^{2i\theta}z_1^2$}
+	\end{align*}
+	The phases cancel, leaving \eqref{eq:dot_z1} and \eqref{eq:dot_z2}.
+\end{proof}
+
+We split the $z_j$ into real and imaginary parts. Differentiating \eqref{eq:dot_z1}
 \begin{align*}
-	\dot{x_1} + i\dot{y_1}=& \mu_1(x_1+i y_1) - (x_1+i y_1)  \underbrace{(x_1^2+ y_1^2)}_\text{$= r^2$}  + c_1 \bar{(x_1-i y_1)} (x_2+i y_2)\\
+	\dot{x_1} + i\dot{y_1}=& \mu_1(x_1+i y_1) - (x_1+i y_1)  \underbrace{(x_1^2+ y_1^2)}_\text{$= r^2$, say}  + c_1 \bar{(x_1-i y_1)} (x_2+i y_2)\\
 	=& \big[\mu_1 x_1 + r^2 x_1 +c_1(x_1x_2+y_1y_2)\big]+ i\big[\mu_1y_1 + r^2 y_1 +c_1(x_1y_2-x_2y_1)\big]\\
 	\dot{x_1} =&\mu_1 x_1 + r^2 x_1 +c_1(x_1x_2+y_1y_2)  \numberthis \label{eq:dot_x1}\\
 	\dot{y_1}=& \mu_1y_1 + r^2 y_1 +c_1(x_1y_2-x_2y_1)  \numberthis \label{eq:dot_y1}
@@ -191,6 +208,21 @@ Differentiating \eqref{eq:dot_z2}
 	\dot{x_2} =&x_2+y_2 + a_2 r^2 x_2 +x_1^2-y_1^2 \numberthis \label{eq:dot_x2}\\
 	\dot{y_2}=& y_2-x_2+a_2 r^2 y_2 + 2 x_1y_1  \numberthis \label{eq:dot_y2}
 \end{align*}
+
+\begin{thm}[Exercise 13.6: Invariant subspace of the two modes system]
+	If a trajectory has its initial point $(0,0,x_2,y_2)$, it remains within the subspace $(0,0,x_2^\prime,y_2^\prime)$ forever.
+\end{thm}
+
+\begin{proof}
+	Substituting $(0,0,x_2,y_2)$ in \eqref{eq:dot_x1}, \eqref{eq:dot_y1}, \eqref{eq:dot_x2}, and \eqref{eq:dot_y2}, the equations simplify to.
+	\begin{align*}
+		\dot{x_1} =&0  \\
+		\dot{y_1}=& 0 \\
+		\dot{x_2} =&x_2+y_2  \\
+		\dot{y_2}=& y_2-x_2
+	\end{align*}
+The results follows from \cite[Theorem 3]{hurewicz1958lectures}.
+\end{proof}
 
 \begin{align*}
 	\vec{x}=& \begin{bmatrix}
@@ -274,7 +306,7 @@ Taking partial derivatives of \eqref{eq:dot_x1}, \eqref{eq:dot_y1}, \eqref{eq:do
 		[A(\vec{x}) t(\vec{x})]_4 =& (2y_1+2a_2x_1y_2)(-y_1) + (2x_1+2a_2y_1y_2)x_1 - (-2 y_2) + [1+a_2(x_1^2+ y_1^2)](2x_2)\\
 		=&2\big[(y_1+a_2x_1y_2)(-y_1) + (x_1+a_2y_1y_2)x_1 + y_2 + x_2+a_2(x_1^2+ y_1^2)x_2\big]\\
 		=&2\big[-y_1^2 - \cancel{a_2 x_1 y_1 y_2} +x_1^2 +  \cancel{a_2 x_1 y_1 y_2} + y_2 + x_2+ a_2(x_1^2+ y_1^2)x_2\big]\\
-		=& -2 \dot{x_2}  \text{ from \eqref{eq:dot_x2}}
+		=& 2 \dot{x_2}  \text{ from \eqref{eq:dot_x2}}
 	\end{align*}
 	Comparing the forgoing expressions with \eqref{eq:equivariance:tv}, we see that \eqref{eq:equivariance} is satisfied.
 \end{proof}
