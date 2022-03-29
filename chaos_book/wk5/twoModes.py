@@ -198,12 +198,16 @@ def plotFig(orbit,
     ax.set_title(title)
 
 class MultiPlotter(AbstractContextManager):
+    count        = 0
+    show_on_exit = True
+
     def __init__(self,
                  nrows  = 2,
                  ncols  = 2,
                  name   = 'twoModes',
                  width  = 12,
                  height = 12):
+
         self.nrows  = nrows
         self.ncols  = ncols
         self.seq    = 0
@@ -213,6 +217,7 @@ class MultiPlotter(AbstractContextManager):
 
     def __enter__(self):
         self.fig = figure(figsize=(self.width,self.height))
+        MultiPlotter.count +=1
         return self
 
     def plot(self,orbit,
@@ -234,6 +239,9 @@ class MultiPlotter(AbstractContextManager):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.fig.tight_layout()
         self.fig.savefig(self.name)
+        MultiPlotter.count -=1
+        if MultiPlotter.count ==0 and MultiPlotter.show_on_exit:
+            show()
 
 def randrange(n, vmin, vmax, rng):
     return (vmax-vmin)*rng.rand(n) + vmin
@@ -420,4 +428,4 @@ if __name__ == '__main__':
         # plot r_n -> r_{n+2} # 2nd order
         # plot r_n -> r_{n+3} # 3nd order
         # plot r_n -> r_{n+4} # 4th order
-    show()
+
