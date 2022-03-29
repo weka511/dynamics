@@ -216,8 +216,9 @@ class MultiPlotter(AbstractContextManager):
         self.height = height
 
     def __enter__(self):
-        self.fig = figure(figsize=(self.width,self.height))
         MultiPlotter.count +=1
+        self.fig = figure(figsize=(self.width,self.height))
+        self.fig.suptitle(self.name)
         return self
 
     def plot(self,orbit,
