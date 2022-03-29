@@ -1,7 +1,10 @@
+'''
+   Relative periodic orbits from Table 12.1
+'''
 from matplotlib.pyplot import show
 from numpy             import arange, array
 from scipy.integrate   import odeint
-from twoModes          import MultiPlotter, velocity
+from twoModes          import MultiPlotter, reduceSymmetry, velocity
 
 
 def get_orbit(x0,period,dtau = 0.005):
@@ -13,8 +16,13 @@ if __name__ == '__main__':
    orbit3 = get_orbit(array([0.4514665, 0.0, 0.0108291, 0.0424373]), 14.6795175)
    orbit4 = get_orbit(array([0.4503967, 0.0, -0.0170958, 0.0476009]), 18.3874094)
    with MultiPlotter() as plotter:
-      plotter.plot(orbit1[:,0:3])
-      plotter.plot(orbit2[:,0:3])
-      plotter.plot(orbit3[:,0:3])
-      plotter.plot(orbit4[:,0:3])
+      plotter.plot(orbit1[:,0:3], title='1')
+      plotter.plot(orbit2[:,0:3], title='01')
+      plotter.plot(orbit3[:,0:3], title='0111')
+      plotter.plot(orbit4[:,0:3], title='01101')
+   with MultiPlotter() as plotter:
+      plotter.plot(reduceSymmetry(orbit1)[:,0:3], title='1')
+      plotter.plot(reduceSymmetry(orbit2)[:,0:3], title='01')
+      plotter.plot(reduceSymmetry(orbit3)[:,0:3], title='0111')
+      plotter.plot(reduceSymmetry(orbit4)[:,0:3], title='01101')
    show()
