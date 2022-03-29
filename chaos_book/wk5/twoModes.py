@@ -6,16 +6,16 @@
 # and reduceSymmetry(), and set case = 1 to validate your code
 #
 # Next, complete case2, and case3.
-# case1                       WIP
-#   velocity                  DONE
-#   velocity_reduced          DONE
-#   velocity_phase            DONE
-#   stabilityMatrix_reduced   TODO
-#   groupTransform            DONE
-#   reduceSymmetry            DONE
-# case2                       TODO
-# case3                       TODO
-
+# case1                          WIP
+#   velocity                         DONE
+#   velocity_reduced                 DONE
+#   velocity_phase                   DONE
+#   stabilityMatrix_reduced      WIP
+#   groupTransform                   DONE
+#   reduceSymmetry                   DONE
+# case2                     TODO
+# case3                     TODO
+#
 ############################################################
 from argparse             import ArgumentParser
 from contextlib           import AbstractContextManager
@@ -87,7 +87,7 @@ def velocity_phase(stateVec_reduced):
     y2         = stateVec_reduced[2]
                                          # r2         = x1**2 + y1**2
     v2         = c1*x1*y2                # (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
-    velo_phase =  v2/x1                  # Equation 13.33
+    velo_phase =  v2/x1                  # Equation 13.33 - except I don't have minus sign - erratum in 13.33?
     return velo_phase
 
 
@@ -130,7 +130,7 @@ def stabilityMatrix_reduced(stateVec_reduced):
     d_phi = arctan2(velo[1],-velo[0])
     stab  = array([[0, 0, 0],
                    [0, 0, 0],
-                  [0, 0, 0]])
+                   [0, 0, 0]])
 
     return stab
 
@@ -281,7 +281,7 @@ if __name__ == '__main__':
     rng  = RandomState(args.seed)
 
     if args.case == 1:       # validate your implementation.
-        # Start by verifying thansformations given in Homework
+        # Start by verifying transformations given in Homework
         z1,phi1=reduceSymmetry(array([1,2,3,4]),
                                show_phi = True)
         z2,phi2=reduceSymmetry(array([-2,1,-3,-4]),
@@ -316,7 +316,7 @@ if __name__ == '__main__':
                                       # projection = '3d')
             # yg = ax.scatter(x1s, x2s, y2s, c=diffs, marker='o')
             # cb = plotter.fig.colorbar(colmap)
-        print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
+            print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
 
     if args.case == 2:
