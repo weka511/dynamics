@@ -226,9 +226,11 @@ The "two modes" equations from \cite[12.4.2]{ChaosBook} are:
 We split the $z_j$ into real and imaginary parts. Differentiating \eqref{eq:dot_z1}
 \begin{align*}
 	\dot{x_1} + i\dot{y_1}=& \mu_1(x_1+i y_1) - (x_1+i y_1)  \underbrace{(x_1^2+ y_1^2)}_\text{$= r^2$, say}  + c_1 \bar{(x_1-i y_1)} (x_2+i y_2)\\
-	=& \big[\mu_1 x_1 + r^2 x_1 +c_1(x_1x_2+y_1y_2)\big]+ i\big[\mu_1y_1 + r^2 y_1 +c_1(x_1y_2-x_2y_1)\big]\\
-	\dot{x_1} =&\mu_1 x_1 + r^2 x_1 +c_1(x_1x_2+y_1y_2)  \numberthis \label{eq:dot_x1}\\
-	\dot{y_1}=& \mu_1y_1 + r^2 y_1 +c_1(x_1y_2-x_2y_1)  \numberthis \label{eq:dot_y1}
+	=& \big[\mu_1 x_1 - r^2 x_1 +c_1(x_1x_2+y_1y_2)\big]+ i\big[\mu_1y_1 - r^2 y_1 +c_1(x_1y_2-x_2y_1)\big]\\
+	\dot{x_1} =&\mu_1 x_1 - r^2 x_1 +c_1(x_1x_2+y_1y_2)\\
+	 =&(\mu_1 - r^2 )x_1 +c_1(x_1x_2+y_1y_2)  \numberthis \label{eq:dot_x1}\\
+	\dot{y_1}=& \mu_1y_1 - r^2 y_1 +c_1(x_1y_2-x_2y_1) \\
+	=& (\mu_1 - r^2) y_1 +c_1(x_1y_2-x_2y_1)  \numberthis \label{eq:dot_y1}
 \end{align*}
 Differentiating \eqref{eq:dot_z2}
 \begin{align*}
