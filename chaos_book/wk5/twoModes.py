@@ -8,8 +8,8 @@
 # Next, complete case2, and case3.
 # case1                       WIP
 #   velocity                  DONE
-#   velocity_reduced          WIP
-#   velocity_phase            WIP
+#   velocity_reduced          DONE
+#   velocity_phase            DONE
 #   stabilityMatrix_reduced   TODO
 #   groupTransform            DONE
 #   reduceSymmetry            DONE
@@ -68,7 +68,7 @@ def velocity_reduced(stateVec_reduced, tau):
 
     velo        = velocity([x1,y1,x2,y2], tau)
 
-    t            = array([0, x1, 0,     0])
+    t            = array([0, x1, -2*y2, 2*x2]) #Tx
     phi          = velocity_phase(stateVec_reduced)
     velo_reduced = velo - phi*t               # Equation 13.32
     velo3        = [velo_reduced[i] for i in [0,2,3]]
@@ -87,7 +87,7 @@ def velocity_phase(stateVec_reduced):
     y2         = stateVec_reduced[2]
                                          # r2         = x1**2 + y1**2
     v2         = c1*x1*y2                # (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
-    velo_phase = -v2/x1                  # Equation 13.33
+    velo_phase =  v2/x1                  # Equation 13.33
     return velo_phase
 
 
@@ -301,10 +301,10 @@ if __name__ == '__main__':
         reduced_orbit  = reduceSymmetry(orbit)                      # trajectory in the slice by reducing the symmety
         reduced_orbit2 = integrator_reduced(x0_reduced, dtau, nstp) # trajectory in the slice by integration in slice
 
-        x1s,x2s,y2s,diffs = get_norms(rng=rng)
+        # x1s,x2s,y2s,diffs = get_norms(rng=rng)
 
-        colmap = ScalarMappable(cmap=hsv)
-        colmap.set_array(diffs)
+        # colmap = ScalarMappable(cmap=hsv)
+        # colmap.set_array(diffs)
         with MultiPlotter() as plotter:
             plotter.plot(orbit[:,0:3],
                          title = 'Full')
@@ -312,10 +312,10 @@ if __name__ == '__main__':
                          title = 'Reduced')
             plotter.plot(reduced_orbit2[:,0:3],
                          title = 'In Slice')
-            ax = plotter.fig.add_subplot(2,2,4,
-                                      projection = '3d')
-            yg = ax.scatter(x1s, x2s, y2s, c=diffs, marker='o')
-            cb = plotter.fig.colorbar(colmap)
+            # ax = plotter.fig.add_subplot(2,2,4,
+                                      # projection = '3d')
+            # yg = ax.scatter(x1s, x2s, y2s, c=diffs, marker='o')
+            # cb = plotter.fig.colorbar(colmap)
         print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
 
