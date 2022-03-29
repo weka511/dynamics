@@ -23,6 +23,7 @@
 5|twoModes.py|Q5.2|Two modes system (Chapter 13 Exercise 13.7)
 -|twoModes.py|Q5.3|Two modes system continued: relative equilibria
 -|twoModes.py|Q5.4|Two modes system continued: Poincaré return map
+-|relativeP|-|Relative periodic orbits after Table12.1
 6|tentMap.py|Q6.3|Full tent map (Chapter 14 Example 14.8, 14.10)
 -|q6-3.py|Q6.3|Explore instability on tent map
 -|q6-5.py|Q6.5|Work out which path impossible for golden mean tent map

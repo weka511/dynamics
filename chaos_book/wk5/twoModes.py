@@ -18,9 +18,12 @@
 
 ############################################################
 from argparse             import ArgumentParser
-from numpy                import abs, arange, array, arctan2, cos, dot, eye, isclose,  pi, round, sin, zeros
+from contextlib           import AbstractContextManager
+from matplotlib.cm        import ScalarMappable, hsv
 from matplotlib.pyplot    import figure, show
 from mpl_toolkits.mplot3d import Axes3D
+from numpy                import abs, arange, array, arctan2, cos, dot, eye, isclose,  pi, round, sin, zeros
+from numpy.linalg         import norm
 from numpy.random         import RandomState
 from scipy.integrate      import odeint
 from scipy.optimize       import fsolve
@@ -65,12 +68,6 @@ def velocity_reduced(stateVec_reduced, tau):
 
     velo        = velocity([x1,y1,x2,y2], tau)
 
-    T           = array([[0, -1, 0,  0],
-                         [1,  0, 0,  0],
-                         [0,  0, 0, -2],
-                         [0,  0, 2,  0]])
-
-#    t            = array([0, x1, -2*y2, 2*x2])
     t            = array([0, x1, 0,     0])
     phi          = velocity_phase(stateVec_reduced)
     velo_reduced = velo - phi*t               # Equation 13.32
@@ -200,7 +197,7 @@ def plotFig(orbit,
             c          = colour)
     ax.set_title(title)
 
-class MultiPlotter:
+class MultiPlotter(AbstractContextManager):
     def __init__(self,
                  nrows  = 2,
                  ncols  = 2,
@@ -230,10 +227,37 @@ class MultiPlotter:
                 linewidth  = 0.5,
                 c          = colour)
         ax.set_title(title)
+        ax.set_xlabel('$x_1$')
+        ax.set_ylabel('$x_2$')
+        ax.set_zlabel('$y_2$')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.fig.tight_layout()
         self.fig.savefig(self.name)
+
+def randrange(n, vmin, vmax, rng):
+    return (vmax-vmin)*rng.rand(n) + vmin
+
+def get_norms(n       = 10000,
+              epsilon = 0.1,
+              rng     = None):
+    x1s = []
+    x2s = []
+    y2s = []
+    diffs = []
+    while len(diffs)<n:
+        x1 = randrange(1, 0,2,rng)[0]
+        x2 = randrange(1, -2, 0.5,rng)[0]
+        y2 = randrange(1, -0.5, 0.5,rng)[0]
+        V = velocity([x1,0,x2,y2],0)
+        d = sum([v**2 for v in V])
+        # d = norm(velocity_reduced([x1,x2,y2],0))
+        if d<epsilon:
+            diffs.append(d)
+            x1s.append(x1)
+            x2s.append(x2)
+            y2s.append(y2)
+    return x1s,x2s,y2s,diffs
 
 if __name__ == '__main__':
 
@@ -267,6 +291,11 @@ if __name__ == '__main__':
         orbit          = integrator(x0, dtau, nstp)                 # trajectory in the full state space
         reduced_orbit  = reduceSymmetry(orbit)                      # trajectory in the slice by reducing the symmety
         reduced_orbit2 = integrator_reduced(x0_reduced, dtau, nstp) # trajectory in the slice by integration in slice
+
+        x1s,x2s,y2s,diffs = get_norms(rng=rng)
+
+        colmap = ScalarMappable(cmap=hsv)
+        colmap.set_array(diffs)
         with MultiPlotter() as plotter:
             plotter.plot(orbit[:,0:3],
                          title = 'Full')
@@ -274,7 +303,10 @@ if __name__ == '__main__':
                          title = 'Reduced')
             plotter.plot(reduced_orbit2[:,0:3],
                          title = 'In Slice')
-
+            ax = plotter.fig.add_subplot(2,2,4,
+                                      projection = '3d')
+            yg = ax.scatter(x1s, x2s, y2s, c=diffs, marker='o')
+            cb = plotter.fig.colorbar(colmap)
         print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
 
@@ -295,6 +327,7 @@ if __name__ == '__main__':
         orbit    = integrator(req_full, dtau, nstp)
         plotFig(orbit[:,0:3])
 
+        xs
     if args.case == 3:
         '''
         return map in the Poincare section. This case is similar to hw3.
