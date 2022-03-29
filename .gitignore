@@ -105,4 +105,10 @@ ENV/
 *.bbl
 *.blg
 *.synctex.gz
+*.toc
+
+*.npz
+*.ini
+*.bak
+
 
