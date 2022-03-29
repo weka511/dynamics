@@ -174,8 +174,37 @@ Substitute $r=1+\delta r$ in \eqref{eq:dot_r}
 So the contracting Floquet exponent is $-2$.
 
 \section{Homework 5}
+\begin{thm}[Equivariance] 
+	The equivariance condition \cite[(12.1)]{ChaosBook} gives rise to the following condition on the stability matrix.
+	\begin{align*}
+		g A(\vec{v}) g^{-1} =& A(g \vec{x}) \text{, \cite[(12.25)]{ChaosBook}}
+	\end{align*}
+\end{thm}
 
-The two modes equations from \cite{ChaosBook}
+\begin{proof}
+	\begin{align*}
+		g v(\vec{x})=& v{g(\vec{x})} \text{, from \cite[(12.1)]{ChaosBook}. Differentiating}\\
+		\partial_k g_{ij} v_j(\vec{x})=& \partial_k v_i (g_{1j} x_j, g_{2j} x_j,... ) \text{, upon applying the summation convention}
+	\end{align*}
+	So the left hand side is:
+	\begin{align*}
+		g_{ij} \partial_k v_j(\vec{x})=& g_{ij}A_{jk}\\
+		=& (gA)_{ik}
+	\end{align*}
+	The right hand side is:
+	\begin{align*}
+		\partial_k v_i (g_{1j} x_j, g_{2j{^\prime}} x_{j{^\prime}},... ) =& A_{il} g_{lk}\\
+		=&(Ag)_{ik}
+	\end{align*}
+	Equating the left and right hand sides:
+	\begin{align*}
+		\big(gA(\vec{x})\big)_{ik} =& \big(A(g \vec{x})g\big)_{ik}\\
+		gA(\vec{x}) =& A(g \vec{x})g\\
+		gA(\vec{x})g^{-1} =& A(g \vec{x})
+	\end{align*}
+\end{proof}
+
+The "two modes" equations from \cite[12.4.2]{ChaosBook} are:
 \begin{align*}
 	\dot{z_1} =& \mu_1 z_1 - z_1 \vert z_1 \vert^2 + c_1 \bar{z_1} z_2  \numberthis \label{eq:dot_z1}\\
 	\dot{z_2} =& (1-i)z_2 + a_2z_2 \vert z_1 \vert^2+z_1^2  \numberthis \label{eq:dot_z2}
@@ -191,7 +220,7 @@ The two modes equations from \cite{ChaosBook}
 		e^{i\theta} \dot{z_1} =& e^{i\theta} \mu_1 z_1 - e^{i\theta} z_1 \vert z_1 \vert^2 + c_1 \cancel{e^{-i\theta}}   \bar{z_1} e^{\cancel{2}i\theta} z_2 \\
 		e^{2i\theta}\dot{z_2} =& e^{2i\theta} (1-i)z_2 + e^{2i\theta} a_2z_2 \vert z_1 \vert^2+\underbrace{(e^{i\theta}z_1)^2}_\text{$= e^{2i\theta}z_1^2$}
 	\end{align*}
-	The phases cancel, leaving \eqref{eq:dot_z1} and \eqref{eq:dot_z2}.
+	The phases $e^{i\phi}$ cancel, leaving \eqref{eq:dot_z1} and \eqref{eq:dot_z2}.
 \end{proof}
 
 We split the $z_j$ into real and imaginary parts. Differentiating \eqref{eq:dot_z1}
@@ -325,7 +354,8 @@ Taking partial derivatives of \eqref{eq:dot_x1}, \eqref{eq:dot_y1}, \eqref{eq:do
 	=& (0.d^\prime_2 d^\prime_3 d^\prime_4 ...)_2
 \end{align*}
 \section{Homework 7}
-\subsection{Henon mapping}
+\subsection{H\'enon mapping}
+\cite{henon1976two}
 \begin{align*}
 	(x_{n+1},y_{n+1}) =& (1-ax_n^2+by_n,x_n) \numberthis \label{eq:henon:recurrence}\\
 	x_n =& y_{n+1}\\
