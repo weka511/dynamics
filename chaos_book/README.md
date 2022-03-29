@@ -9,6 +9,7 @@
 -|Rossler.py|Q1.4| Integrating Rössler system
 -|RungeKutta.py|Q1.3| Runge-Kutta integration
 -|equilibra.py||Show solutions starting from equilibria
+-explore.py||Periodic sultion to Rossler
 2|BakersMap.py|Q2.1| A contracting baker’s map
 -|CycleStability.py|Q1.5| Stability of a periodic orbit
 -|floquet.py|Q1.2| A limit cycle with analytic Floquet exponent
