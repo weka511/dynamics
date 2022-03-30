@@ -1,5 +1,5 @@
 \documentclass[]{article}
-\usepackage{caption,subcaption,graphicx,float,url,amsmath,amssymb,amsthm,tocloft,cancel,thmtools}
+\usepackage{caption,subcaption,graphicx,float,url,amsmath,amssymb,amsthm,tocloft,cancel,thmtools,braket}
 \newtheorem{ex}{Exercise}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newtheorem{thm}{Theorem}
@@ -340,6 +340,56 @@ Taking partial derivatives of \eqref{eq:dot_x1}, \eqref{eq:dot_y1}, \eqref{eq:do
 		=& 2 \dot{x_2}  \text{ from \eqref{eq:dot_x2}}
 	\end{align*}
 	Comparing the forgoing expressions with \eqref{eq:equivariance:tv}, we see that \eqref{eq:equivariance} is satisfied.
+\end{proof}
+
+\begin{thm}[Chaosbook 13.37]
+	For the two modes system, if we use the template point
+	\begin{align*}
+		\hat{x}^\prime =& (1,0,0,0) \text{, the phase velocity is:}\\
+		\dot{\phi}(\hat{x}) =& \frac{v_2(\hat{x})}{\hat{x}_1} \numberthis \label{eq:two:modes:phase}
+	\end{align*}
+\end{thm}
+\begin{proof}
+	From \cite[(13.8)]{ChaosBook}
+	\begin{align*}
+		\dot{\phi}(\hat{x}) =& \frac{\braket{v(\hat{x})\vert t^\prime}}{\braket{t(\hat{x})\vert t^\prime}}\numberthis \label{eq:two:modes:phase1}\\
+		t^\prime =& T \hat{x}^\prime\\
+		=& \begin{pmatrix}
+			0&-1&0&0\\
+			1&0&0&0\\
+			0&0&0&-2\\
+			0&0&2&0
+		\end{pmatrix} \begin{pmatrix}
+			1\\
+			0\\
+			0\\
+			0
+		\end{pmatrix}\text{, from \eqref{eq:two_modes:generator}}\\
+		=& \begin{pmatrix}
+				0\\
+				1\\
+				0\\
+				0
+		\end{pmatrix}
+	\end{align*}
+	\begin{align*}
+		v(\hat{x}^\prime) =& (v_1, v_2, v_3, v_4)\\
+		\braket{v(\hat{x})\vert t^\prime} =& v_2\\
+		t(\hat{x}) =&  T \begin{pmatrix}
+								\hat{x}_1\\
+								\hat{y}_1\\
+								\hat{x}_2\\
+								\hat{y}_2
+							\end{pmatrix}\\
+			=& \begin{pmatrix}
+				- \hat{y}_1\\
+				\hat{x}_1\\
+				-2 \hat{y}_2\\
+				2\hat{x}_2
+			\end{pmatrix}\\
+		\braket{t(\hat{x})\vert t^\prime}=& \hat{x}_1
+	\end{align*}
+Equation \eqref{eq:two:modes:phase} follows on substituting the expressions for the numerator and denominator in \eqref{eq:two:modes:phase1}.
 \end{proof}
 \section{Homework 6}
 
