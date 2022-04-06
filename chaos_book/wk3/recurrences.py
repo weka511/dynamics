@@ -7,19 +7,6 @@ from Rossler                import Flow, StabilityMatrix, Velocity, Jacobian
 from scipy.interpolate      import splev,  splprep, splrep
 from scipy.spatial.distance import pdist, squareform
 
-def zRotation(theta):
-    '''
-    Rotation matrix about z-axis
-    Input:
-    theta: Rotation angle (radians)
-    Output:
-    Rz: Rotation matrix about z-axis
-    '''
-    return array([[cos(theta), -sin(theta), 0],
-                  [sin(theta), cos(theta),  0],
-                  [0,          0,           1]],
-                 float)
-
 
 def create_trajectory(epsilon  =1e-6,
                       tInitial = 0,
@@ -44,67 +31,79 @@ def create_trajectory(epsilon  =1e-6,
     sspSolution               = odeint(Velocity, ssp0, tArray)
     return tArray, sspSolution
 
-if __name__=='__main__':
-    thetaPoincare = 0.0 #Angle between the Poincare section hyperplane and the x-axis:
+class UPoincare:
+    '''
+    Define the Poincare section hyperplane equation as a Lambda function based on
+    the UPoincare from Poincare module, using our new sspTemplate and nTemplate:
+    UPoincare = lambda ssp: Poincare.UPoincare(ssp, sspTemplate, nTemplate)
+    '''
+    @classmethod
+    def zRotation(cls,theta):
+        '''
+        Rotation matrix about z-axis
+        Input:
+        theta: Rotation angle (radians)
+        Output:
+        Rz: Rotation matrix about z-axis
+        '''
+        return array([[cos(theta), -sin(theta), 0],
+                      [sin(theta), cos(theta),  0],
+                      [0,          0,           1]],
+                     float)
+    def __init__(self,thetaPoincare):
+        #Define vectors which will be on and orthogonal to the Poincare section
+        #hyperplane:
 
-    #Define vectors which will be on and orthogonal to the Poincare section
-    #hyperplane:
+        e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
+        sspTemplate = dot(UPoincare.zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
+        nTemplate   = dot(UPoincare.zRotation(pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
+        self.sspTemplate = sspTemplate
+        self.nTemplate   = nTemplate
 
-    e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
-    sspTemplate = dot(zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
-    nTemplate   = dot(zRotation(pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
-
-    #Define the Poincare section hyperplane equation as a Lambda function based on
-    #the UPoincare from Poincare module, using our new sspTemplate and nTemplate:
-    # UPoincare = lambda ssp: Poincare.UPoincare(ssp, sspTemplate, nTemplate)
-
-    def UPoincare(ssp, sspTemplate=sspTemplate, nTemplate=nTemplate):
+    def UPoincare(self,ssp):
         '''
         Plane equation for the Poincare section hyperplane which includes z-axis
         and makes an angle theta with the x-axis see ChaosBook ver. 14, fig. 3.2
-        Inputs:
-        ssp: State space point at which the Poincare hyperplane equation will be
-             evaluated
-        Outputs:
-        U: Hyperplane equation which should be satisfied on the Poincare section
-           U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
+        Parameters:
+            ssp: State space point at which the Poincare hyperplane equation will be evaluated
+        Returns:
+            U: Hyperplane equation which should be satisfied on the Poincare section
+               U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
         '''
 
-        return dot((ssp - sspTemplate) , nTemplate)
+        return dot((ssp - self.sspTemplate) , self.nTemplate)
 
+if __name__=='__main__':
+    ThetaPoincares      = [0.0, pi/3, 2*pi/3, -pi/3] #Angle between the Poincare section hyperplane and the x-axis
+    Poincares           = []
     tArray, sspSolution = create_trajectory()
 
-    #Now let us look for the intersections with the Poincare section over the
-    #solution. We first create an empty array to which we will append the
-    #points at which the flow pierces the Poincare section:
+    for thetaPoincare in ThetaPoincares:
+        upoincare   = UPoincare(thetaPoincare)
 
-    sspSolutionPoincare = array([], float)
-    for i in range(size(sspSolution, 0) - 1):
-        #Look at every instance from integration and search for Poincare
-        #section hyperplane crossings:
-        if UPoincare(sspSolution[i]) < 0 and UPoincare(sspSolution[i+1]) > 0:  #If the hyperplane equation is lesser than zero at one instance
-                                                                                #and greater than zero at the next, this implies that there is a
-                                                                                #zero in between
-            sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
+        #Now let us look for the intersections with the Poincare section over the
+        #solution. We first create an empty array to which we will append the
+        #points at which the flow pierces the Poincare section:
 
-            deltat0             = (tArray[i + 1] - tArray[i]) / 2       #Initial guess for the how much time one needs to integrate
-                                                                        #starting at sspPoincare0 in order to exactly land on the Poincare
-                                                                        #section
+        sspSolutionPoincare = array([], float)
 
-            fdeltat             = lambda deltat: UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
+        for i in range(size(sspSolution, 0) - 1):
+            #Look at every instance from integration and search for Poincare section hyperplane crossings:
+            if upoincare.UPoincare(sspSolution[i]) < 0 and upoincare.UPoincare(sspSolution[i+1]) > 0:
+                sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
 
-            deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
-            sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
-                                                                #flow pierces the Poincare section:
-            sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
+                deltat0             = (tArray[i + 1] - tArray[i]) / 2       #Initial guess for the how much time one needs to integrate
+                                                                            #starting at sspPoincare0 in order to exactly land on the Poincare
+                                                                            #section
 
-    #At this point sspSolutionPoincare is a long vector each three elements
-    #corresponding to one intersection of the flow with the Poincare section
-    #we reshape it into an N x 3 form where each row corresponds to a different
-    #intersection:
-    sspSolutionPoincare = sspSolutionPoincare.reshape(
-                                                size(sspSolutionPoincare, 0) // 3,
-                                                3)
+                fdeltat             = lambda deltat: upoincare.UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
+
+                deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
+                sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
+                                                                    #flow pierces the Poincare section:
+                sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
+
+        Poincares.append(sspSolutionPoincare.reshape(size(sspSolutionPoincare, 0) // 3, 3))
 
 
     fig  = figure(figsize=(12,12))
@@ -113,11 +112,15 @@ if __name__=='__main__':
             linewidth = 0.5,
             label     = 'Rossler')
 
-    ax.plot(sspSolutionPoincare[:, 0],
-            sspSolutionPoincare[:, 1],
-            sspSolutionPoincare[:, 2], '.r',
-            markersize = 4,
-            label      = 'Recurrences')
+    cs = ['.r', '.g', '.c', '.m']
+    for i in range(len(ThetaPoincares)):
+        sspSolutionPoincare = Poincares[i]
+        ax.plot(Poincares[i][:, 0],
+                Poincares[i][:, 1],
+                Poincares[i][:, 2],
+                cs[i],
+                markersize = 4,
+                label      = f'Section {i}')
 
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
