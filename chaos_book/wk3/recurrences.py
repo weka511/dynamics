@@ -50,10 +50,11 @@ class UPoincare:
                       [sin(theta), cos(theta),  0],
                       [0,          0,           1]],
                      float)
-    def __init__(self,thetaPoincare):
-        #Define vectors which will be on and orthogonal to the Poincare section
-        #hyperplane:
 
+    def __init__(self,thetaPoincare):
+        '''
+        Define vectors which will be on and orthogonal to the Poincare section hyperplane:
+        '''
         e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
         sspTemplate = dot(UPoincare.zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
         nTemplate   = dot(UPoincare.zRotation(pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
@@ -73,54 +74,45 @@ class UPoincare:
 
         return dot((ssp - self.sspTemplate) , self.nTemplate)
 
+def get_crossing(sspSolution,i,upoincare,tArray):
+    '''
+    find where exactly the flow pierces the Poincare section:
+    '''
+
+    return Flow(sspSolution[i],
+                fsolve(lambda deltat: upoincare.UPoincare(Flow(sspSolution[i] , deltat)),
+                                 (tArray[i + 1] - tArray[i]) / 2) )    #Now integrate deltat from sspPoincare0 to find where exactly the
+                                                       #flow pierces the Poincare section:
+
+def create_section(thetaPoincare,tArray, sspSolution):
+    upoincare   = UPoincare(thetaPoincare)
+
+    return array([get_crossing(sspSolution,i,upoincare,tArray)
+                  for i in range(size(sspSolution, 0) - 1)
+                  if upoincare.UPoincare(sspSolution[i]) < 0 and upoincare.UPoincare(sspSolution[i+1]) > 0],
+                 float)
+
 if __name__=='__main__':
-    ThetaPoincares      = [0.0, pi/3, 2*pi/3, -pi/3] #Angle between the Poincare section hyperplane and the x-axis
-    Poincares           = []
+    Angles              = [0, 60, 120, -60]
     tArray, sspSolution = create_trajectory()
 
-    for thetaPoincare in ThetaPoincares:
-        upoincare   = UPoincare(thetaPoincare)
+    PoincareSections    = [create_section((angle/60) * (pi/3),tArray, sspSolution) for angle in Angles]
 
-        #Now let us look for the intersections with the Poincare section over the
-        #solution. We first create an empty array to which we will append the
-        #points at which the flow pierces the Poincare section:
-
-        sspSolutionPoincare = array([], float)
-
-        for i in range(size(sspSolution, 0) - 1):
-            #Look at every instance from integration and search for Poincare section hyperplane crossings:
-            if upoincare.UPoincare(sspSolution[i]) < 0 and upoincare.UPoincare(sspSolution[i+1]) > 0:
-                sspPoincare0        = sspSolution[i]  # Initial point for the `fine' integration
-
-                deltat0             = (tArray[i + 1] - tArray[i]) / 2       #Initial guess for the how much time one needs to integrate
-                                                                            #starting at sspPoincare0 in order to exactly land on the Poincare
-                                                                            #section
-
-                fdeltat             = lambda deltat: upoincare.UPoincare(Flow(sspPoincare0, deltat))  #Define the equation for deltat which must be solved as a lambda function
-
-                deltat              = fsolve(fdeltat, deltat0)       #Find deltat at which fdeltat is 0:
-                sspPoincare         = Flow(sspPoincare0, deltat)    #Now integrate deltat from sspPoincare0 to find where exactly the
-                                                                    #flow pierces the Poincare section:
-                sspSolutionPoincare = append(sspSolutionPoincare, sspPoincare)
-
-        Poincares.append(sspSolutionPoincare.reshape(size(sspSolutionPoincare, 0) // 3, 3))
-
-
-    fig  = figure(figsize=(12,12))
-    ax   = fig.gca(projection='3d')
+    fig                 = figure(figsize=(12,12))
+    ax                  = fig.gca(projection='3d')
     ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
             linewidth = 0.5,
             label     = 'Rossler')
 
-    cs = ['.r', '.g', '.c', '.m']
-    for i in range(len(ThetaPoincares)):
-        sspSolutionPoincare = Poincares[i]
-        ax.plot(Poincares[i][:, 0],
-                Poincares[i][:, 1],
-                Poincares[i][:, 2],
-                cs[i],
+    styles = ['.r', '.g', '.c', '.m']
+    for i in range(len(Angles)):
+        text = 'Section' if i==0 else '   "   '
+        ax.plot(PoincareSections[i][:, 0],
+                PoincareSections[i][:, 1],
+                PoincareSections[i][:, 2],
+                styles[i],
                 markersize = 4,
-                label      = f'Section {i}')
+                label      = f'{text} {Angles[i]:4d}')
 
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
