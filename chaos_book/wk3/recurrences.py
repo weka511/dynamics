@@ -1,4 +1,4 @@
-from matplotlib.pyplot      import figure, show
+from matplotlib.pyplot      import figure, savefig, show
 from numpy                  import abs, append, argmin, argsort, argwhere, array, dot, cos, linspace, max, pi, real, sin, size, zeros
 from numpy.linalg           import eig, inv, norm
 from scipy.integrate        import odeint
@@ -112,12 +112,13 @@ if __name__=='__main__':
                 PoincareSections[i][:, 2],
                 styles[i],
                 markersize = 4,
-                label      = f'{text} {Angles[i]:4d}')
+                label      = f'{text} {Angles[i]:4d}' + r'$^{\circ}$')
 
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
     ax.set_zlabel('$z$')
 
     ax.set_title('Poincare Recurrences for Rossler')
-    ax.legend()
+    ax.legend( prop={'family': 'monospace'})
+    savefig('recurrences')
     show()
