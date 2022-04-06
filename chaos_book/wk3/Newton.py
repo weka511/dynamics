@@ -18,9 +18,9 @@ def zRotation(theta):
     Rz: Rotation matrix about z-axis
     """
     return array([[cos(theta), -sin(theta), 0],
-                  [sin(theta), cos(theta),  0],  # Simon
+                  [sin(theta), cos(theta),  0],
                   [0,          0,           1]],
-                 float)  # Simon
+                 float)
 
 
 thetaPoincare = 0.0 #Angle between the Poincare section hyperplane and the x-axis:
