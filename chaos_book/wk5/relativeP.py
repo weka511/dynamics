@@ -2,31 +2,40 @@
    Relative periodic orbits from Table 12.1
 '''
 
-from numpy             import arange, array
-from scipy.integrate   import odeint
-from twoModes          import MultiPlotter, reduceSymmetry, velocity, velocity_reduced
+from argparse        import ArgumentParser
+from numpy           import arange, array
+from scipy.integrate import odeint
+from twoModes        import MultiPlotter, reduceSymmetry, velocity, velocity_reduced
 
 
-def get_orbit(x0,period,dtau = 0.005):
-   return odeint(velocity, x0, arange(0, period, dtau))
+def get_orbit(x0, period,
+              dtau = 0.005,
+              n    = 1):
+   return odeint(velocity, x0, arange(0, n*period, dtau))
 
-def get_orbit_reduced(x0,period,dtau = 0.005):
-   return odeint(velocity_reduced, reduceSymmetry(x0), arange(0, period, dtau))
+def get_orbit_reduced(x0, period,
+                      dtau = 0.005,
+                      n    = 1):
+   return odeint(velocity_reduced, reduceSymmetry(x0), arange(0, n*period, dtau))
 
 if __name__ == '__main__':
+   parser = ArgumentParser(__doc__)
+   parser.add_argument('--n', default = 1, type = int)
+   args = parser.parse_args()
+
    with MultiPlotter(name='periodic') as plt1,   \
         MultiPlotter(name='reduced')  as plt2,   \
         MultiPlotter(name='inslice')  as plt3:
 
-      orbit1   = get_orbit(array([0.4525719, 0.0, 0.0509257, 0.0335428]), 3.6415120)
-      orbit2   = get_orbit(array([0.4517771, 0.0, 0.0202026, 0.0405222]), 7.3459412)
-      orbit3   = get_orbit(array([0.4514665, 0.0, 0.0108291, 0.0424373]), 14.6795175)
-      orbit4   = get_orbit(array([0.4503967, 0.0, -0.0170958, 0.0476009]), 18.3874094)
+      orbit1   = get_orbit(array([0.4525719, 0.0, 0.0509257, 0.0335428]),   3.6415120, n = args.n)
+      orbit2   = get_orbit(array([0.4517771, 0.0, 0.0202026, 0.0405222]),   7.3459412, n = args.n)
+      orbit3   = get_orbit(array([0.4514665, 0.0, 0.0108291, 0.0424373]),  14.6795175, n = args.n)
+      orbit4   = get_orbit(array([0.4503967, 0.0, -0.0170958, 0.0476009]), 18.3874094, n = args.n)
 
-      inslice1 = get_orbit_reduced(array([0.4525719, 0.0, 0.0509257, 0.0335428]), 3.6415120)
-      inslice2 = get_orbit_reduced(array([0.4517771, 0.0, 0.0202026, 0.0405222]), 7.3459412)
-      inslice3 = get_orbit_reduced(array([0.4514665, 0.0, 0.0108291, 0.0424373]), 14.6795175)
-      inslice4 = get_orbit_reduced(array([0.4503967, 0.0, -0.0170958, 0.0476009]), 18.3874094)
+      inslice1 = get_orbit_reduced(array([0.4525719, 0.0, 0.0509257, 0.0335428]),   3.6415120, n = args.n)
+      inslice2 = get_orbit_reduced(array([0.4517771, 0.0, 0.0202026, 0.0405222]),   7.3459412, n = args.n)
+      inslice3 = get_orbit_reduced(array([0.4514665, 0.0, 0.0108291, 0.0424373]),  14.6795175, n = args.n)
+      inslice4 = get_orbit_reduced(array([0.4503967, 0.0, -0.0170958, 0.0476009]), 18.3874094, n = args.n)
 
       plt1.plot(orbit1[:,0:3], title = '1')
       plt1.plot(orbit2[:,0:3], title = '01')
