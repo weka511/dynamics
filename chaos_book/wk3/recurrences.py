@@ -1,5 +1,6 @@
 '''Poincare Sections'''
 
+from math                   import isqrt
 from matplotlib.pyplot      import figure, savefig, show
 from numpy                  import abs, append, argmin, argsort, argwhere, array, dot, cos, linspace, max, pi, real, sin, size, zeros
 from numpy.linalg           import eig, inv, norm
@@ -150,6 +151,19 @@ def get_angle_as_text(angle,text=''):
     '''Format angle for display'''
     return f'{text} {angle:4d}' + r'$^{\circ}$'
 
+def axis_iterator(fig,n):
+    nrows = isqrt(n)
+    ncols = n//nrows
+    while nrows*ncols<n:
+        ncols += 1
+    axes = fig.subplots(nrows=nrows, ncols = ncols)
+    k    = 0
+    for i in range(nrows):
+        for j in range(ncols):
+            if k < n:
+                yield axes[i][j],k
+            k += 1
+
 if __name__=='__main__':
     Angles              = [-60, 0, 60, 120]
     tArray, sspSolution = create_trajectory()
@@ -157,7 +171,7 @@ if __name__=='__main__':
     PoincareSections    = [create_section(upoincare,tArray, sspSolution) for upoincare in UPoincares]
     PoincareSections2   = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,PoincareSections)]
     PoincareSectionsS   = [upoincare.SortPoincareSection(X) for upoincare,X in zip(UPoincares,PoincareSections2)]
-    InterpolatedPoincareSections = [p.InterpolatedPoincareSection for p in UPoincares]
+    Interpolated        = [p.InterpolatedPoincareSection for p in UPoincares]
     fig                 = figure(figsize=(12,12))
     ax                  = fig.gca(projection='3d')
     ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
@@ -183,19 +197,31 @@ if __name__=='__main__':
     savefig('recurrences')
 
     fig = figure(figsize=(12,12))
-    axes = fig.subplots(nrows = 3,
-                        ncols = len(Angles))
-    for i in range(len(Angles)):
-        axes[0][i].plot(PoincareSections2[i][:, 0], PoincareSections2[i][:, 1], styles[i],
-                        markersize = 5,
+    # nrows = isqrt(len(Angles))
+    # ncols = len(Angles)//nrows
+    # while nrows*ncols<len(Angles):
+        # ncols += 1
+    # axes = fig.subplots(nrows=nrows, ncols = ncols)
+    # k    = 0
+    # for i in range(nrows):
+        # for j in range(ncols):
+            # if k < len(Angles):
+    for ax,k in axis_iterator(fig,len(Angles)):
+        ax.plot(PoincareSections2[k][:, 0], PoincareSections2[k][:, 1], '.r',
+                        markersize = 10,
                         label      = 'Poincare Section')
-        axes[0][i].set_title(get_angle_as_text(Angles[i]))
-        axes[1][i].plot(PoincareSectionsS[i][:, 0], PoincareSectionsS[i][:, 1], styles[i],
+        ax.set_title(get_angle_as_text(Angles[k]))
+        ax.plot(PoincareSectionsS[k][:, 0], PoincareSectionsS[k][:, 1], '.b',
                         markersize = 5,
-                        label      = 'Poincare Section')
-        axes[2][i].plot(InterpolatedPoincareSections[i][:, 0], InterpolatedPoincareSections[i][:, 1], styles[i],
-                        markersize = 5,
+                        label      = 'Sorted Poincare Section')
+        ax.plot(Interpolated[k][:, 0], Interpolated[k][:, 1], '.g',
+                        markersize = 1,
                         label      = 'Interpolated Poincare Section')
+        if k==0:
+            ax.legend()
+        k += 1
+
+
     savefig('sections')
 
     show()
