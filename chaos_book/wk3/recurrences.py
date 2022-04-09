@@ -1,3 +1,5 @@
+'''Poincare Sections'''
+
 from matplotlib.pyplot      import figure, savefig, show
 from numpy                  import abs, append, argmin, argsort, argwhere, array, dot, cos, linspace, max, pi, real, sin, size, zeros
 from numpy.linalg           import eig, inv, norm
@@ -14,8 +16,7 @@ def create_trajectory(epsilon  = 1e-6,
                       Nt       = 100000):
     '''
     Create a long trajectory of the Rossler system by starting lose to the eq0
-    in order to include its unstable manifold on the Poincare
-    section.
+    in order to include its unstable manifold on the Poincare section.
     '''
     def get_normalized_real(V):
         '''Used to get normalized real part of a vector'''
@@ -52,12 +53,10 @@ class UPoincare:
         '''
         Define vectors which will be on and orthogonal to the Poincare section hyperplane:
         '''
-        e_x              = array([1, 0, 0], float)  # Unit vector in x-direction
-        sspTemplate      = dot(UPoincare.zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
-        nTemplate        = dot(UPoincare.zRotation(pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
-        self.sspTemplate = sspTemplate
-        self.nTemplate   = nTemplate
-        self.e_z         = array([0, 0, 1], float)
+        self.e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
+        self.sspTemplate = dot(UPoincare.zRotation(thetaPoincare), self.e_x)  #Template vector to define the Poincare section hyperplane
+        self.nTemplate   = dot(UPoincare.zRotation(pi/2), self.sspTemplate)  #Normal to this plane: template vector rotated pi/2 about the z axis
+        self.e_z         = array([0, 0, 1], float)  # Unit vector in z-direction
 
     def UPoincare(self,ssp):
         '''
@@ -72,7 +71,7 @@ class UPoincare:
 
         return dot((ssp - self.sspTemplate) , self.nTemplate)
 
-    def do_stuff(self,sspSolutionPoincare):
+    def ProjectPoincare(self,sspSolutionPoincare):
         ProjPoincare = array([self.sspTemplate,
                               self.e_z,
                               self.nTemplate], float)
@@ -80,20 +79,13 @@ class UPoincare:
         #transpose of this matrix to project each state space point onto Poincare
         #basis by a simple matrix multiplication:
         PoincareSection = dot(ProjPoincare, sspSolutionPoincare.transpose())
-        PoincareSection =  PoincareSection.transpose()   #We return to the usual N x 3 form by another transposition
-        #Third column of this matrix should be zero if everything is correct, so we
-        #discard it:
+        return  PoincareSection.transpose()   #We return to the usual N x 3 form by another transposition
 
-        PoincareSection = PoincareSection[:, 0:2]
-        return PoincareSection
 
-    def foo(self,PoincareSection):
-        Distance = squareform(pdist(PoincareSection))
-        SortedPoincareSection = PoincareSection.copy()  # Copy PoincareSection into
-                                                        # a new variable
-        #Create a zero-array to assign arclengths of the Poincare section points
-        #after sorting:
-        ArcLengths = zeros(size(SortedPoincareSection, 0))
+    def SortPoincareSection(self,PoincareSection):
+        Distance              = squareform(pdist(PoincareSection))
+        SortedPoincareSection = PoincareSection.copy()
+        ArcLengths            = zeros(size(SortedPoincareSection, 0)) #arclengths of the Poincare section points after sorting:
         # Create another zero-array to assign the arclengths of the Poincare section
         # points keeping their dynamical order for use in the return map
         sn = zeros(size(PoincareSection, 0))
@@ -106,6 +98,35 @@ class UPoincare:
             SortedPoincareSection[k + 1, :] = SortedPoincareSection[m, :]
             #Assign the previous (k+1)th row to the mth row:
             SortedPoincareSection[m, :] = dummyPoincare
+            dummyColumn = Distance[:, k + 1].copy()  # Hold (k+1)th column of the
+                                                        # distance matrix in a dummy
+                                                        # array
+            Distance[:, k + 1] = Distance[:, m]  # Assign mth column to kth
+            Distance[:, m] = dummyColumn
+
+            dummyRow = Distance[k + 1, :].copy()  # Hold (k+1)th row in a dummy
+                                                    # array
+            Distance[k + 1, :] = Distance[m, :]
+            Distance[m, :] = dummyRow
+
+            #Assign the arclength of (k+1)th element:
+            ArcLengths[k + 1] = ArcLengths[k] + Distance[k, k + 1]
+            #Find this point in the PoincareSection array and assign sn to its
+            #corresponding arclength:
+            sn[argwhere(PoincareSection[:, 0] == SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
+
+        tckPoincare, u = splprep([SortedPoincareSection[:, 0],
+                                  SortedPoincareSection[:, 1]],
+                                 u = ArcLengths,
+                                 s = 0)
+        def fPoincare(s):
+            interpolation = splev(s, tckPoincare)
+            return array([interpolation[0], interpolation[1]], float).transpose()
+
+        sArray = linspace(min(ArcLengths), max(ArcLengths), 1000)
+        #Evaluate the interpolation:
+        self.InterpolatedPoincareSection = fPoincare(sArray)
+
         return SortedPoincareSection
 
 def get_crossing(sspSolution,i,upoincare,tArray):
@@ -125,14 +146,18 @@ def create_section(upoincare,tArray, sspSolution):
                   if upoincare.UPoincare(sspSolution[i]) < 0 and upoincare.UPoincare(sspSolution[i+1]) > 0],
                  float)
 
+def get_angle_as_text(angle,text=''):
+    '''Format angle for display'''
+    return f'{text} {angle:4d}' + r'$^{\circ}$'
+
 if __name__=='__main__':
     Angles              = [-60, 0, 60, 120]
     tArray, sspSolution = create_trajectory()
     UPoincares          = [UPoincare((angle/60) * (pi/3))  for angle in Angles]
     PoincareSections    = [create_section(upoincare,tArray, sspSolution) for upoincare in UPoincares]
-    PoincareSections2   = [upoincare.do_stuff(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,PoincareSections)]
-    PoincareSectionsS   = [upoincare.foo(X) for upoincare,X in zip(UPoincares,PoincareSections2)]
-
+    PoincareSections2   = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,PoincareSections)]
+    PoincareSectionsS   = [upoincare.SortPoincareSection(X) for upoincare,X in zip(UPoincares,PoincareSections2)]
+    InterpolatedPoincareSections = [p.InterpolatedPoincareSection for p in UPoincares]
     fig                 = figure(figsize=(12,12))
     ax                  = fig.gca(projection='3d')
     ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
@@ -147,7 +172,7 @@ if __name__=='__main__':
                 PoincareSections[i][:, 2],
                 styles[i],
                 markersize = 4,
-                label      = f'{text} {Angles[i]:4d}' + r'$^{\circ}$')
+                label      = get_angle_as_text(Angles[i],text=text))
 
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
@@ -162,10 +187,15 @@ if __name__=='__main__':
                         ncols = len(Angles))
     for i in range(len(Angles)):
         axes[0][i].plot(PoincareSections2[i][:, 0], PoincareSections2[i][:, 1], styles[i],
-                markersize = 5,
-                label      = 'Poincare Section')
-        axes[0][i].set_title(f'{Angles[i]}')
+                        markersize = 5,
+                        label      = 'Poincare Section')
+        axes[0][i].set_title(get_angle_as_text(Angles[i]))
         axes[1][i].plot(PoincareSectionsS[i][:, 0], PoincareSectionsS[i][:, 1], styles[i],
-                markersize = 5,
-                label      = 'Poincare Section')
+                        markersize = 5,
+                        label      = 'Poincare Section')
+        axes[2][i].plot(InterpolatedPoincareSections[i][:, 0], InterpolatedPoincareSections[i][:, 1], styles[i],
+                        markersize = 5,
+                        label      = 'Interpolated Poincare Section')
+    savefig('sections')
+
     show()
