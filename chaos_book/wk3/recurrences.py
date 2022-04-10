@@ -146,11 +146,10 @@ def get_crossing(sspSolution,i,upoincare,tArray):
     '''
     return Flow(sspSolution[i],
                 fsolve(lambda deltat: upoincare.UPoincare(Flow(sspSolution[i] , deltat)),
-                                 (tArray[i + 1] - tArray[i]) / 2) )    #Now integrate deltat from sspPoincare0 to find where exactly the
-                                                       #flow pierces the Poincare section:
+                                 (tArray[i + 1] - tArray[i]) / 2) )
 
 
-def create_section(upoincare,tArray, sspSolution):
+def get_all_crossings(upoincare,tArray, sspSolution):
 
     return array([get_crossing(sspSolution,i,upoincare,tArray)
                   for i in range(size(sspSolution, 0) - 1)
@@ -161,18 +160,22 @@ def get_angle_as_text(angle,text=''):
     '''Format angle for display'''
     return f'{text} {angle:4d}' + r'$^{\circ}$'
 
-def axis_iterator(n,
-                  width  = 12,
-                  height = 12,
-                  title  = None):
+def generate_subplots(n,
+                  name       = 'figure',
+                  width      = 12,
+                  height     = 12,
+                  title      = None,
+                  projection = None):
     '''
-    Create a matrix of subplots and iterate through them
+    Create a matrix of subplots, iterate through them, and save figure
 
     Parameters:
         n           Number of subplots
+        name        Used to save plot as file
         width       Width of figure in inches
         height      Height of figure in inches
         title       Supertitle shared by all subplots
+        projection  Used to specify projection for each subplot
     '''
     fig = figure(figsize=(width,height))
     if title != None:
@@ -181,30 +184,28 @@ def axis_iterator(n,
     ncols = n//nrows
     while nrows*ncols<n:
         ncols += 1
-    axes = fig.subplots(nrows=nrows, ncols = ncols)
-    k    = 0
+    axes = fig.subplots(nrows      = nrows,
+                        ncols      = ncols,
+                        subplot_kw = dict(projection=projection))
+    k = 0
     for i in range(nrows):
         for j in range(ncols):
             if k < n:
                 yield axes[i][j],k
+                if k==0:
+                    ax.legend()
                 k += 1
             else:
                 axes[i][j].set_axis_off()
+    savefig(name)
+
 
 if __name__=='__main__':
     Angles              = [-60, 0, 60, 90, 120]
     tArray, sspSolution = create_trajectory()
     UPoincares          = [UPoincare((angle/60) * (pi/3))  for angle in Angles]
-    PoincareSections    = [create_section(upoincare,tArray, sspSolution) for upoincare in UPoincares]
-    PoincareSections2   = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,PoincareSections)]
-    for upoincare,PoincareSection in zip(UPoincares,PoincareSections2):
-        upoincare.SortPoincareSection(PoincareSection)
-    PoincareSectionsS   = [p.SortedPoincareSection for p in UPoincares]
-    Interpolated        = [p.InterpolatedPoincareSection for p in UPoincares]
-    sn1                 = [p.sn1 for p in UPoincares]
-    sn2                 = [p.sn2 for p in UPoincares]
-    sArrays             = [p.sArray for p in UPoincares]
-    snPlus1s            = [p.snPlus1 for p in UPoincares]
+    Crossings           = [get_all_crossings(upoincare,tArray, sspSolution) for upoincare in UPoincares]
+    PoincareSections    = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,Crossings)]
 
     fig                 = figure(figsize=(12,12))
     ax                  = fig.gca(projection='3d')
@@ -215,9 +216,9 @@ if __name__=='__main__':
     styles = ['.r', '.g', '.c', '.m', '.y']
     for i in range(len(Angles)):
         text = 'Section' if i==0 else '   "   '
-        ax.plot(PoincareSections[i][:, 0],
-                PoincareSections[i][:, 1],
-                PoincareSections[i][:, 2],
+        ax.plot(Crossings[i][:, 0],
+                Crossings[i][:, 1],
+                Crossings[i][:, 2],
                 styles[i],
                 markersize = 4,
                 label      = get_angle_as_text(Angles[i],text=text))
@@ -230,40 +231,43 @@ if __name__=='__main__':
     ax.legend( prop={'family': 'monospace'})
     savefig('recurrences')
 
-
-    for ax,k in axis_iterator(len(Angles),title='Poincare Sections'):
-        ax.plot(PoincareSections2[k][:, 0], PoincareSections2[k][:, 1], '.r',
+    for upoincare,PoincareSection in zip(UPoincares,PoincareSections):
+        upoincare.SortPoincareSection(PoincareSection)
+    SortedPoincareSection        = [upoincare.SortedPoincareSection for upoincare in UPoincares]
+    InterpolatedPoincareSections = [upoincare.InterpolatedPoincareSection for upoincare in UPoincares]
+    for ax,k in generate_subplots(len(Angles),
+                              title = 'Poincare Sections',
+                              name = 'sections'):
+        ax.plot(PoincareSections[k][:, 0], PoincareSections[k][:, 1], '.r',
                         markersize = 10,
                         label      = 'Poincare Sections')
         ax.set_title(get_angle_as_text(Angles[k]))
-        ax.plot(PoincareSectionsS[k][:, 0], PoincareSectionsS[k][:, 1], '.b',
+        ax.plot(SortedPoincareSection[k][:, 0], SortedPoincareSection[k][:, 1], '.b',
                         markersize = 5,
                         label      = 'Sorted Poincare Section')
-        ax.plot(Interpolated[k][:, 0], Interpolated[k][:, 1], '.g',
+        ax.plot(InterpolatedPoincareSections[k][:, 0], InterpolatedPoincareSections[k][:, 1], '.g',
                         markersize = 1,
                         label      = 'Interpolated Poincare Section')
 
-        if k==0:
-            ax.legend()
-    savefig('sections')
+    sn1s                = [upoincare.sn1 for upoincare in UPoincares]
+    sn2s                = [upoincare.sn2 for upoincare in UPoincares]
+    sArrays             = [upoincare.sArray for upoincare in UPoincares]
+    snPlus1s            = [upoincare.snPlus1 for upoincare in UPoincares]
 
-
-    for ax,k in axis_iterator(len(Angles),title='Return maps'):
+    for ax,k in generate_subplots(len(Angles),
+                              title = 'Return maps',
+                              name  = 'return'):
         ax.set_aspect('equal')
         ax.set_title(get_angle_as_text(Angles[k]))
-        ax.plot(sn1[k], sn2[k], '.r',
+        ax.plot(sn1s[k], sn2s[k], '.r',
                 markersize = 8,
                 label='Return map')
         ax.plot(sArrays[k], snPlus1s[k],'.b',
                 markersize=1,
                 label = 'Interpolated')
         ax.plot(sArrays[k], sArrays[k], 'k',
-                label= 'x=y' )
+                linestyle = '--' )
         ax.set_xlabel('$s_n$')
         ax.set_ylabel('$s_{n+1}$')
-        if k==0:
-            ax.legend()
-
-    savefig('return_maps')
 
     show()
