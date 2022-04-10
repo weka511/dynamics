@@ -89,14 +89,14 @@ class UPoincare:
 
     def SortPoincareSection(self,PoincareSection):
         Distance              = squareform(pdist(PoincareSection))
-        SortedPoincareSection = PoincareSection.copy()
-        ArcLengths            = zeros(size(SortedPoincareSection, 0)) #arclengths of the Poincare section points after sorting:
+        self.SortedPoincareSection = PoincareSection.copy()
+        ArcLengths            = zeros(size(self.SortedPoincareSection, 0)) #arclengths of the Poincare section points after sorting:
         self.sn               = zeros(size(PoincareSection, 0)) # arclengths of the Poincare section
-        for k in range(size(SortedPoincareSection, 0) - 1):
+        for k in range(size(self.SortedPoincareSection, 0) - 1):
             m                               = argmin(Distance[k, k + 1:]) + k + 1 # element which is closest to the kth point
-            dummyPoincare                   = SortedPoincareSection[k + 1, :].copy() # #Hold the (k+1)th row in the dummy vector:
-            SortedPoincareSection[k + 1, :] = SortedPoincareSection[m, :] #Replace (k+1)th row with the closest point:
-            SortedPoincareSection[m, :]     = dummyPoincare #Assign the previous (k+1)th row to the mth row:
+            dummyPoincare                   = self.SortedPoincareSection[k + 1, :].copy() # #Hold the (k+1)th row in the dummy vector:
+            self.SortedPoincareSection[k + 1, :] = self.SortedPoincareSection[m, :] #Replace (k+1)th row with the closest point:
+            self.SortedPoincareSection[m, :]     = dummyPoincare #Assign the previous (k+1)th row to the mth row:
 
             dummyColumn        = Distance[:, k + 1].copy()  # Hold (k+1)th column of the distance matrix in a dummy array
             Distance[:, k + 1] = Distance[:, m]  # Assign mth column to kth
@@ -109,10 +109,10 @@ class UPoincare:
             ArcLengths[k + 1] = ArcLengths[k] + Distance[k, k + 1] #Assign the arclength of (k+1)th element:
             #Find this point in the PoincareSection array and assign sn to its
             #corresponding arclength:
-            self.sn[argwhere(PoincareSection[:, 0] == SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
+            self.sn[argwhere(PoincareSection[:, 0] == self.SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
 
-        tckPoincare, u = splprep([SortedPoincareSection[:, 0],
-                                  SortedPoincareSection[:, 1]],
+        tckPoincare, u = splprep([self.SortedPoincareSection[:, 0],
+                                  self.SortedPoincareSection[:, 1]],
                                  u = ArcLengths,
                                  s = 0)
         def fPoincare(s):
@@ -139,7 +139,6 @@ class UPoincare:
         tckReturn = splrep(self.sn1,self.sn2)
         self.snPlus1 = splev(self.sArray, tckReturn)  # Evaluate spline
 
-        return SortedPoincareSection
 
 def get_crossing(sspSolution,i,upoincare,tArray):
     '''
@@ -166,8 +165,16 @@ def axis_iterator(n,
                   width  = 12,
                   height = 12,
                   title  = None):
-    '''Create a matrix of subplots and iterate through them'''
-    fig    = figure(figsize=(width,height))
+    '''
+    Create a matrix of subplots and iterate through them
+
+    Parameters:
+        n           Number of subplots
+        width       Width of figure in inches
+        height      Height of figure in inches
+        title       Supertitle shared by all subplots
+    '''
+    fig = figure(figsize=(width,height))
     if title != None:
         fig.suptitle(title)
     nrows = isqrt(n)
@@ -190,8 +197,15 @@ if __name__=='__main__':
     UPoincares          = [UPoincare((angle/60) * (pi/3))  for angle in Angles]
     PoincareSections    = [create_section(upoincare,tArray, sspSolution) for upoincare in UPoincares]
     PoincareSections2   = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,PoincareSections)]
-    PoincareSectionsS   = [upoincare.SortPoincareSection(X) for upoincare,X in zip(UPoincares,PoincareSections2)]
+    for upoincare,PoincareSection in zip(UPoincares,PoincareSections2):
+        upoincare.SortPoincareSection(PoincareSection)
+    PoincareSectionsS   = [p.SortedPoincareSection for p in UPoincares]
     Interpolated        = [p.InterpolatedPoincareSection for p in UPoincares]
+    sn1                 = [p.sn1 for p in UPoincares]
+    sn2                 = [p.sn2 for p in UPoincares]
+    sArrays             = [p.sArray for p in UPoincares]
+    snPlus1s            = [p.snPlus1 for p in UPoincares]
+
     fig                 = figure(figsize=(12,12))
     ax                  = fig.gca(projection='3d')
     ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
@@ -228,14 +242,12 @@ if __name__=='__main__':
         ax.plot(Interpolated[k][:, 0], Interpolated[k][:, 1], '.g',
                         markersize = 1,
                         label      = 'Interpolated Poincare Section')
+
         if k==0:
             ax.legend()
     savefig('sections')
 
-    sn1        = [p.sn1 for p in UPoincares]
-    sn2        = [p.sn2 for p in UPoincares]
-    sArrays    = [p.sArray for p in UPoincares]
-    snPlus1s   = [p.snPlus1 for p in UPoincares]
+
     for ax,k in axis_iterator(len(Angles),title='Return maps'):
         ax.set_aspect('equal')
         ax.set_title(get_angle_as_text(Angles[k]))
@@ -247,6 +259,8 @@ if __name__=='__main__':
                 label = 'Interpolated')
         ax.plot(sArrays[k], sArrays[k], 'k',
                 label= 'x=y' )
+        ax.set_xlabel('$s_n$')
+        ax.set_ylabel('$s_{n+1}$')
         if k==0:
             ax.legend()
 
