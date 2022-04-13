@@ -78,12 +78,12 @@ class UPoincare:
         transpose of this matrix to project each state space point onto Poincare
         basis by a simple matrix multiplication:
         '''
-        ProjPoincare = array([self.sspTemplate,
+        self.ProjPoincare = array([self.sspTemplate,
                               self.e_z,
                               self.nTemplate],
                              float)
 
-        PoincareSection = dot(ProjPoincare, sspSolutionPoincare.transpose())
+        PoincareSection = dot(self.ProjPoincare, sspSolutionPoincare.transpose())
         return  PoincareSection.transpose()   #We return to the usual N x 3 form by another transposition
 
 
@@ -111,16 +111,16 @@ class UPoincare:
             #corresponding arclength:
             self.sn[argwhere(PoincareSection[:, 0] == self.SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
 
-        tckPoincare, u = splprep([self.SortedPoincareSection[:, 0],
+        self.tckPoincare, u = splprep([self.SortedPoincareSection[:, 0],
                                   self.SortedPoincareSection[:, 1]],
                                  u = ArcLengths,
                                  s = 0)
-        def fPoincare(s):
-            interpolation = splev(s, tckPoincare)
-            return array([interpolation[0], interpolation[1]], float).transpose()
+        # def fPoincare(s):
+            # interpolation = splev(s, tckPoincare)
+            # return array([interpolation[0], interpolation[1]], float).transpose()
 
         self.sArray                      = linspace(min(ArcLengths), max(ArcLengths), 1000)
-        self.InterpolatedPoincareSection = fPoincare(self.sArray)
+        self.InterpolatedPoincareSection = self.fPoincare(self.sArray)
 
         self.sn1 = self.sn[0:-1]
         self.sn2 = self.sn[1:]
@@ -136,9 +136,12 @@ class UPoincare:
         self.sn2  = self.sn2[isort]  # sort radii2
 
         # Construct tck of the spline rep
-        tckReturn = splrep(self.sn1,self.sn2)
-        self.snPlus1 = splev(self.sArray, tckReturn)  # Evaluate spline
+        self.tckReturn = splrep(self.sn1,self.sn2)
+        self.snPlus1 = splev(self.sArray, self.tckReturn)  # Evaluate spline
 
+    def fPoincare(self,s):
+        interpolation = splev(s, self.tckPoincare)
+        return array([interpolation[0], interpolation[1]], float).transpose()
 
 def get_crossing(sspSolution,i,upoincare,tArray):
     '''
@@ -199,13 +202,28 @@ def generate_subplots(n,
                 axes[i][j].set_axis_off()
     savefig(name)
 
+class Newton:
+    def __init__(self,UPoincare,PoincareSection,tFinal=1000):
+        self.UPoincare = UPoincare
+        self.tFinal    = tFinal
+        self.PoincareSection = PoincareSection
+
+    def get_fixed_solution(self):
+        ReturnMap            = lambda r: splev(r, self.UPoincare.tckReturn) - r
+        sfixed               = fsolve(ReturnMap, 10.0)[0]
+        PoincareSectionfixed = self.UPoincare.fPoincare(sfixed)
+        sspfixed             = dot(append(PoincareSectionfixed, 0.0), self.UPoincare.ProjPoincare)
+        fdeltat              = lambda deltat: self.UPoincare.UPoincare(Flow(sspfixed, deltat))
+        Tguess               = self.tFinal / size(self.PoincareSection, 0)
+        Tnext                = fsolve(fdeltat, Tguess)[0]
+        tArray               = linspace(0, Tnext, 100)
+        return odeint(Velocity, sspfixed, tArray)
 
 if __name__=='__main__':
-    Angles              = [-60, 0, 60, 90, 120]
-    tArray, sspSolution = create_trajectory()
-    UPoincares          = [UPoincare((angle/60) * (pi/3))  for angle in Angles]
-    Crossings           = [get_all_crossings(upoincare,tArray, sspSolution) for upoincare in UPoincares]
-    PoincareSections    = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,Crossings)]
+    tFinal              = 1000
+    Angles              = [0, 45, 90, 135]
+    styles              = ['.r', '.g', '.c', '.m', '.y']
+    tArray, sspSolution = create_trajectory(tFinal=tFinal)
 
     fig                 = figure(figsize=(12,12))
     ax                  = fig.gca(projection='3d')
@@ -213,7 +231,12 @@ if __name__=='__main__':
             linewidth = 0.5,
             label     = 'Rossler')
 
-    styles = ['.r', '.g', '.c', '.m', '.y']
+    UPoincares          = [UPoincare((angle/60) * (pi/3))  for angle in Angles]
+    Crossings           = [get_all_crossings(upoincare,tArray, sspSolution) for upoincare in UPoincares]
+    PoincareSections    = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,Crossings)]
+
+
+
     for i in range(len(Angles)):
         text = 'Section' if i==0 else '   "   '
         ax.plot(Crossings[i][:, 0],
@@ -254,6 +277,9 @@ if __name__=='__main__':
     sArrays             = [upoincare.sArray for upoincare in UPoincares]
     snPlus1s            = [upoincare.snPlus1 for upoincare in UPoincares]
 
+    newton              = Newton(UPoincares[0],PoincareSections[0],tFinal=tFinal)
+    sspfixedSolution    = newton.get_fixed_solution()
+
     for ax,k in generate_subplots(len(Angles),
                               title = 'Return maps',
                               name  = 'return'):
@@ -269,5 +295,17 @@ if __name__=='__main__':
                 linestyle = '--' )
         ax.set_xlabel('$s_n$')
         ax.set_ylabel('$s_{n+1}$')
+
+    fig = figure()
+    ax   = fig.gca(projection='3d')
+    ax.set_title('Periodic Orbit')
+    ax.plot(sspfixedSolution[:, 0],
+            sspfixedSolution[:, 1],
+            sspfixedSolution[:, 2],
+            color='xkcd:green',
+            label='sspfixedSolution')
+    ax.set_xlabel('$x$')
+    ax.set_ylabel('$y$')
+    ax.set_zlabel('$z$')
 
     show()
