@@ -222,37 +222,28 @@ class CycleFinder:
     def refine(self,
                tol  = 1e-9,
                kmax = 20):
-        period     = self.Tnext.copy()  # copy Tnext to a new variable period
-        error      = zeros(4)  # Initiate the error vector
-        Delta      = zeros(4)  # Initiate the delta vector
+        period     = self.Tnext.copy()
+        error      = zeros(4)
+        Delta      = zeros(4)
         error[0:3] = Flow(self.sspfixed, period) - self.sspfixed
-        Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+        Newton     = zeros((4, 4))
 
         k    = 0
         #We are going to iterate the newton method until the maximum value of the
         #absolute error meets the tolerance:
         while max(abs(error)) > tol:
             if k > kmax:
-                print("Passed the maximum number of iterations")
-                break
+                raise Exception('Passed the maximum number of iterations')
             k += 1
-            print(f'Iteration {k}')
             Newton[0:3, 0:3] = 1-Jacobian(self.sspfixed,self.Tnext)     #First 3x3 block is 1 - J^t(x)
-            Newton[0:3, 3]  = -Velocity(self.sspfixed,self.Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
-            Newton[3, 0:3]  = self.UPoincare.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
-            Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
-            self.sspfixed   = self.sspfixed + Delta[0:3]   #Update our guesses:
-            period          = period + Delta[3]
-            error[0:3]      = Flow(self.sspfixed, period) - self.sspfixed #Compute the new errors:
+            Newton[0:3, 3]   = -Velocity(self.sspfixed,self.Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
+            Newton[3, 0:3]   = self.UPoincare.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
+            Delta            = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
+            self.sspfixed    = self.sspfixed + Delta[0:3]   #Update our guesses:
+            period           = period + Delta[3]
+            error[0:3]       = Flow(self.sspfixed, period) - self.sspfixed #Compute the new errors:
 
-
-        print("Shortest periodic orbit is at: ", self.sspfixed[0],
-                                                 self.sspfixed[1],
-                                                 self.sspfixed[2])
-        print("Period:", period)
-
-        tArray        = linspace(0, period, 1000)  # Time array for solution integration
-        return odeint(Velocity, self.sspfixed, tArray)
+        return period, odeint(Velocity, self.sspfixed, linspace(0, period, 1000))
 
 if __name__=='__main__':
     tFinal              = 1000
@@ -269,8 +260,6 @@ if __name__=='__main__':
     UPoincares          = [UPoincare((angle/60) * (pi/3))  for angle in Angles]
     Crossings           = [get_all_crossings(upoincare,tArray, sspSolution) for upoincare in UPoincares]
     PoincareSections    = [upoincare.ProjectPoincare(sspSolutionPoincare) for upoincare,sspSolutionPoincare in zip(UPoincares,Crossings)]
-
-
 
     for i in range(len(Angles)):
         text = 'Section' if i==0 else '   "   '
@@ -307,14 +296,11 @@ if __name__=='__main__':
                         markersize = 1,
                         label      = 'Interpolated Poincare Section')
 
-    sn1s                = [upoincare.sn1 for upoincare in UPoincares]
-    sn2s                = [upoincare.sn2 for upoincare in UPoincares]
-    sArrays             = [upoincare.sArray for upoincare in UPoincares]
-    snPlus1s            = [upoincare.snPlus1 for upoincare in UPoincares]
+    sn1s                  = [upoincare.sn1 for upoincare in UPoincares]
+    sn2s                  = [upoincare.sn2 for upoincare in UPoincares]
+    sArrays               = [upoincare.sArray for upoincare in UPoincares]
+    snPlus1s              = [upoincare.snPlus1 for upoincare in UPoincares]
 
-    finder              = CycleFinder(UPoincares[0],PoincareSections[0],tFinal=tFinal)
-    sspfixedSolution    = finder.get_fixed_solution()
-    periodicOrbit       = finder.refine()
 
     for ax,k in generate_subplots(len(Angles),
                               title = 'Return maps',
@@ -332,14 +318,24 @@ if __name__=='__main__':
         ax.set_xlabel('$s_n$')
         ax.set_ylabel('$s_{n+1}$')
 
-    fig = figure()
-    ax   = fig.gca(projection='3d')
-    ax.set_title('Periodic Orbit')
+    finder                = CycleFinder(UPoincares[0],PoincareSections[0],tFinal=tFinal)
+    sspfixedSolution      = finder.get_fixed_solution()
+    period, periodicOrbit = finder.refine()
+
+    print("Shortest periodic orbit is at: ", periodicOrbit[0][0],
+                                             periodicOrbit[0][1],
+                                             periodicOrbit[0][2])
+    print("Period:", period)
+
+    fig = figure(figsize=(12,12))
+    ax  = fig.gca(projection='3d')
+    fig.suptitle(f'Periodic Orbit, period={period}')
+    ax.set_title(f'({periodicOrbit[0][0]}, {periodicOrbit[0][1]}, {periodicOrbit[0][2]})')
     ax.plot(sspfixedSolution[:, 0],
             sspfixedSolution[:, 1],
             sspfixedSolution[:, 2],
             color='xkcd:green',
-            label='sspfixedSolution')
+            label='From Poincare Section')
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
     ax.set_zlabel('$z$')
@@ -348,6 +344,13 @@ if __name__=='__main__':
             periodicOrbit[:, 1],
             periodicOrbit[:, 2],
             color='xkcd:purple',
-            label='periodicOrbit')
+            label='Newton')
+
+    ax.scatter(periodicOrbit[0][0],
+               periodicOrbit[0][1],
+               periodicOrbit[0][2])
+
     ax.legend()
+    savefig('periodicorbits')
+
     show()
