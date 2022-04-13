@@ -202,7 +202,7 @@ def generate_subplots(n,
                 axes[i][j].set_axis_off()
     savefig(name)
 
-class Newton:
+class CycleFinder:
     def __init__(self,UPoincare,PoincareSection,tFinal=1000):
         self.UPoincare = UPoincare
         self.tFinal    = tFinal
@@ -212,12 +212,47 @@ class Newton:
         ReturnMap            = lambda r: splev(r, self.UPoincare.tckReturn) - r
         sfixed               = fsolve(ReturnMap, 10.0)[0]
         PoincareSectionfixed = self.UPoincare.fPoincare(sfixed)
-        sspfixed             = dot(append(PoincareSectionfixed, 0.0), self.UPoincare.ProjPoincare)
-        fdeltat              = lambda deltat: self.UPoincare.UPoincare(Flow(sspfixed, deltat))
+        self.sspfixed        = dot(append(PoincareSectionfixed, 0.0), self.UPoincare.ProjPoincare)
+        fdeltat              = lambda deltat: self.UPoincare.UPoincare(Flow(self.sspfixed, deltat))
         Tguess               = self.tFinal / size(self.PoincareSection, 0)
-        Tnext                = fsolve(fdeltat, Tguess)[0]
-        tArray               = linspace(0, Tnext, 100)
-        return odeint(Velocity, sspfixed, tArray)
+        self.Tnext           = fsolve(fdeltat, Tguess)[0]
+        tArray               = linspace(0, self.Tnext, 100)
+        return odeint(Velocity, self.sspfixed, tArray)
+
+    def refine(self,
+               tol  = 1e-9,
+               kmax = 20):
+        period     = self.Tnext.copy()  # copy Tnext to a new variable period
+        error      = zeros(4)  # Initiate the error vector
+        Delta      = zeros(4)  # Initiate the delta vector
+        error[0:3] = Flow(self.sspfixed, period) - self.sspfixed
+        Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+
+        k    = 0
+        #We are going to iterate the newton method until the maximum value of the
+        #absolute error meets the tolerance:
+        while max(abs(error)) > tol:
+            if k > kmax:
+                print("Passed the maximum number of iterations")
+                break
+            k += 1
+            print(f'Iteration {k}')
+            Newton[0:3, 0:3] = 1-Jacobian(self.sspfixed,self.Tnext)     #First 3x3 block is 1 - J^t(x)
+            Newton[0:3, 3]  = -Velocity(self.sspfixed,self.Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
+            Newton[3, 0:3]  = self.UPoincare.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
+            Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
+            self.sspfixed   = self.sspfixed + Delta[0:3]   #Update our guesses:
+            period          = period + Delta[3]
+            error[0:3]      = Flow(self.sspfixed, period) - self.sspfixed #Compute the new errors:
+
+
+        print("Shortest periodic orbit is at: ", self.sspfixed[0],
+                                                 self.sspfixed[1],
+                                                 self.sspfixed[2])
+        print("Period:", period)
+
+        tArray        = linspace(0, period, 1000)  # Time array for solution integration
+        return odeint(Velocity, self.sspfixed, tArray)
 
 if __name__=='__main__':
     tFinal              = 1000
@@ -277,8 +312,9 @@ if __name__=='__main__':
     sArrays             = [upoincare.sArray for upoincare in UPoincares]
     snPlus1s            = [upoincare.snPlus1 for upoincare in UPoincares]
 
-    newton              = Newton(UPoincares[0],PoincareSections[0],tFinal=tFinal)
-    sspfixedSolution    = newton.get_fixed_solution()
+    finder              = CycleFinder(UPoincares[0],PoincareSections[0],tFinal=tFinal)
+    sspfixedSolution    = finder.get_fixed_solution()
+    periodicOrbit       = finder.refine()
 
     for ax,k in generate_subplots(len(Angles),
                               title = 'Return maps',
@@ -308,4 +344,10 @@ if __name__=='__main__':
     ax.set_ylabel('$y$')
     ax.set_zlabel('$z$')
 
+    ax.plot(periodicOrbit[:, 0],
+            periodicOrbit[:, 1],
+            periodicOrbit[:, 2],
+            color='xkcd:purple',
+            label='periodicOrbit')
+    ax.legend()
     show()
