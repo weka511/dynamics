@@ -19,6 +19,7 @@
 3|Rossler.py|Q3.1| Shortest periodic orbit of the Rössler system
 -|Newton.py|Q3.1| Shortest periodic orbit of the Rössler system
 -|recurrences.py|-|Plot Poincare sections
+-|rgb.txt|-|RGB values for xkcd colours
 4|Lorentz.py|Q4.3| Symmetry of Lorenz Flow
 -|Lorentz.py|Q4.4| Symmetry of Lorenz Flow (continued)
 -|mirandastone.py|Ex 11.5|[Proto-Lorentz system](https://chaosbook.org/library/Mir93.pdf)

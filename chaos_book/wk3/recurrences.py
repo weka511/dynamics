@@ -1,9 +1,10 @@
 '''Poincare Sections'''
 
 from math                   import isqrt
-from matplotlib.pyplot      import figure, savefig, show
+from matplotlib.pyplot      import figure, savefig, show, tight_layout
 from numpy                  import abs, append, argmin, argsort, argwhere, array, dot, cos, linspace, max, pi, real, sin, size, zeros
 from numpy.linalg           import eig, inv, norm
+from re                     import split
 from scipy.integrate        import odeint
 from scipy.optimize         import fsolve
 from Rossler                import Flow, StabilityMatrix, Velocity, Jacobian
@@ -200,9 +201,14 @@ def generate_subplots(n,
                 k += 1
             else:
                 axes[i][j].set_axis_off()
+
+    tight_layout(h_pad = 3.0) # ensure label and title don't overlap
     savefig(name)
 
 class CycleFinder:
+    '''
+    This class finds periodic orbits
+    '''
     def __init__(self,UPoincare,PoincareSection,tFinal=1000):
         self.UPoincare = UPoincare
         self.tFinal    = tFinal
@@ -220,41 +226,59 @@ class CycleFinder:
         return odeint(Velocity, self.sspfixed, tArray)
 
     def refine(self,
-               tol  = 1e-9,
-               kmax = 20):
+               tolerance  = 1e-9,
+               kmax       = 20):
         period     = self.Tnext.copy()
         error      = zeros(4)
         Delta      = zeros(4)
         error[0:3] = Flow(self.sspfixed, period) - self.sspfixed
         Newton     = zeros((4, 4))
+        k          = 0
 
-        k    = 0
-        #We are going to iterate the newton method until the maximum value of the
-        #absolute error meets the tolerance:
-        while max(abs(error)) > tol:
-            if k > kmax:
-                raise Exception('Passed the maximum number of iterations')
+        while max(abs(error)) > tolerance:
+            if k > kmax: raise Exception(f'Could not reduce error below {tolerance} within {kmax} iterations')
             k += 1
-            Newton[0:3, 0:3] = 1-Jacobian(self.sspfixed,self.Tnext)     #First 3x3 block is 1 - J^t(x)
-            Newton[0:3, 3]   = -Velocity(self.sspfixed,self.Tnext)   #Fourth column is the negative velocity at time T: -v(f^T(x))
-            Newton[3, 0:3]   = self.UPoincare.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
-            Delta            = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
-            self.sspfixed    = self.sspfixed + Delta[0:3]   #Update our guesses:
-            period           = period + Delta[3]
-            error[0:3]       = Flow(self.sspfixed, period) - self.sspfixed #Compute the new errors:
-
+            Newton[0:3, 0:3] = 1 - Jacobian(self.sspfixed,self.Tnext)
+            Newton[0:3, 3]   = -Velocity(self.sspfixed,self.Tnext)
+            Newton[3, 0:3]   = self.UPoincare.nTemplate
+            Delta            = dot(inv(Newton), error)
+            self.sspfixed    = self.sspfixed + Delta[0:3]
+            period           += Delta[3]
+            error[0:3]       = Flow(self.sspfixed, period) - self.sspfixed
         return period, odeint(Velocity, self.sspfixed, linspace(0, period, 1000))
+
+def create_xkcd_colours(file_name = 'rgb.txt',
+                        prefix    = 'xkcd:',
+                        filter    = lambda R,G,B:True):
+    '''  Create list of XKCD colours
+         Keyword Parameters:
+            file_name Where XKCD colours live
+            prefix    Use to prefix each colour with "xkcd:"
+            filter    Allows us to exclude some colours based on RGB values
+    '''
+    with open(file_name) as colours:
+        for row in colours:
+            parts = split(r'\s+#',row.strip())
+            if len(parts)>1:
+                rgb  = int(parts[1],16)
+                B    = rgb%256
+                rest = (rgb-B)//256
+                G    = rest%256
+                R    = (rest-G)//256
+                if filter(R,G,B):
+                    yield f'{prefix}{parts[0]}'
 
 if __name__=='__main__':
     tFinal              = 1000
     Angles              = [0, 45, 90, 135]
-    styles              = ['.r', '.g', '.c', '.m', '.y']
+    colours             = [colour for colour in create_xkcd_colours()][::-1]
     tArray, sspSolution = create_trajectory(tFinal=tFinal)
 
     fig                 = figure(figsize=(12,12))
     ax                  = fig.gca(projection='3d')
     ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2],
-            linewidth = 0.5,
+            linewidth = 0.1,
+            color     = colours[0],
             label     = 'Rossler')
 
     UPoincares          = [UPoincare((angle/60) * (pi/3))  for angle in Angles]
@@ -266,8 +290,10 @@ if __name__=='__main__':
         ax.plot(Crossings[i][:, 0],
                 Crossings[i][:, 1],
                 Crossings[i][:, 2],
-                styles[i],
-                markersize = 4,
+                marker     = 'o',
+                color      = colours[i+1],
+                linestyle  = '',
+                markersize = 2,
                 label      = get_angle_as_text(Angles[i],text=text))
 
     ax.set_xlabel('$x$')
@@ -276,25 +302,38 @@ if __name__=='__main__':
 
     ax.set_title('Poincare Recurrences for Rossler')
     ax.legend( prop={'family': 'monospace'})
+    fig.tight_layout(h_pad = 3.0)
     savefig('recurrences')
 
     for upoincare,PoincareSection in zip(UPoincares,PoincareSections):
         upoincare.SortPoincareSection(PoincareSection)
     SortedPoincareSection        = [upoincare.SortedPoincareSection for upoincare in UPoincares]
     InterpolatedPoincareSections = [upoincare.InterpolatedPoincareSection for upoincare in UPoincares]
+
     for ax,k in generate_subplots(len(Angles),
                               title = 'Poincare Sections',
                               name = 'sections'):
-        ax.plot(PoincareSections[k][:, 0], PoincareSections[k][:, 1], '.r',
-                        markersize = 10,
-                        label      = 'Poincare Sections')
+        ax.plot(PoincareSections[k][:, 0], PoincareSections[k][:, 1],
+                marker     = 'o',
+                color      = 'xkcd:red',
+                linestyle  = '',
+                markersize = 8,
+                label      = 'Poincare Sections')
         ax.set_title(get_angle_as_text(Angles[k]))
-        ax.plot(SortedPoincareSection[k][:, 0], SortedPoincareSection[k][:, 1], '.b',
-                        markersize = 5,
-                        label      = 'Sorted Poincare Section')
-        ax.plot(InterpolatedPoincareSections[k][:, 0], InterpolatedPoincareSections[k][:, 1], '.g',
-                        markersize = 1,
-                        label      = 'Interpolated Poincare Section')
+        ax.plot(SortedPoincareSection[k][:, 0], SortedPoincareSection[k][:, 1],
+                marker     = 'o',
+                color      = 'xkcd:blue',
+                linestyle  = '',
+                markersize = 4,
+                label      = 'Sorted Poincare Section')
+        ax.plot(InterpolatedPoincareSections[k][:, 0], InterpolatedPoincareSections[k][:, 1],
+                marker     = 'o',
+                color      = 'xkcd:green',
+                linestyle  = '',
+                markersize = 1,
+                label      = 'Interpolated Poincare Section')
+        ax.set_xlabel(r'$\hat{x}$')
+        ax.set_ylabel(r'$\hat{y}$')
 
     sn1s                  = [upoincare.sn1 for upoincare in UPoincares]
     sn2s                  = [upoincare.sn2 for upoincare in UPoincares]
@@ -307,18 +346,26 @@ if __name__=='__main__':
                               name  = 'return'):
         ax.set_aspect('equal')
         ax.set_title(get_angle_as_text(Angles[k]))
-        ax.plot(sn1s[k], sn2s[k], '.r',
+        ax.plot(sn1s[k], sn2s[k],
+                marker     = 'o',
+                color      = 'xkcd:red',
+                linestyle  = '',
                 markersize = 8,
                 label='Return map')
-        ax.plot(sArrays[k], snPlus1s[k],'.b',
+        ax.plot(sArrays[k], snPlus1s[k],
+                marker     = 'o',
+                color      = 'xkcd:blue',
+                linestyle  = '',
                 markersize=1,
                 label = 'Interpolated')
-        ax.plot(sArrays[k], sArrays[k], 'k',
-                linestyle = '--' )
+        ax.plot(sArrays[k], sArrays[k],
+                marker     = '',
+                color      = 'xkcd:black',
+                linestyle  = '--')
         ax.set_xlabel('$s_n$')
         ax.set_ylabel('$s_{n+1}$')
 
-    finder                = CycleFinder(UPoincares[0],PoincareSections[0],tFinal=tFinal)
+    finder                = CycleFinder(UPoincares[0],PoincareSections[0], tFinal = tFinal)
     sspfixedSolution      = finder.get_fixed_solution()
     period, periodicOrbit = finder.refine()
 
@@ -330,7 +377,7 @@ if __name__=='__main__':
     fig = figure(figsize=(12,12))
     ax  = fig.gca(projection='3d')
     fig.suptitle(f'Periodic Orbit, period={period}')
-    ax.set_title(f'({periodicOrbit[0][0]}, {periodicOrbit[0][1]}, {periodicOrbit[0][2]})')
+    ax.set_title(f'Starting point: ({periodicOrbit[0][0]}, {periodicOrbit[0][1]}, {periodicOrbit[0][2]})')
     ax.plot(sspfixedSolution[:, 0],
             sspfixedSolution[:, 1],
             sspfixedSolution[:, 2],
