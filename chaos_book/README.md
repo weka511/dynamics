@@ -5,12 +5,12 @@
 #| File | Homework |Remarks
 --|-------------------|--------|---------------------------------------------------------------------------------------------------
 -|chaos.tex||Miscellaneous problems and proofs from [Chaos Book](http://chaosbook.org/)
--|hypersphere.py|Plot areas and volumes of hyperspheres
+-|hypersphere.py||Plot areas and volumes of hyperspheres
 1|Poincare.py|Q1.5| Poincaré sections and return maps of the Rössler system
 -|Rossler.py|Q1.4| Integrating Rössler system
 -|RungeKutta.py|Q1.3| Runge-Kutta integration
 -|equilibra.py||Show solutions starting from equilibria
--explore.py||Periodic sultion to Rossler
+-|explore.py||Periodic solution to Rossler
 2|BakersMap.py|Q2.1| A contracting baker’s map
 -|CycleStability.py|Q1.5| Stability of a periodic orbit
 -|floquet.py|Q1.2| A limit cycle with analytic Floquet exponent
