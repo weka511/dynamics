@@ -1,6 +1,6 @@
 '''Plot areas and volumes of hyperspheres'''
 
-from matplotlib.pyplot import legend, plot, show, title
+from matplotlib.pyplot import legend, plot, savefig, show, title
 from math import pi
 from scipy.special import gamma
 
@@ -14,5 +14,5 @@ plot(Ds, S, label = f'Surface Area: max at d={Ds[S.index(max(S))]}')
 plot(Ds, V, label = f'Volume: max at d={Ds[V.index(max(V))]}')
 legend()
 title ('Areas and volumes of hyperspheres')
-
+savefig('hypershere')
 show()

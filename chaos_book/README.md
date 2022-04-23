@@ -40,5 +40,6 @@
 12|wk12.py||Cycle Expansion
 16|ksSub.py||Turbulence
 projects|hypersphere.py||Plot areas and volumes of hyperspheres
+-|Lorentz.py|
 -|recurrences.py|-|Plot Poincare sections
 -|rgb.txt|-|RGB values for xkcd colours
