@@ -110,5 +110,6 @@ ENV/
 *.npz
 *.ini
 *.bak
+chaos.pdf
 
 
