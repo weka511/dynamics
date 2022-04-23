@@ -111,5 +111,10 @@ ENV/
 *.ini
 *.bak
 chaos.pdf
+chaos_book/projects/hypershere.png
+chaos_book/projects/periodicorbits.png
+chaos_book/projects/recurrences.png
+chaos_book/projects/return.png
+chaos_book/projects/sections.png
 
 
