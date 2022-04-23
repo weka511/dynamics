@@ -110,7 +110,13 @@ ENV/
 *.npz
 *.ini
 *.bak
+
+# Files produced by tex
+
 chaos.pdf
+
+# Files produced by python programs
+
 chaos_book/projects/hypershere.png
 chaos_book/projects/periodicorbits.png
 chaos_book/projects/recurrences.png
