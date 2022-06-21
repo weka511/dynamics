@@ -1,6 +1,6 @@
 from numpy import zeros, eye, dot, diag, inf
-from scipy.sparse.linalg import gmres
 from numpy.linalg import norm, solve
+from scipy.sparse.linalg import gmres
 
 
 class Multishooting:
@@ -152,7 +152,7 @@ class Multishooting:
 
         '''
         M, N = states_stack.shape;
-        x = states_stace
+        x = states_stack
         dt = init_dt;
         lam= 1.0;
         x_new = x;
