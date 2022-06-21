@@ -73,9 +73,9 @@ class Multishooting:
                        integrator_reduced_with_jacob() in the experiments
         velo :         velocity field of the system.  velocity_reduced()
         '''
-        self.intgr = intgr
+        self.intgr      = intgr
         self.intgr_jaco = intgr_jaco
-        self.velo = velo
+        self.velo       = velo
 
     def shootingMatrix(self, states_stack, dt, nstp):
         '''
@@ -92,18 +92,18 @@ class Multishooting:
         '''
         M, N = states_stack.shape
 
-        DF = zeros([N*M, N*M+1])
-        dF = zeros(N*M)
+        DF   = zeros([N*M, N*M+1])
+        dF   = zeros(N*M)
 
         # fill out the first row of the multishooting matrix and difference vector
-        x_start = states_stack[-1,:]
-        x_end = states_stack[0,:]
-        states, Jacob = self.intgr_jaco(x_start, dt, nstp+1)
-        fx_start = states[-1,:]
-        DF[0:N, 0:N] = eye(N)
+        x_start          = states_stack[-1,:]
+        x_end            = states_stack[0,:]
+        states, Jacob    = self.intgr_jaco(x_start, dt, nstp+1)
+        fx_start         = states[-1,:]
+        DF[0:N, 0:N]     = eye(N)
         DF[0:N, -N-1:-1] = -Jacob;
-        DF[0:N, -1] = - self.velo(fx_start, None)
-        dF[0:N] = - (x_end - fx_start)
+        DF[0:N, -1]      = - self.velo(fx_start, None)
+        dF[0:N]          = - (x_end - fx_start)
 
         # fill out row 2 to row M of multishooting matrix and difference vector
         for i in range(1, M):
@@ -120,14 +120,14 @@ class Multishooting:
         Parameter: the same as shootingMatrix()
         return: the different vector
         '''
-        M, N = states_stack.shape
-        xx = states_stack
-        dF = zeros(M*N)
+        M, N    = states_stack.shape
+        xx      = states_stack
+        dF      = zeros(M*N)
 
-        x = self.intgr(xx[-1,:], dt, nstp+1)
+        x       = self.intgr(xx[-1,:], dt, nstp+1)
         dF[0:N] = - (xx[0,:] - x[-1,:])
         for j in range(1, M):
-            x = self.intgr(xx[j-1,:], dt, nstp+1)
+            x                = self.intgr(xx[j-1,:], dt, nstp+1)
             dF[N*j: N*(j+1)] = -(xx[j,:] - x[-1,:])
 
         return dF;
@@ -151,10 +151,10 @@ class Multishooting:
               dt  : the different vector
 
         '''
-        M, N = states_stack.shape;
-        x = states_stack
-        dt = init_dt;
-        lam= 1.0;
+        M, N  = states_stack.shape;
+        x     = states_stack
+        dt    = init_dt;
+        lam   = 1.0;
         x_new = x;
         for i in range(maxIter):
             J, dF = self.shootingMatrix(x, dt, nstp);
@@ -162,10 +162,9 @@ class Multishooting:
             if( norm(dF, inf) < tol ):
                 print ('iteration terminates at error : ' + str(norm(dF, inf)))
                 return x, dt
-            JJ = dot(J.T,  J) ;
-            JdF = dot(J.T, dF);
-
-            H = JJ + lam* diag(diag(JJ));
+            JJ      = dot(J.T,  J) ;
+            JdF     = dot(J.T, dF);
+            H       = JJ + lam* diag(diag(JJ));
             delta_x = solve(H, JdF);
             #tmp =  gmres(H, JdF, tol = 1e-6, restart=30, maxiter = 100)
             #delta_x = tmp[0]; print tmp[1]
@@ -173,15 +172,13 @@ class Multishooting:
             dt_new = dt + delta_x[-1] / (nstp-1);
             dF_new = self.dFvector(x_new, dt_new, nstp)
             if norm(dF_new, inf) < norm(dF, inf):
-                x = x_new;
-                dt = dt_new
-                lam= lam / 10.0;
-
+                x   = x_new;
+                dt  = dt_new
+                lam = lam / 10.0;
             else :
-                lam= lam * 10.0;
+                lam = lam * 10.0;
                 if lam> 1e10:
                     print ('lam is too large')
                     return x, dt
 
         return x, dt
-

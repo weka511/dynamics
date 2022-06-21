@@ -3,21 +3,23 @@ Stable and unstable manifold of Henon map (Example 15.5)
 '''
 
 from argparse          import ArgumentParser
-from numpy             import arange, argmax, argmin, array, dot, empty_like, load, savez, size, sqrt, vstack, zeros
+from numpy             import arange, argmax, argmin, array, dot, empty_like, load, savez, size, sqrt, vstack, zeros, zeros_like
 from matplotlib.pyplot import colorbar, figure, grid, legend, rc, savefig, show
 from numpy.random      import rand
 from scipy.interpolate import splrep, splev
 from scipy.linalg      import eig, norm
 from scipy.optimize    import fsolve
 
-rc('text', usetex=True)
+rc('text', usetex = True)
 
 class Henon:
     '''
     Class Henon contains functions for both forward and
     backward Henon map iteration.
     '''
-    def __init__(self, a=6, b=-1):
+    def __init__(self,
+                 a = 6,
+                 b = -1):
         '''
         initialization function which will be called every time you
         create an object instance. In this case, it initializes
@@ -34,7 +36,7 @@ class Henon:
         term1  = sqrt((1 + ((1-self.b)**2)/(4*self.a))/self.a)
         fixed0 = -term0-term1
         fixed1 = -term0+term1
-        return (fixed0,fixed0),(fixed1,fixed1)
+        return (fixed0,fixed0), (fixed1,fixed1)
 
     def oneIter(self, stateVec):
         '''
@@ -73,7 +75,7 @@ class Henon:
         x,y = stateVec
 
         return array([[-2*self.a*x, self.b],
-                      [1,0]])
+                      [1,           0]])
 
 
 
@@ -188,7 +190,7 @@ if __name__ == '__main__':
         states_bac = henon.multiBackIter(states[-1,:], 10)
         eq0,eq1    = henon.fixed_points()
 
-        fig        = figure(figsize=(6,6))       # check your implementation of forward map
+        fig        = figure(figsize=(12,12))       # check your implementation of forward map
         ax         = fig.add_subplot(111)
         ax.scatter(states[:,0], states[:, 1],
                    edgecolor = 'none',
@@ -196,7 +198,7 @@ if __name__ == '__main__':
                    c         = 'xkcd:blue')
         ax.set_xlabel('x')
         ax.set_ylabel('y')
-        ax.set_title('(a)')
+        ax.set_title(r"(a): H\'enon Map")
         savefig('case1')
 
 
@@ -218,7 +220,7 @@ if __name__ == '__main__':
 
 
     if args.case == 2:
-        # Try to obtain the stable and unstable manifold for
+        # Obtain the stable and unstable manifold for
         # equilibrium '0' in Henon map with parameter a=6, b=-1.
 
         # Plotting unstable/stable manifold is a difficult task in general.
@@ -283,12 +285,14 @@ if __name__ == '__main__':
                 states[j,:] = henon.oneIter(states[j,:]);
             uManifold = vstack((uManifold, states))
 
-        i_contract = argmin(abs(w))
-        Ev         = vl[i_contract] # contracting eigenvector
-        sManifold = eq0
-        states    = zeros([N,2])
+        # Generate stable manifold
+
+        i_contract  = argmin(abs(w))
+        Ev_contract = vl[i_contract] # contracting eigenvector
+        sManifold   = eq0
+        states      = zeros([N,2])
         for i in range(N): # get the initial N points
-            states[i,:] = eq0 + (r0 + delta_r*i)*Ev
+            states[i,:] = eq0 + (r0 + delta_r*i)*Ev_contract
         sManifold = vstack((sManifold, states))
 
         for i in range(NumOfIter):
@@ -322,10 +326,16 @@ if __name__ == '__main__':
               tck       = tck)
         print (f'Q7.1: {C[0]}')
         # plot the unstable, stable manifold, points B, C, D, equilibria '0' and '1'.
-        fig = figure(figsize=(6,6))
+        fig = figure(figsize=(10,10))
         ax  = fig.add_subplot(111)
-        ax.plot(uManifold[:,0], uManifold[:, 1], 'r-', lw=2, label=r'$W_u$')
-        ax.plot(sManifold[:,0], sManifold[:, 1], 'c-', lw=2, label=r'$W_s$')
+        ax.plot(uManifold[:,0], uManifold[:, 1],
+                c     = 'xkcd:red',
+                lw    = 2,
+                label = r'$W_u$')
+        ax.plot(sManifold[:,0], sManifold[:, 1],
+                c     = 'xkcd:cyan',
+                lw    = 2,
+                label = r'$W_s$')
         ax.scatter(eq0[0],eq0[1])
         ax.scatter(eq1[0],eq1[1])
         ax.text(C[0], C[1], f' $C_x={C[0]:.4f}$')
@@ -335,7 +345,7 @@ if __name__ == '__main__':
         ax.text(eq1[0], eq1[1], '1')
         grid()
         legend()
-        ax.set_title('(b)')
+        ax.set_title('(b): Stable and unstable manifolds')
         savefig('case2')
 
 
@@ -370,14 +380,21 @@ if __name__ == '__main__':
                     M = vstack( (M, state) )
 
         # please plot out region M to convince yourself that you get region 0BCD
-        # fig = figure(figsize=(6,6))
-        # ax  = fig.add_subplot(111)
-        # ax.plot(M[:,0],M[:,1])
-        # ax.text(C[0], C[1], f' $C_x={C[0]:.4f}$')
-        # ax.text(D[0], D[1], 'D')
-        # ax.text(B[0], B[1], 'B')
-        # ax.text(eq0[0], eq0[1], '0')
-        # savefig('RegionM')
+        fig = figure(figsize=(12,12))
+        ax1 = fig.add_subplot(221)
+        ax1.plot(M[:,0],M[:,1], c='xkcd:light turquoise')
+        ax1.text(C[0], C[1], f' $C_x={C[0]:.4f}$')
+        ax1.text(D[0], D[1], 'D')
+        ax1.text(B[0], B[1], 'B')
+        ax1.text(eq0[0], eq0[1], '0')
+
+        m,n = M.shape
+        M_prime = zeros_like(M)
+        for i in range(m):
+            M_prime[i,:] = henon.oneIter(M[i,:])
+
+        ax4 = fig.add_subplot(224)
+        ax4.plot(M_prime[:,0],M_prime[:,1], c='xkcd:pumpkin orange')
         # Now iterate forward and backward the points in region 0BCD for one step
 
         Mf1 = array([]).reshape(0,2)
@@ -395,23 +412,22 @@ if __name__ == '__main__':
 
         # plot out Mf1 and Mb1
 
-        fig = figure(figsize=(12,6))
-        ax1  = fig.add_subplot(121)
-        ax1.plot(Mb1[:,0], Mb1[:,1], 'g.',label=r'$M_b$')
-        ax1.plot(Mf1[:,0], Mf1[:,1], 'm.',label=r'$M_f$')
+        ax2  = fig.add_subplot(222)
+        ax2.plot(Mb1[:,0], Mb1[:,1], 'g.',label=r'$M_b$')
+        ax2.plot(Mf1[:,0], Mf1[:,1], 'm.',label=r'$M_f$')
 
-        ax1.plot(uManifold[:,0], uManifold[:, 1], 'r', label=r'$W_u$')
-        ax1.plot(sManifold[:,0], sManifold[:, 1], 'c', label=r'$W_s$')
-        ax1.text(state0[0],state0[1],"0'")
-        ax1.text(stateC[0],stateC[1],"C'")
-        ax1.text(stateB[0],stateB[1],"B'")
-        ax1.text(stateD[0],stateD[1],"D'")
-        ax1.scatter(state0[0],state0[1],c='xkcd:blue',zorder=5,marker='x')
-        ax1.scatter(stateC[0],stateC[1],c='xkcd:blue',zorder=5,marker='x')
-        ax1.scatter(stateB[0],stateB[1],c='xkcd:blue',zorder=5,marker='x')
-        ax1.scatter(stateD[0],stateD[1],c='xkcd:blue',zorder=5,marker='x')
-        ax1.set_title('(c)')
-        ax1.legend()
+        ax2.plot(uManifold[:,0], uManifold[:, 1], 'r', label=r'$W_u$')
+        ax2.plot(sManifold[:,0], sManifold[:, 1], 'c', label=r'$W_s$')
+        ax2.text(state0[0],state0[1],"0'")
+        ax2.text(stateC[0],stateC[1],"C'")
+        ax2.text(stateB[0],stateB[1],"B'")
+        ax2.text(stateD[0],stateD[1],"D'")
+        ax2.scatter(state0[0],state0[1],c='xkcd:blue',zorder=5,marker='x')
+        ax2.scatter(stateC[0],stateC[1],c='xkcd:blue',zorder=5,marker='x')
+        ax2.scatter(stateB[0],stateB[1],c='xkcd:blue',zorder=5,marker='x')
+        ax2.scatter(stateD[0],stateD[1],c='xkcd:blue',zorder=5,marker='x')
+        ax2.set_title('(c)')
+        ax2.legend()
 
         # In order to see the pre-images of the borders of Mf1 and Mb1, please
         # try to plot the images and per-images of 4 edges of region 0BCD.
@@ -420,26 +436,26 @@ if __name__ == '__main__':
         inner_f = [henon.oneIter(p) for p in get_interpolated_line(C,D)]
         inner_b = [henon.oneBackIter(p) for p in get_interpolated_line(C,B)]
 
-        ax2  = fig.add_subplot(122)
-        ax2.plot(uManifold[:,0], uManifold[:, 1], 'r-',
+        ax3  = fig.add_subplot(223)
+        ax3.plot(uManifold[:,0], uManifold[:, 1], 'r-',
                 lw    = 2,
                 label = r'$W_u$')
-        ax2.plot(sManifold[:,0], sManifold[:, 1], 'c-',
+        ax3.plot(sManifold[:,0], sManifold[:, 1], 'c-',
                 lw    = 2,
                 label = r'$W_s$')
-        ax2.plot([x for (x,_) in inner_f], [y for (_,y) in inner_f],'m-',
+        ax3.plot([x for (x,_) in inner_f], [y for (_,y) in inner_f],'m-',
                 lw     =2,
                 label = r'$Pre_f$')
-        ax2.plot([x for (x,_) in inner_b], [y for (_,y) in inner_b],'b-',
+        ax3.plot([x for (x,_) in inner_b], [y for (_,y) in inner_b],'b-',
                 lw     =2,
                 label = r'$Pre_b$')
 
-        ax2.text(C[0], C[1], '$M_{11}$')
-        ax2.text(D[0], D[1], '$M_{01}$')
-        ax2.text(B[0], B[1], '$M_{10}$')
-        ax2.text(eq0[0], eq0[1], '$M_{00}$')
-        ax2.legend()
-        ax2.set_title('(d)')
+        ax3.text(C[0], C[1], '$M_{11}$')
+        ax3.text(D[0], D[1], '$M_{01}$')
+        ax3.text(B[0], B[1], '$M_{10}$')
+        ax3.text(eq0[0], eq0[1], '$M_{00}$')
+        ax3.legend()
+        ax3.set_title('(d)')
         savefig('case3')
 
     if args.case == 4:

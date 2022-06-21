@@ -21,7 +21,7 @@
 from argparse          import ArgumentParser
 from matplotlib.pyplot import figure, show, title
 from multishooting     import Multishooting
-from numpy             import arange, argmax, argmin,  array, dot, hstack,  int, load, size,  vstack, zeros
+from numpy             import arange, argmax, argmin,  array, dot, hstack,  eye, int, load, savez, size,  vstack, zeros
 from numpy.linalg      import norm
 from scipy.interpolate import interp1d
 from scipy.optimize    import fsolve
@@ -116,7 +116,6 @@ def integrator_reduced_with_jacob(stateVec_reduced, dt, nstp):
 
     return state, Jacob
 
-TBD = None
 
 if __name__ == '__main__':
     parser = ArgumentParser('8.1/Q8.2|two modes system continued -- kneading theory')
@@ -136,6 +135,7 @@ if __name__ == '__main__':
           They should be transformed to the original coordinates to get the inital guess
           of periodic orbit
     '''
+    case1          = 'case1.npz'            # Used to pass parameters from case==1 to case==2
     data           = load('data.npz')
     PoincarePoints = data['PoincarePoints'] # Poincare intersection points. dimension [1382 x 2]
     arclength      = data['arclength']      # arclength
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         C = x[argmax(y)] # critical point
 
         # get the kneading sequence of this map
-        uni = Unimodal(returnMap, C)
+        uni               = Unimodal(returnMap, C)
         kneading_sequence = uni.future_symbol(C, 10)
         print (f'Critical point: {C}')
         print (f'Kneading sequence: {kneading_sequence}')
@@ -168,9 +168,9 @@ if __name__ == '__main__':
         # find a periodic orbit with period 4
         order = 4
         g     = lambda x : uni.returnMap_iter(x, order)[-1] - x
-        guess =  0.75 # choose a guess
+        guess =  C-0.1 # choose a guess - something less than C, but not too close
         # use fsolve() to get the periodic orbit 1110
-        state = fsolve(g,guess) #TBD # the x coordinate of the point of orbit 1110
+        state = fsolve(g,guess) # the x coordinate of the point of orbit 1110
         print (f'state: {state} {uni.future_symbol(state[0],12)}')
         # find the closest Poincare intersection point
         idx   = argmin(abs(arclength - state))
@@ -181,7 +181,6 @@ if __name__ == '__main__':
         original_point = point[0]*Py+point[1]*Pz + req
 
         T0    = time[idx+order]-time[idx]        # the guess of period
-
         nstp  = int(T0/0.001)
         dt    = T0/nstp
         orbit = integrator_reduced(original_point, dt, nstp+1)
@@ -193,18 +192,22 @@ if __name__ == '__main__':
         ax.scatter(original_point[0], original_point[1], original_point[2], c='r')
         ax.scatter(orbit[-1,0], orbit[-1,1], orbit[-1,2], c='k')
         title (f'error of this guess: {norm(orbit[-1,:] - orbit[0,:])}')
+        savez(case1,
+              original_point = original_point,
+              T0             = T0)
 
 
     if args.case == 2:
         '''
         use multishootimg method to refine the orbit you got in case 1
         '''
-        x0 = array([]) # copy the initial guess here: 'original_point' in case 1
-        T0 =  TBD# copy the initial guess of period here
-        M = 4 # choose 4 (= order) points on the orbit for multishooting
-        nstp = int(T0/0.001/M)
-        dt = T0/nstp/M
-        orbit = integrator_reduced(x0, dt, nstp*M)
+        case1_data   = load(case1)
+        x0           = case1_data['original_point'] # copy the initial guess here: 'original_point' in case 1
+        T0           = case1_data['T0'] # copy the initial guess of period here
+        M            = 4 # choose 4 (= order) points on the orbit for multishooting
+        nstp         = int(T0/0.001/M)
+        dt           = T0/nstp/M
+        orbit        = integrator_reduced(x0, dt, nstp*M)
         states_stack = array([]).reshape(0, 3)
         for i in range(M):
             states_stack = vstack((states_stack, orbit[i*nstp, :]))
