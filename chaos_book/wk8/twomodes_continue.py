@@ -19,7 +19,7 @@
 
 ######################################################################
 from argparse          import ArgumentParser
-from matplotlib.pyplot import figure, show, title
+from matplotlib.pyplot import figure, legend, show
 from multishooting     import Multishooting
 from numpy             import arange, argmax, argmin,  array, dot, hstack,  eye, int, load, savez, size,  vstack, zeros
 from numpy.linalg      import norm
@@ -186,12 +186,22 @@ if __name__ == '__main__':
         orbit = integrator_reduced(original_point, dt, nstp+1)
         print (f'error of this guess: {norm(orbit[-1,:] - orbit[0,:])}') # print the error of this guess
 
-        fig = figure(figsize=(8,6))
+        fig = figure(figsize=(8,8))
         ax  = fig.add_subplot(111, projection='3d')
-        ax.plot(orbit[:,0], orbit[:,1], orbit[:,2])
-        ax.scatter(original_point[0], original_point[1], original_point[2], c='r')
-        ax.scatter(orbit[-1,0], orbit[-1,1], orbit[-1,2], c='k')
-        title (f'error of this guess: {norm(orbit[-1,:] - orbit[0,:])}')
+        ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
+                label = '1110 orbit')
+        ax.scatter(original_point[0], original_point[1], original_point[2],
+                   color  = 'r',
+                   marker = 'x',
+                   s      = 100,
+                   label  = 'Starting point')
+        ax.scatter(orbit[-1,0], orbit[-1,1], orbit[-1,2],
+                   color  ='k',
+                   marker = '+',
+                   s      = 100,
+                   label  = fr'End: $\delta=${norm(orbit[-1,:] - orbit[0,:]):.6g}')
+
+        legend(loc='upper right')
         savez(case1,
               original_point = original_point,
               T0             = T0)
@@ -211,7 +221,7 @@ if __name__ == '__main__':
         states_stack = array([]).reshape(0, 3)
         for i in range(M):
             states_stack = vstack((states_stack, orbit[i*nstp, :]))
-        ms = Multishooting(integrator_reduced, integrator_reduced_with_jacob, velocity_reduced)
+        ms     = Multishooting(integrator_reduced, integrator_reduced_with_jacob, velocity_reduced)
         xx, tt = ms.findPO(states_stack, dt, nstp, 40, 2e-14)
 
         # print out the period of orbit
