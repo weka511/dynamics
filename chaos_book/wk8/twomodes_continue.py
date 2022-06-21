@@ -19,7 +19,7 @@
 
 ######################################################################
 from argparse          import ArgumentParser
-from matplotlib.pyplot import figure, legend, show
+from matplotlib.pyplot import figure,  show
 from multishooting     import Multishooting
 from numpy             import arange, argmax, argmin,  array, dot, hstack,  eye, int, load, savez, size,  vstack, zeros
 from numpy.linalg      import norm
@@ -121,21 +121,20 @@ if __name__ == '__main__':
     parser = ArgumentParser('8.1/Q8.2|two modes system continued -- kneading theory')
     parser.add_argument('case',
                         type    = int,
-                        choices = [1,2])
+                        choices = [1,2],
+                        help    = 'Choose between Q8.1 and Q8.2')
     args = parser.parse_args()
 
-    '''
-    pre action : load data
-
-    In homework 5, we get the return map on the poincare section in the two modes
-    system. This map could be used to locate periodic orbits. Here, we provide
-    the raw data of this map.
-
-    Note: the poincare intersection points are recorded in the new coordinates system.
-          They should be transformed to the original coordinates to get the inital guess
-          of periodic orbit
-    '''
     case1          = 'case1.npz'            # Used to pass parameters from case==1 to case==2
+
+    # In homework 5, we get the return map on the poincare section in the two modes
+    # system. This map could be used to locate periodic orbits. Here, we provide
+    # the raw data of this map.
+
+    # Note: the poincare intersection points are recorded in the new coordinates system.
+          # They should be transformed to the original coordinates to get the inital guess
+          # of periodic orbit
+
     data           = load('data.npz')
     PoincarePoints = data['PoincarePoints'] # Poincare intersection points. dimension [1382 x 2]
     arclength      = data['arclength']      # arclength
@@ -146,11 +145,9 @@ if __name__ == '__main__':
     Pz             = data['Pz']
 
     if args.case == 1:
-        '''
-        work with the symbolic dynamics of two modes system.
-        You are supposed to get the initial condition of periodic
-        orbit with period 4.
-        '''
+        # Work with the symbolic dynamics of two modes system, to get the initial condition
+        # of periodic orbit with period 4.
+
         # interpolate the data points to get a smooth return map
         returnMap = interp1d(arclength[:-1], arclength[1:])
 
@@ -161,14 +158,14 @@ if __name__ == '__main__':
 
         # get the kneading sequence of this map
         uni               = Unimodal(returnMap, C)
-        kneading_sequence = uni.future_symbol(C, 10)
+        kneading_sequence = uni.future_symbol(C, 25)
         print (f'Critical point: {C}')
         print (f'Kneading sequence: {kneading_sequence}')
 
         # find a periodic orbit with period 4
         order = 4
         g     = lambda x : uni.returnMap_iter(x, order)[-1] - x
-        guess =  C-0.1 # choose a guess - something less than C, but not too close
+        guess =  C - 0.1 # choose a guess - something less than C, but not too close
         # use fsolve() to get the periodic orbit 1110
         state = fsolve(g,guess) # the x coordinate of the point of orbit 1110
         print (f'state: {state} {uni.future_symbol(state[0],12)}')
@@ -178,7 +175,7 @@ if __name__ == '__main__':
 
         # transform the point to the original coordinate
         # Note: Poincare section is Px = 0
-        original_point = point[0]*Py+point[1]*Pz + req
+        original_point = point[0]*Py + point[1]*Pz + req
 
         T0    = time[idx+order]-time[idx]        # the guess of period
         nstp  = int(T0/0.001)
@@ -186,22 +183,47 @@ if __name__ == '__main__':
         orbit = integrator_reduced(original_point, dt, nstp+1)
         print (f'error of this guess: {norm(orbit[-1,:] - orbit[0,:])}') # print the error of this guess
 
-        fig = figure(figsize=(8,8))
-        ax  = fig.add_subplot(111, projection='3d')
-        ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
+        fig = figure(figsize=(12,6))
+
+        ax1 = fig.add_subplot(121)
+        ax1.plot(x,y,
+                 c     = 'b',
+                 label = 'Return Map')
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
+        ax1.scatter(C,y.max(),
+                    c     = 'r',
+                    label = 'Critical point')
+        ax1.axvline(x         = C,
+                    linestyle = '--',
+                    c         = 'r')
+        ax1.text(state[0],returnMap(state[0]),'1110',
+                 c = 'm')
+        ax1.axvline(x         = state[0],
+                    c         = 'm',
+                    linestyle = '--')
+        ax1.scatter(point[0],point[1],
+                    c      = 'c',
+                    marker = 'x',
+                    label  = 'Poincare')
+        ax1.legend()
+
+        ax2  = fig.add_subplot(122, projection='3d')
+        ax2.plot(orbit[:,0], orbit[:,1], orbit[:,2],
                 label = '1110 orbit')
-        ax.scatter(original_point[0], original_point[1], original_point[2],
+        ax2.scatter(original_point[0], original_point[1], original_point[2],
                    color  = 'r',
                    marker = 'x',
                    s      = 100,
-                   label  = 'Starting point')
-        ax.scatter(orbit[-1,0], orbit[-1,1], orbit[-1,2],
+                   label  =f'Start: ({original_point[0]:.4g},{original_point[1]:.4g},{original_point[2]:.4g})')
+        ax2.scatter(orbit[-1,0], orbit[-1,1], orbit[-1,2],
                    color  ='k',
                    marker = '+',
                    s      = 100,
                    label  = fr'End: $\delta=${norm(orbit[-1,:] - orbit[0,:]):.6g}')
 
-        legend(loc='upper right')
+        ax2.legend(loc='upper right')
+        fig.tight_layout()
         savez(case1,
               original_point = original_point,
               T0             = T0)
