@@ -18,14 +18,15 @@
 #   is implemented for you.
 
 ######################################################################
+from argparse          import ArgumentParser
+from matplotlib.pyplot import figure, show, title
+from multishooting     import Multishooting
 from numpy             import arange, argmax, argmin,  array, dot, hstack,  int, load, size,  vstack, zeros
 from numpy.linalg      import norm
-from matplotlib.pyplot import figure, show
 from scipy.interpolate import interp1d
 from scipy.optimize    import fsolve
-from multishooting     import Multishooting
 from unimodal          import Unimodal
-from argparse          import ArgumentParser
+
 
 
 G_mu1 = -2.8
@@ -161,15 +162,16 @@ if __name__ == '__main__':
         # get the kneading sequence of this map
         uni = Unimodal(returnMap, C)
         kneading_sequence = uni.future_symbol(C, 10)
-        print (C)
-        print (kneading_sequence)
+        print (f'Critical point: {C}')
+        print (f'Kneading sequence: {kneading_sequence}')
 
         # find a periodic orbit with period 4
         order = 4
-        g = lambda x : uni.returnMap_iter(x, order)[-1] - x
-        guess =  TBD# choose a guess
+        g     = lambda x : uni.returnMap_iter(x, order)[-1] - x
+        guess =  0.75 # choose a guess
         # use fsolve() to get the periodic orbit 1110
-        state = TBD # the x coordinate of the point of orbit 1110
+        state = fsolve(g,guess) #TBD # the x coordinate of the point of orbit 1110
+        print (f'state: {state} {uni.future_symbol(state[0],12)}')
         # find the closest Poincare intersection point
         idx   = argmin(abs(arclength - state))
         point = PoincarePoints[idx]
@@ -177,20 +179,20 @@ if __name__ == '__main__':
         # transform the point to the original coordinate
         # Note: Poincare section is Px = 0
         original_point = point[0]*Py+point[1]*Pz + req
-        # the guess of period
-        T0 = time[idx+order]-time[idx]
 
-        nstp = int(T0/0.001)
-        dt   = T0/nstp
+        T0    = time[idx+order]-time[idx]        # the guess of period
+
+        nstp  = int(T0/0.001)
+        dt    = T0/nstp
         orbit = integrator_reduced(original_point, dt, nstp+1)
-        print (norm(orbit[-1,:] - orbit[0,:])) # print the error of this guess
+        print (f'error of this guess: {norm(orbit[-1,:] - orbit[0,:])}') # print the error of this guess
 
         fig = figure(figsize=(8,6))
-        ax = fig.add_subplot(111, projection='3d')
+        ax  = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[:,0], orbit[:,1], orbit[:,2])
         ax.scatter(original_point[0], original_point[1], original_point[2], c='r')
         ax.scatter(orbit[-1,0], orbit[-1,1], orbit[-1,2], c='k')
-
+        title (f'error of this guess: {norm(orbit[-1,:] - orbit[0,:])}')
 
 
     if args.case == 2:
