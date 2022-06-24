@@ -1,0 +1,364 @@
+% MyNamePHYS7123.tex
+
+% add editing date at the top  whenever any file.tex is modified
+% PC 							Nov 11:
+% YL							Nov  1:
+% http://publish.aps.org/esubs/revtextips.html
+
+% this style for submission, web version:
+\documentclass[pre,twocolumn,groupedaddress,showpacs,showkeys]{revtex4}
+
+% this style while editing:
+%\documentclass[pre,preprint,groupedaddress,showpacs,showkeys]{revtex4}
+
+\input defs	  		% all definitions in defs.tex
+				\begin{document}
+				\title{
+Title of My First Physical Review Article
+				}\author{
+My Name				}\email{gt??@prism.gatech.edu}
+\affiliation{
+		School of Physics\\
+		Jawja Institute of Technology, Atlanta, GA 30332-0430, U.S.A}
+				\date{\today} % or edit manually:
+				%\date{November 11,:}
+
+				\begin{abstract}
+A novel methods for determining unstable periodic orbits of 
+My Dynamical System ...............
+is proposed and implemented. 
+
+\end{abstract}
+\pacs{95.10.Fh, 02.70.Bf, 47.52.+j, 05.45.+a}
+\keywords{
+periodic orbits, 
+chaos, turbulence, ??? 
+	} 
+					\maketitle
+
+\noindent
+{\bf Georgia Tech PHYS 7224:}\\
+\underline{\bf CHAOS, AND WHAT TO DO ABOUT IT }\\
+{\bf course project, spring semester 2005}
+
+\section{Introduction}
+
+   My project is an investigation of a dynamical system
+   that I find interesting - not only is it relevant to
+   my thesis, but it 
+   a deterministic system (PDE reduced to ODEs reduced to a map,...) and
+   it maybe exhibits chaotic behavior. I work and work through
+   a deadly cute but ubscure paper~\cite{einstein}.
+
+The periodic orbit theory of classical chaos
+is blah-blah of chaotic dynamical systems. 
+The theory expresses all long time averages over chaotic
+dynamics in terms of cycle expansions~\cite{DasBuch,PG97}.
+sums over
+periodic orbits  (cycles) 
+ordered hierarchically according to the orbit length, stability, or action. 
+If the symbolic dynamics is known, and the flow is
+hyperbolic, longer cycles are shadowed by the shorter ones, and
+cycle expansions converge  exponentially or even 
+super-exponentially with the cycle length~\cite{Rugh92}. 
+
+
+    In \refsect{sec:der} I derive my differential equation
+which governs the evolution of blah-blah.
+Simplifications due to symmetries and details of my
+numerical implementation of the method are discussed in \refsect{sec:eqs}. 
+In \refsect{sec:triumph} I test
+the method on My System.
+My results are summarized
+discuss possible improvements of the method in \refsect{sec:sum}.
+Why I failed to .... is explained in \refappe{appe:plan}.
+
+\section{My Problem Defined}
+\label{sec:der}
+
+	Description of the problem, physical motivation
+
+    
+A periodic orbit is a
+solution $(x,\period{})$, $x \in \reals^{d}$,
+$\period{} \in \reals$ of the {\em periodic orbit condition}
+\beq
+f^{\period{}}(x) = x
+\,,\qquad \period{} > 0
+\label{e:periodic}
+\eeq
+for a given flow or discrete time mapping $x \mapsto f^t({x})$.
+Our goal is to determine periodic 
+orbits of flows defined by first order ODEs
+\beq
+\frac{dx}{dt}=v(x)
+	\,,\qquad
+ x \in \pS \subset \mathbb{R}^d
+	\,,\qquad 
+ (x,v) \in \bf{T}\pS  
+\label{fl}
+\eeq
+in $d$ dimensions. Here $\pS$ is the phase space 
+(or state space) in which evolution takes place, 
+and the vector field $v(x)$ is smooth (sufficiently 
+differentiable) almost everywhere.
+
+
+\subsection{My Equations}
+\label{sec:eqs}
+
+	Basic equations .... I often refere to
+\refeq{e:periodic}
+and my \reffig{f:Poinc} is still missing the punchline.
+But my results illustrated in 
+\reffig{f:ks1}
+give us hope.
+
+Denote by $\delta_n$ the deviation of a point $x_n$ on the 
+periodic orbit $p$ from the nearby point $y_n$, 
+%$x(t_n)$
+%could be written as $\{
+\[
+x_n  =y_n+\delta_n
+	% \,,\qquad
+	% {n=1,\ldots,N}
+\,.
+\] 
+The deviations $\delta $ are assumed small, vanishing as
+$L$ approaches $p$.
+% represent  of the loop $L$ from the true periodic orbit  $p$. 
+
+Let 
+$ \pSpace(t) = \flow{t}{\pSpace} $
+be the state of the system at time $t$ obtained by
+integrating \refeq{fl}, and 
+$\jMps(\pSpace,t) = d \pSpace(t)/d \pSpace(0)$ be
+the corresponding {} obtained by integrating
+\beq
+\frac{d\jMps}{dt} = \Mvar \jMps
+\,,\quad
+\Mvar_{ij}=\frac{\partial v_i}{\partial x_j}
+\,,\qquad
+\mbox{with } \jMps(x,0)=\mathds{1} 
+\,. 
+\label{doa}
+\eeq
+
+
+\subsection{Marginally amusing tangent}
+\label{sect:marg}
+
+Numerically, two perils lurk in a direct implementation of the {} 
+\refeq{doa}: 
+
+(1) Ho hum
+
+(2) Hee hee
+ 
+ 
+\section{Implementation of My Method}
+\label{sec:nm}
+
+    As My System satisfies the  periodic boundary condition:
+
+ 
+it is natural to ...
+
+\subsection{Numerical implementation}
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[t!]
+	\includegraphics[width=2.8in]{figs/HMV.eps}
+\caption{
+ I am fetching my master's Poincar\'e section ret cheer.
+        }
+\label{f:Poinc}
+\end{figure}  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    In a discretization of a loop, numerical
+stability requires accurate  
+discretization of  loop derivatives such as
+ \[
+v_n \equiv
+\left.\frac{\partial }{\partial s}\right|_{ = (s_n)}
+	\approx (\hat{D})_n
+\,.
+\]
+In our numerical work we use the four-point approximation,
+{\small 
+\[ 
+\hat{D} = 
+\frac{1}{12h}
+\!
+\left( \begin{array}{ccccccccccc} 0&8&-1&&&\qquad
+&&&&1&-8 \\ -8&0&8&-1&&\qquad &&&&&1 \\ 1&-8&0&8&-1&\qquad &&&&&\\
+&&&&&\cdots&&&&&\\
+&&&&&\qquad &1&-8&0&8&-1 \\
+-1&&&&&\qquad &&1&-8&0&8 \\
+8&-1&&&&\qquad &&&1&-8&0 
+\end{array}\right)
+\]
+}%end {\small  
+where $h={2 \pi}/{N}$. 
+Here, each entry represents a $[d\! \times\! d ]$ matrix, $8 \to 8\mathds{1}$, 
+{\em etc.}, 
+with blank spaces are filled with zeros.  
+
+The discretized version
+with a fictitious time Euler step $\delta \tau$ is
+\beq
+\MatrixII
+ {\hat{\Mvar}}{\hat{v}}
+ {\hat{a}}{0} 
+  \VectorII {\delta \hat{x}}{\delta \lambda} 
+=\delta \tau \VectorII{\lambda \hat{v}-\hat{v}} {0}
+\,. 
+\label{mform} 
+\eeq
+
+    In my numerical work,
+this matrix is inverted using the banded LU decomposition 
+on the embedded
+band-diagonal matrix.
+
+\subsection{Initialization of the search}
+\label{subsec:init}
+
+    As is often the case, an understanding of the problem is 
+a prerequisite to successful solution searches. We start by numerical 
+integration of the dynamical system \refeq{fl}. Numerical experiments reveal
+regions where a trajectory 
+
+\subsection{Desymmetrization}
+\label{subsec:desymm}
+
+    My system is 
+symmetric under ....
+
+  
+\section{The Hour of Triumph}
+\label{sec:triumph}
+
+    We have checked that the iteration of \refeq{mform} yields quickly and robustly
+the short unstable cycles for My System.
+
+\subsection{Periodic orbits of My System}
+
+   The Kuramoto-Sivashinsky equation arises as an amplitude equation
+for interfacial instability in a variety of contexts\rf{KurSiv}. 
+In 1-dimensional space, it reads
+\begin{equation}
+u_t=(u^2)_x-u_{xx}-\nu u_{xxxx}, \label{kseq}
+\end{equation}
+ where $\nu$ is a ``super-viscosity'' parameter which controls the rate of
+dissipation and $(u^2)_x$ is the nonlinear convection term. 
+As $\nu$ decreases, the system undergoes a series of bifurcations,
+leading to increasingly turbulent, spatio-temporally chaotic dynamics.
+
+ If we impose the periodic boundary condition
+$u(t,x+2\pi)=u(t,x)$ and choose to study only the odd solutions
+$u(-x,t)=-u(x,t)$, $u(x,t)$ can be expanded in a discrete spatial
+Fourier series,
+\begin{equation}
+u(x,t)=i\sum_{k=-\infty}^{\infty} a_k(t) e^{ikx}
+\,,
+\label{expan}
+\end{equation} 
+where $a_{-k}=-a_k \in \mathbb{R}\,$. In terms of the Fourier components, 
+PDE \refeq{kseq} becomes an infinite ladder of ODEs,
+\begin{equation}
+\dot{a_k}=(k^2-\nu k^4)a_k-k\sum_{m=-\infty}^{\infty}a_m a_{k-m} \,. \label{ksf}
+\end{equation}
+ In numerical simulations we work with the Galerkin truncations of the
+Fourier series since in the neighborhood of the strange attractor the 
+magnitude of $a_k$ decreases very fast with
+$k$,  high frequency modes playing a negligible role
+in the asymptotic dynamics. In this way Galerkin truncations reduce the
+dynamics to a finite but large number of ODEs. We work with $d=32$ dimensions 
+in our numerical 
+calculations. 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[t!]
+	(a)~\includegraphics[width=1.8in]{figs/ks21.eps}%
+	\hspace{0.2cm}%
+	(b)~\includegraphics[width=1.8in]{figs/ks22.eps}
+\caption{
+ My System in the
+ chaotic regime (greasy parameter
+ $\nu=0.015$, $d=32$ modes truncation). 
+ (a) An initial guess $L_1$, and 
+ (b) the periodic orbit $p_1$ of period $\period{1}=0.744892$ 
+ determined by My Method.
+	}
+\label{f:ks1}
+\end{figure}  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Discussion}
+\label{sec:sum}
+
+	Ultimate goals of the project was ...
+
+I attained the  minimal goal of ...
+	   
+It was realistic to expect that ...
+	   
+Then I got incredibly lucky, and
+
+In order to cope with the difficulty of finding periodic orbits in
+high-dimensional chaotic flows, we have
+
+My main result is 
+     
+My method uses information from ... .
+The method is quite robust in practice.
+
+\begin{acknowledgments}
+
+I would like to thank Mason Porter for 
+numerous helpful suggestions, and
+my mother for bringing \refrefs{HLB96,CCP96} 
+to my attention.
+
+\end{acknowledgments}         
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+
+\section{Project plan}
+\label{appe:plan}
+
+I intend to comment this appendix out when the project is finished
+- for now it helps Predrag keep track of how far am I along the
+plan.
+
+Schedule of which part I  intend to deliver by which date:
+
+\begin{enumerate}
+	   \item{\bf Tue Mar 8:}
+Will work out and integrate the equations for  ...
+	   \item{\bf  Tue Mar 15:}
+Will construct the Poincar\'e section
+	   \item{\bf  Tue Mar 29:}
+Will determine approximate symbolic dynamics for ...
+	   \item{\bf  Tue Apr  5:}
+Will find periodic orbits of ...
+	   \item{\bf  Tue Apr 12:}
+Will use cycle expansions to compute the average of ...
+	   \item{\bf  Tue Apr 19:}
+Will polish the project to high shine ...
+	   \item{\bf  Tue Apr 26:}
+Fix the last few quirks ...
+	   \item{\bf  Tue May 2:}
+Project deadline
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input refs
+
+\end{document}
