@@ -21,7 +21,7 @@
 from argparse          import ArgumentParser
 from matplotlib.pyplot import figure,  show
 from multishooting     import Multishooting
-from numpy             import arange, argmax, argmin,  array, dot, hstack,  eye, int, load, savez, size,  vstack, zeros
+from numpy             import arange, argmax, argmin,  array, dot, hstack,  eye, load, savez, size,  vstack, zeros
 from numpy.linalg      import norm
 from scipy.interpolate import interp1d
 from scipy.optimize    import fsolve
@@ -102,16 +102,16 @@ def integrator_reduced(init_state, dt, nstp):
 
 def integrator_reduced_with_jacob(stateVec_reduced, dt, nstp):
     def vTotal(y, t):
-        x = y[0:3]
-        J = y[3:].reshape(3,3)
-        v = velocity_reduced(x, None)
+        x  = y[0:3]
+        J  = y[3:].reshape(3,3)
+        v  = velocity_reduced(x, None)
         AJ = dot(stabilityMatrix_reduced(x), J)
         return hstack((v, AJ.reshape(9)))
 
     init_J = eye(3)
     y0     = hstack( (stateVec_reduced, init_J.reshape(9)))
     y      = rk4(vTotal, y0, dt, nstp)
-    state  = y[:, 0:3];
+    state  = y[:, 0:3]
     Jacob  = y[-1, 3:].reshape(3,3)
 
     return state, Jacob
@@ -132,8 +132,8 @@ if __name__ == '__main__':
     # the raw data of this map.
 
     # Note: the poincare intersection points are recorded in the new coordinates system.
-          # They should be transformed to the original coordinates to get the inital guess
-          # of periodic orbit
+    # They should be transformed to the original coordinates to get the inital guess
+    # of periodic orbit
 
     data           = load('data.npz')
     PoincarePoints = data['PoincarePoints'] # Poincare intersection points. dimension [1382 x 2]
@@ -148,8 +148,7 @@ if __name__ == '__main__':
         # Work with the symbolic dynamics of two modes system, to get the initial condition
         # of periodic orbit with period 4.
 
-        # interpolate the data points to get a smooth return map
-        returnMap = interp1d(arclength[:-1], arclength[1:])
+        returnMap = interp1d(arclength[:-1], arclength[1:]) # interpolate the data points to get a smooth return map
 
         # locate the critical point in a crude way
         x = arange(0.0001,1.8,0.0001)
@@ -177,7 +176,7 @@ if __name__ == '__main__':
         # Note: Poincare section is Px = 0
         original_point = point[0]*Py + point[1]*Pz + req
 
-        T0    = time[idx+order]-time[idx]        # the guess of period
+        T0    = time[idx+order] - time[idx]        # the guess of period
         nstp  = int(T0/0.001)
         dt    = T0/nstp
         orbit = integrator_reduced(original_point, dt, nstp+1)
@@ -221,9 +220,20 @@ if __name__ == '__main__':
                    marker = '+',
                    s      = 100,
                    label  = fr'End: $\delta=${norm(orbit[-1,:] - orbit[0,:]):.6g}')
+        xs = []
+        ys = []
+        zs = []
+        for i in range(len(x)):
+            w = x[i]*Py + y[i]*Pz +req
+            xs.append(w[0])
+            ys.append(w[1])
+            zs.append(w[2])
 
-        ax2.legend(loc='upper right')
+        ax2.plot(xs,ys,zs,
+                 c = 'g')
+        ax2.legend(loc = 'upper right')
         fig.tight_layout()
+        fig.savefig('case1')
         savez(case1,
               original_point = original_point,
               T0             = T0)
@@ -251,7 +261,7 @@ if __name__ == '__main__':
 
         # plot this periodic orbit
         fig = figure(figsize=(8,6))
-        ax = fig.add_subplot(111, projection='3d')
+        ax  = fig.add_subplot(111, projection='3d')
         for i in range(M):
             states = integrator_reduced(xx[i,:], tt, nstp+1)
             ax.plot(states[:,0], states[:,1], states[:,2], 'r')

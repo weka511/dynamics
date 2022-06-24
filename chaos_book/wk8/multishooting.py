@@ -2,7 +2,6 @@ from numpy import zeros, eye, dot, diag, inf
 from numpy.linalg import norm, solve
 from scipy.sparse.linalg import gmres
 
-
 class Multishooting:
     '''
     Multishooting method to refine the initial guess of a periodic orbit.

@@ -36,4 +36,3 @@ class Unimodal:
             future = append(future, int(x > self.C))
 
         return future
-
