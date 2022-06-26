@@ -91,7 +91,7 @@ if __name__ == '__main__':
                 if counts[i,j] != 0 :
                     x = xedges[i] + dx/2
                     y = yedges[j] + dy/2
-                    z = TBD
+                    z = counts[i,j]
                     ax.plot([x,x], [y,y], [0,z], 'b' )
         ax.set_title('(c)')
         show()
