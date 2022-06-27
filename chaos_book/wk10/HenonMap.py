@@ -92,16 +92,26 @@ if __name__ == '__main__':
 
 
     if args.case == 2:  # find the limit cycle for parameter a = 1.39945219, b = 0.3 - length looks like 13
-        henon = Henon(a=1.39945219, b=0.3)
-        # start from a random point, then evolve the system for a trancient period
-        # discard the transcient part, plot the sequence that follows.
-        N = 1000000
-        N0 = 100000
+        henon = Henon(a = 1.39945219,
+                      b = 0.3)
+        # start from a random point, then evolve the system for a transient period
+        # discard the transient part, plot the sequence that follows.
+        N      = 1000000
+        N0     = 100000    # used to skip transient
+        T      = 13        # Cycle length - estimated from plot
         states = henon.multiIter(rand(2),N)
+
         ax1 = fig.add_subplot(121)
         ax1.scatter(states[N0:-1,0],states[N0:-1,1])
         ax2 = fig.add_subplot(122)
-        ax2.plot(states[-15:-1,0],states[-15:-1,1],color='k', linestyle=':')
-        ax2.scatter(states[-14:-1,0],states[-14:-1,1],marker='x',color='b')
-        ax2.scatter(states[-28:-15,0],states[-28:-15,1],marker='+',color='r')
+        ax2.plot(states[-1-1-T:-1,0],states[-1-1-T:-1,1],
+                 color     = 'k',
+                 linestyle = ':')
+        ax2.scatter(states[-1-T:-1,0],states[-1-T:-1,1],
+                    marker = 'x',
+                    color  = 'b')
+        ax2.scatter(states[-2-2*T:-1-T-1,0],states[-2-2*T:-1-T-1,1],
+                    marker = '+',
+                    color  = 'r')
+        ax2.set_title(f'Cycle has length {T}')
 show()
