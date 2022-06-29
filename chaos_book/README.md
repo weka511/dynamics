@@ -36,8 +36,8 @@
 -|twomodes_continue.py|Q8.1/Q8.2|two modes system continued -- kneading theory
 -|unimodal.py|Q8.1|
 10|henonMap.py|Q10.1/Q10.2|Natural Measure
--|logisticMap.py|Q10.4|
-12|wk12.py||Cycle ExpaEscape rate in Logistic map (Exercise 20.2) nsion
+-|logisticMap.py|Q10.4|Escape rate in Logistic map (Exercise 20.2)
+12|wk12.py||Cycle Expansion
 16|ksSub.py||Turbulence
 projects|hypersphere.py||Plot areas and volumes of hyperspheres
 -|Lorentz.py|
