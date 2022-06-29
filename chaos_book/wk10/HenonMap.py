@@ -8,7 +8,7 @@
 ############################################################
 from argparse             import ArgumentParser
 from numpy                import array, size, zeros, histogram2d
-from matplotlib.pyplot    import figure, show
+from matplotlib.pyplot    import figure, show, tight_layout
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors    import LogNorm
 from numpy.random         import rand
@@ -63,8 +63,7 @@ class Henon:
 
 
 if __name__ == '__main__':
-
-    parser = ArgumentParser()
+    parser = ArgumentParser('Q10.1/Q10.2 Natural measure of Henon map')
     parser.add_argument('case',
                     type    = int,
                     choices = [1,2])
@@ -90,7 +89,6 @@ if __name__ == '__main__':
                     ax.plot([x,x], [y,y], [0,z], 'b' )
         ax.set_title('(c)')
 
-
     if args.case == 2:  # find the limit cycle for parameter a = 1.39945219, b = 0.3 - length looks like 13
         henon = Henon(a = 1.39945219,
                       b = 0.3)
@@ -114,4 +112,7 @@ if __name__ == '__main__':
                     marker = '+',
                     color  = 'r')
         ax2.set_title(f'Cycle has length {T}')
+
+tight_layout()
+fig.savefig(f'Henon{args.case}')
 show()
