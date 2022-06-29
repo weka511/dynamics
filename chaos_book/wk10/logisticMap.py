@@ -4,8 +4,8 @@
 # please complete the experiment part
 ###################################################
 from argparse          import ArgumentParser
-from numpy             import ones
-from matplotlib.pyplot import figure, plot, semilogy, show
+from numpy             import ones, log, zeros
+from matplotlib.pyplot import figure, plot, semilogy, show, title
 from random            import random
 from scipy.stats       import linregress
 
@@ -53,26 +53,28 @@ if __name__ == '__main__':
                         type    = float,
                         default = 6)
     parser.add_argument('--M',
-                        type = int,
+                        type    = int,
                         default = 100000,
                         help = 'start with a large number of initial conditions')
     parser.add_argument('--N',
-                        type = int,
+                        type    = int,
                         default = 14,
                         help = ' iterate for a certain number of steps')
-    args = parser.parse_args()
+    args      = parser.parse_args()
+    fig       = figure(figsize=(12,12))
+    N_escapes = zeros(args.N)
 
-    fig = figure(figsize=(12,12))
-
-    N_escapes = [0] * args.N
     for i in range(args.M):
         mapping = Logistic(args.A)
         x       = random()
         escapes = mapping.doesEscape(x,args.N)
         for i in range(args.N):
             N_escapes[i] += escapes[i]
-    Gamma = [(args.M-n)/args.M for n in N_escapes]
+
+    Gamma = (args.M-N_escapes)/args.M
+    result = linregress(range(args.N), log(Gamma))
     plot (Gamma)
     semilogy()
+    title(f'A={args.A}, escape rate={-result.slope:.6f}, stderr={result.stderr:.6f}')
     show()
 
