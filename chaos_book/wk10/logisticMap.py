@@ -4,8 +4,8 @@
 # please complete the experiment part
 ###################################################
 from argparse          import ArgumentParser
-from numpy             import ones, log, zeros
-from matplotlib.pyplot import figure, plot, semilogy, show, title
+from numpy             import ones, log, mean, std, zeros
+from matplotlib.pyplot import figure, legend, plot, savefig, semilogy, show, title
 from random            import random
 from scipy.stats       import linregress
 
@@ -59,22 +59,27 @@ if __name__ == '__main__':
     parser.add_argument('--N',
                         type    = int,
                         default = 14,
-                        help = ' iterate for a certain number of steps')
-    args      = parser.parse_args()
-    fig       = figure(figsize=(12,12))
-    N_escapes = zeros(args.N)
+                        help = 'iterate for a certain number of steps')
+    parser.add_argument('--K',
+                        type    = int,
+                        default = 5,
+                        help = 'number of samples')
+    args       = parser.parse_args()
+    fig        = figure(figsize=(12,12))
+    mapping    = Logistic(args.A)
+    EscapeRate = []
+    for k in range(args.K):
+        N_escapes = zeros(args.N)
+        for i in range(args.M):
+            N_escapes +=  mapping.doesEscape(random(),args.N)
 
-    for i in range(args.M):
-        mapping = Logistic(args.A)
-        x       = random()
-        escapes = mapping.doesEscape(x,args.N)
-        for i in range(args.N):
-            N_escapes[i] += escapes[i]
+        Gamma       = (args.M-N_escapes)/args.M
+        result      = linregress(range(args.N), log(Gamma))
+        EscapeRate.append(-result.slope)
+        plot (Gamma,label=f'Escape rate={-result.slope:.6f}, stderr={result.stderr:.6f}')
+        semilogy()
 
-    Gamma = (args.M-N_escapes)/args.M
-    result = linregress(range(args.N), log(Gamma))
-    plot (Gamma)
-    semilogy()
-    title(f'A={args.A}, escape rate={-result.slope:.6f}, stderr={result.stderr:.6f}')
+    title(f'A={args.A}, Escape Rate = {mean(EscapeRate):.6f}, std={std(EscapeRate):.6f})')
+    legend()
+    savefig('Logistic')
     show()
-
