@@ -1,13 +1,16 @@
-from numpy             import arange, array, sqrt
+from argparse          import ArgumentParser
 from matplotlib.pyplot import figure, savefig, show, suptitle
+from numpy             import arange, array, sqrt
 from numpy.random      import rand
+from os.path           import join
 from scipy.integrate   import solve_ivp
 from scipy.linalg      import eig, norm
-from argparse          import ArgumentParser
+
 
 sigma = 10.0
 rho   = 28.0
 b     = 8.0/3.0
+figs  = './figs'
 
 def velocity( t,stateVec):
     '''
@@ -115,5 +118,5 @@ if __name__ == '__main__':
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     ax.legend()
-    savefig('Lorentz')
+    savefig(join(figs,'Lorentz'))
     show()
