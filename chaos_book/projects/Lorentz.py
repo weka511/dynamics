@@ -1,7 +1,7 @@
 from numpy             import arange, array, sqrt
-from matplotlib.pyplot import figure, show, suptitle
+from matplotlib.pyplot import figure, savefig, show, suptitle
 from numpy.random      import rand
-from scipy.integrate   import odeint
+from scipy.integrate   import solve_ivp
 from scipy.linalg      import eig, norm
 from argparse          import ArgumentParser
 
@@ -9,11 +9,11 @@ sigma = 10.0
 rho   = 28.0
 b     = 8.0/3.0
 
-def velocity(stateVec, t):
+def velocity( t,stateVec):
     '''
     return the velocity field of Lorentz system.
     stateVec : the state vector in the full space. [x, y, z]
-    t : time is used since odeint() requires it.
+    t : time is used since solve_ivp() requires it.
     '''
 
     x = stateVec[0]
@@ -50,7 +50,7 @@ def integrator(init_x, dt, nstp):
     return : a [ nstp x 3 ] vector
     '''
 
-    return odeint(velocity, init_x, arange(0, dt*nstp, dt))
+    return solve_ivp(velocity, (0, dt), init_x, t_eval=arange(0,dt,dt/nstp)).y
 
 
 def integrator_with_jacob(init_x, dt, nstp):
@@ -78,9 +78,9 @@ def integrator_with_jacob(init_x, dt, nstp):
     sspJacobian0[0:d]   = init_x
     sspJacobian0[d:]    = reshape(Jacobian0, d**2)
 
-    sspJacobianSolution = odeint(JacobianVelocity,
-                                 sspJacobian0,
-                                 arange(0, dt*nstp, dt))
+    sspJacobianSolution = solve_ivp(JacobianVelocity,    #FIXME
+                                 arange(0, dt*nstp, dt),
+                                 sspJacobian0)
     state = sspJacobianSolution[0:d]
     Jacob = sspJacobianSolution[-1, d:].reshape((d, d))
 
@@ -101,11 +101,11 @@ if __name__ == '__main__':
     x0            = EQs[0,:] + 0.001*rand(3)
     dt            = 0.005
     nstp          = 50.0/dt
-    orbit         = integrator(x0, dt, nstp)
+    orbit         = integrator(x0, 50.0, nstp)
 
     fig = figure(figsize=(12,12))
     ax  = fig.add_subplot(111, projection='3d')
-    ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
+    ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
             markersize = 1)
     ax.scatter(EQs[0,0], EQs[0,1], EQs[0,2], marker='o', c='xkcd:red', label='EQ0')
     ax.scatter(EQs[1,0], EQs[1,1], EQs[1,2], marker='1', c='xkcd:red', label='EQ1')
@@ -115,5 +115,5 @@ if __name__ == '__main__':
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     ax.legend()
-
+    savefig('Lorentz')
     show()
