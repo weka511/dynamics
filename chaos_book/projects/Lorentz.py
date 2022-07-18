@@ -7,28 +7,61 @@ from pathlib           import Path
 from scipy.integrate   import solve_ivp
 from scipy.linalg      import eig, norm
 
+class Dynamics:
+
+    def get_title(self):
+        return fr'{self.name} $\sigma=${self.sigma}, $\rho=${self.rho}, b={self.b}'
+
+    def get_x_label(self):
+        return 'x'
+
+    def get_y_label(self):
+        return 'y'
+
+    def get_z_label(self):
+        return 'z'
 
 sigma = 10.0
 rho   = 28.0
 b     = 8.0/3.0
 figs  = './figs'
 
-def velocity( t,stateVec):
-    '''
-    return the velocity field of Lorentz system.
-    stateVec : the state vector in the full space. [x, y, z]
-    t : time is used since solve_ivp() requires it.
-    '''
+class Lorentz(Dynamics):
+    def __init__(self,
+                 sigma = 10.0,
+                 rho   = 28.0,
+                 b     = 8.0/3.0):
+        self.sigma = sigma
+        self.rho   = rho
+        self.b     = b
+        self.name  = 'Lorentz'
 
-    x = stateVec[0]
-    y = stateVec[1]
-    z = stateVec[2]
+    def create_eqs(self):
+        eq0 = [0,0,0]
+        if self.rho<1:
+            return array([eq0])
+        else:
+            x = sqrt(self.b*(self.rho-1))
+            return array([eq0,
+                         [x,x,self.rho-1],
+                         [-x,-x,self.rho-1]])
 
-    return array([sigma * (y-x),
-                  rho*x - y - x*z,
-                  x*y - b*z])
+    def velocity(self, t,stateVec):
+        '''
+        return the velocity field of Lorentz system.
+        stateVec : the state vector in the full space. [x, y, z]
+        t : time is used since solve_ivp() requires it.
+        '''
 
-class PseudoLorentz:
+        x = stateVec[0]
+        y = stateVec[1]
+        z = stateVec[2]
+
+        return array([sigma * (y-x),
+                      rho*x - y - x*z,
+                      x*y - b*z])
+
+class PseudoLorentz(Dynamics):
     def __init__(self,
                  sigma = 10.0,
                  rho   = 28.0,
@@ -47,17 +80,11 @@ class PseudoLorentz:
                       (self.rho-self.sigma)*u - (self.sigma+1)*v + (self.rho+self.sigma)*N - u*z -u*N,
                       v/2 - self.b*z])
 
-    def get_title(self):
-        return fr'{self.name} $\sigma=${self.sigma}, $\rho=${self.rho}, b={self.b}'
-
     def get_x_label(self):
         return 'u'
 
     def get_y_label(self):
         return 'v'
-
-    def get_z_label(self):
-        return 'z'
 
 class Integrator:
     def __init__(self,dynamics):
@@ -138,15 +165,7 @@ def integrator_with_jacob(init_x, dt, nstp):
 
     return state, Jacob
 
-def create_eqs():
-    eq0 = [0,0,0]
-    if rho<1:
-        return array([eq0])
-    else:
-        x = sqrt(b*(rho-1))
-        return array([eq0,
-                     [x,x,rho-1],
-                     [-x,-x,rho-1]])
+
 
 if __name__ == '__main__':
     parser        = ArgumentParser()
@@ -155,12 +174,13 @@ if __name__ == '__main__':
     fig = figure(figsize=(12,12))
 
     if args.action==1:
-        EQs           = create_eqs()
+        dynamics      = Lorentz()
+        integrator    = Integrator(dynamics)
+        EQs           = dynamics.create_eqs()
         x0            = EQs[0,:] + 0.001*rand(3)
         dt            = 0.005
         nstp          = 50.0/dt
-        orbit         = integrator(x0, 50.0, nstp)
-
+        orbit         = integrator.integrate(x0, 50.0, nstp)
 
         ax  = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
@@ -169,9 +189,10 @@ if __name__ == '__main__':
         ax.scatter(EQs[1,0], EQs[1,1], EQs[1,2], marker='1', c='xkcd:red', label='EQ1')
         ax.scatter(EQs[2,0], EQs[2,1], EQs[2,2], marker='2',c='xkcd:red', label='EQ2')
         ax.set_title(fr'Lorentz $\sigma=${sigma}, $\rho=${rho}, b={b}')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+        ax.set_title(dynamics.get_title())
+        ax.set_xlabel(dynamics.get_x_label())
+        ax.set_ylabel(dynamics.get_y_label())
+        ax.set_zlabel(dynamics.get_z_label())
         ax.legend()
 
     if args.action==2:
