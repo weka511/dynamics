@@ -6,6 +6,7 @@ from os.path           import join, basename, split
 from pathlib           import Path
 from scipy.integrate   import solve_ivp
 from scipy.linalg      import eig, norm
+from scipy.optimize    import fsolve
 
 class Dynamics:
 
@@ -92,7 +93,7 @@ class Integrator:
         self.dynamics = dynamics
 
 
-    def integrate(self,init_x, dt, nstp):
+    def integrate(self,init_x, dt, nstp=1):
         '''
         The integrator of the Lorentz system.
         init_x: the intial condition
@@ -123,12 +124,14 @@ class PoincareSection:
                       [0,          0,           1]],
                      float)
 
-    def __init__(self,theta=0.0):
+    def __init__(self,dynamics,theta=0.0):
         e_x              = array([1, 0, 0], float)  # Unit vector in x-direction
         self.sspTemplate = dot(PoincareSection.zRotation(theta), e_x)  #Template vector to define the Poincare section hyperplane
         self.nTemplate   = dot(PoincareSection.zRotation(pi/2), self.sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
+        self.integrator  = Integrator(dynamics)
+        self.dynamics    = dynamics
 
-    def UPoincare(self, ssp):
+    def U(self, ssp):
         '''
         Plane equation for the Poincare section hyperplane which includes z-axis
         and makes an angle theta with the x-axis see ChaosBook ver. 14, fig. 3.2
@@ -141,11 +144,22 @@ class PoincareSection:
         '''
         return dot((ssp - self.sspTemplate),self.nTemplate)
 
+    def interpolate(self,ts, orbit,i):
+        y = orbit[:,i]
+        dt0 = 0.5*(ts[i+1]-ts[i])
+        def Flow(y0,dt):
+            tt,yy=self.integrator.integrate(y0,dt)
+            return yy[0]
+        fdeltat = lambda t: self.U(Flow(y, dt0))
+        deltat              = fsolve(fdeltat, dt0)[0]
+        bunch = solve_ivp(dynamics.velocity, (0, deltat), y)
+        return bunch.t[1],bunch.y[:,1]
+
     def interections(self,ts, orbit):
         _,n = orbit.shape
         for i in range(n-1):
-            if self.UPoincare(orbit[:,i])<0 and self.UPoincare(orbit[:,i+1])>0:
-                yield(0.5+(ts[i]+ts[i+1]), orbit[:,i])
+            if self.U(orbit[:,i])<0 and self.U(orbit[:,i+1])>0:
+                yield self.interpolate(ts,orbit,i)
 
 if __name__ == '__main__':
     parser        = ArgumentParser()
@@ -162,7 +176,7 @@ if __name__ == '__main__':
         dt            = 0.005
         nstp          = 50.0/dt
         ts,orbit      = integrator.integrate(x0, 50.0, nstp)
-        section       = PoincareSection()
+        section       = PoincareSection(dynamics)
         ax  = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                 markersize = 1)
