@@ -1,13 +1,14 @@
 '''Investigation of Lorentz Equations'''
-from argparse          import ArgumentParser
-from matplotlib.pyplot import figure, rcParams, savefig, show, suptitle
-from numpy             import arange, array, cos, dot, pi, sin, sqrt
-from numpy.random      import rand
-from os.path           import join, basename, split
-from pathlib           import Path
-from scipy.integrate   import solve_ivp
-from scipy.linalg      import eig, norm
-from scipy.optimize    import fsolve
+from argparse               import ArgumentParser
+from matplotlib.pyplot      import figure, rcParams, savefig, show, suptitle
+from numpy                  import arange, argmin, argsort, argwhere, array, cos, cross, dot, pi, sin, size, sqrt, zeros
+from numpy.random           import rand
+from os.path                import join, basename, split
+from pathlib                import Path
+from scipy.integrate        import solve_ivp
+from scipy.linalg           import eig, norm
+from scipy.optimize         import fsolve
+from scipy.spatial.distance import pdist, squareform
 
 class Dynamics:
 
@@ -139,6 +140,8 @@ class PoincareSection:
                  e_x         = array([1, 0, 0], float)):
         self.sspTemplate = dot(PoincareSection.zRotation(theta), e_x)  if len(sspTemplate)==1 else sspTemplate
         self.nTemplate   = dot(PoincareSection.zRotation(pi/2), self.sspTemplate) if len(nTemplate)==1 else nTemplate
+        self.e_1         =array([0,1,0])                         # FIXME
+        self.e_2         = cross(self.nTemplate, self.e_1)
         self.integrator  = integrator
         self.dynamics    = dynamics
 
@@ -170,6 +173,13 @@ class PoincareSection:
             if self.U(orbit[:,i])<0 and self.U(orbit[:,i+1])>0:
                 yield self.interpolate(0.5*(ts[i+1]-ts[i]), orbit[:,i])
 
+    def project(self,point):
+        projection_normal = dot(self.nTemplate,point)
+        projected         = point -  projection_normal*self.nTemplate
+        x                 = dot(projected,self.e_1)
+        y                 = dot(projected,self.e_2)
+        return x,y
+
 def plot_poincare(ax,section,ts,orbit,s=1):
     for t,point in section.interections(ts,orbit):
         ax.scatter(point[0],point[1],point[2],
@@ -183,21 +193,24 @@ def plot_poincare(ax,section,ts,orbit,s=1):
                label  = r'Poincar\'e return',
                marker = 'o')
 
+def parse_args():
+    parser  = ArgumentParser(description = __doc__)
+    parser.add_argument('action', type = int)
+    parser.add_argument('--fp',   type = int, default = 1)
+    parser.add_argument('--figs', default = './figs')
+    return parser.parse_args()
 
 if __name__ == '__main__':
     rcParams['text.usetex'] = True
-    parser                  = ArgumentParser(description = __doc__)
-    parser.add_argument('action', type = int)
-    parser.add_argument('--figs', default = './figs')
-    args          = parser.parse_args()
-    fig = figure(figsize=(12,12))
+    args                    = parse_args()
+    fig                     = figure(figsize=(12,12))
 
     if args.action==1:
         dynamics      = Lorentz()
         integrator    = Integrator(dynamics)
         EQs           = dynamics.create_eqs()
         section       = PoincareSection(dynamics,integrator,
-                                        sspTemplate = EQs[2],
+                                        sspTemplate = EQs[args.fp],
                                         nTemplate   = array([1,0,0]))
 
         x0            = EQs[0,:] + 0.001*rand(3)
@@ -205,7 +218,7 @@ if __name__ == '__main__':
         nstp          = 50.0/dt
         ts,orbit      = integrator.integrate(x0, 50.0, nstp)
 
-        ax  = fig.add_subplot(111, projection='3d')
+        ax  = fig.add_subplot(121, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                 c          = 'xkcd:blue',
                 label      = 'Orbit',
@@ -218,13 +231,64 @@ if __name__ == '__main__':
         ax.set_xlabel(dynamics.get_x_label())
         ax.set_ylabel(dynamics.get_y_label())
         ax.set_zlabel(dynamics.get_z_label())
+        ax.legend()
+        ax = fig.add_subplot(122)
+        ax.set_aspect('equal')
+        ps = array([section.project(point) for _,point in section.interections(ts,orbit)])
 
+        Distance = squareform(pdist(ps))
+        SortedPoincareSection = ps.copy()  # Copy PoincareSection into
+                                                        # a new variable
+        #Create a zero-array to assign arclengths of the Poincare section points
+        #after sorting:
+        ArcLengths = zeros(size(SortedPoincareSection, 0))
+        # Create another zero-array to assign the arclengths of the Poincare section
+        # points keeping their dynamical order for use in the return map
+        sn = zeros(size(ps, 0))
+        for k in range(size(SortedPoincareSection, 0) - 1):
+            #Find the element which is closest to the kth point:
+            m = argmin(Distance[k, k + 1:]) + k + 1
+            #Hold the (k+1)th row in the dummy vector:
+            dummyPoincare = SortedPoincareSection[k + 1, :].copy()
+            #Replace (k+1)th row with the closest point:
+            SortedPoincareSection[k + 1, :] = SortedPoincareSection[m, :]
+            #Assign the previous (k+1)th row to the mth row:
+            SortedPoincareSection[m, :] = dummyPoincare
+
+            #Rearrange the distance matrix according to the new form of the
+            #SortedPoincareSection array:
+            dummyColumn = Distance[:, k + 1].copy()  # Hold (k+1)th column of the
+                                                     # distance matrix in a dummy
+                                                     # array
+            Distance[:, k + 1] = Distance[:, m]  # Assign mth column to kth
+            Distance[:, m] = dummyColumn
+
+            dummyRow = Distance[k + 1, :].copy()  # Hold (k+1)th row in a dummy
+                                                  # array
+            Distance[k + 1, :] = Distance[m, :]
+            Distance[m, :] = dummyRow
+
+            #Assign the arclength of (k+1)th element:
+            ArcLengths[k + 1] = ArcLengths[k] + Distance[k, k + 1]
+            #Find this point in the PoincareSection array and assign sn to its
+            #corresponding arclength:
+            sn[argwhere(ps[:, 0]
+                           == SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
+        sn1 = sn[0:-1]
+        sn2 = sn[1:]
+
+        isort = argsort(sn1)
+        sn1   = sn1[isort]  # sort radii1
+        sn2   = sn2[isort]  # sort radii2
+        ax.plot(sn1, sn2, '.r',
+                markersize = 5,
+                label='sn1:sn2')
     if args.action==2:
         dynamics   = PseudoLorentz()
         integrator = Integrator(dynamics)
         EQs        = dynamics.create_eqs()
         section    = PoincareSection(dynamics,integrator,
-                                        sspTemplate = EQs[1],
+                                        sspTemplate = EQs[args.fp],
                                         nTemplate   = array([1,0,0]))
         x0         = EQs[0,:] + 0.001*rand(3)
         dt         = 0.001
@@ -244,6 +308,6 @@ if __name__ == '__main__':
         ax.set_ylabel(dynamics.get_y_label())
         ax.set_zlabel(dynamics.get_z_label())
 
-    ax.legend()
+        ax.legend()
     savefig(join(args.figs,f'{Path(__file__).stem}{args.action}'))
     show()
