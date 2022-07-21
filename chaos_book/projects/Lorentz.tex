@@ -7,6 +7,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \graphicspath{{figs/}} 
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 %opening
 \title{}
 \author{}
@@ -16,8 +17,10 @@
 \maketitle
 
 \begin{abstract}
-
+Project  from \cite{ChaosBook}.
 \end{abstract}
+
+\tableofcontents
 
 \section{Introduction}
 
@@ -25,11 +28,41 @@
 
 \section{My Problem Defined}
 
-\section{Implementation of My Method}
+\subsection{Equilibrium Points}
+From \cite{lorenz1963deterministic}
+\begin{align*}
+	\dot{x} =& \sigma(y-x) \numberthis \label{eq:lorenz:1}\\
+	\dot{y} =& \rho x -y - xz \numberthis \label{eq:lorenz:2}\\
+	\dot{z} =& xy-bz \numberthis \label{eq:lorenz:3}
+\end{align*}
+The equilibria are given by
+\begin{align*}
+	\sigma(y-x) =& 0\numberthis \label{eq:lorenz:eq:1}\\
+	\rho x -y - xz  =& 0\numberthis \label{eq:lorenz:eq:2}\\
+	xy-bz =& 0\numberthis \label{eq:lorenz:eq:3}
+\end{align*}
+Assuming $\rho, \sigma, b \ne 0$
+\begin{align*}
+	y =& x\\
+	z =& \frac{xy}{b}
+\end{align*}
+One solution is $(x,y,z)= (0,0,0)$. The other solutions are given by substituting in \eqref{eq:lorenz:eq:2}:
+\begin{align*}
+	\rho x - x-x \frac{x^2}{b} =& 0\\
+	\rho -1 - \frac {x^2}{b} =& 0\\
+	x^2 =& b(\rho-1)\\
+	x =& \pm \sqrt{ b(\rho-1)}\\
+	(x,y,z)=& (\pm \sqrt{ b(\rho-1)},\pm \sqrt{ b(\rho-1)},\rho-1) \numberthis \label{eq:lorenz:eq:eq}
+\end{align*}
+\section{Implementation}
 
 \section{Results}
 \begin{figure}[H]
-	\includegraphics[width=\textwidth]{Lorentz.png}
+	\includegraphics[width=\textwidth]{Lorentz1.png}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=\textwidth]{Lorentz2.png}
 \end{figure}
 \section{Discussion}
 
@@ -67,5 +100,9 @@
 		appropriate
 	\end{enumerate}
 \end{enumerate}
+
+\bibliographystyle{unsrt}
+\addcontentsline{toc}{section}{Bibliography}
+\bibliography{../../dynamics}
 
 \end{document}
