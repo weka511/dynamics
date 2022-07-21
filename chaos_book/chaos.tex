@@ -38,9 +38,10 @@ The equilibria are given by
 Assuming $\rho, \sigma, b \ne 0$
 \begin{align*}
 	y =& x\\
-	z =& \frac{xy}{b}
+	z =& \frac{xy}{b} \\
+(x,y,z)=& (0,0,0)\text{ Is one solution.} \numberthis \label{eq:lorenz:eq:eq0}
 \end{align*}
-One solution is $(x,y,z)= (0,0,0)$. The other solutions are given by substituting in \eqref{eq:lorenz:eq:2}:
+The other solutions are given by substituting in \eqref{eq:lorenz:eq:2}:
 \begin{align*}
 	\rho x - x-x \frac{x^2}{b} =& 0\\
 	\rho -1 - \frac {x^2}{b} =& 0\\
@@ -125,6 +126,12 @@ We transform the Lorenz equation to the new coordinates.
 	=& (\rho-\sigma) u - (\sigma+1)v + (\rho+\sigma)N - (N+u) z \numberthis \label{eq:miranda:stone:de:v}\\
 	\dot{z} =& \frac{1}{2} 2xy - bz \text{, From \eqref{eq:lorenz:3}} \\
 	=& \frac{1}{2}v - z \text{, from \eqref{eq:miranda:stone:2}} \numberthis \label{eq:miranda:stone:de:z}
+\end{align*}
+
+The fixed points follow from making the substitution  \eqref{eq:miranda:stone:1} and \eqref{eq:miranda:stone:2} in \eqref{eq:lorenz:eq:eq0} and \eqref{eq:lorenz:eq:eq}. The first equation yields.
+\begin{align*}
+	(u,v,z)=& (0,0,0)\text{, and the second}\\
+	(u,v,z)=& \big(0,2b(\rho-1),\rho-1\big) \text{. Both fixed points coincide.}
 \end{align*}
 \section{Homework 2}
 
