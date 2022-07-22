@@ -24,6 +24,7 @@
 # on page https://phys7224.herokuapp.com/grader/homework3
 
 from argparse               import ArgumentParser
+from matplotlib.markers     import MarkerStyle
 from matplotlib.pyplot      import figure, rcParams, savefig, show, suptitle
 from numpy                  import arange, argmin, argsort, argwhere, array, cos, cross, dot, linspace, pi, sin, size, sqrt, zeros
 from numpy.random           import rand
@@ -162,13 +163,17 @@ class PoincareSection:
                  sspTemplate = None,
                  nTemplate   = None,
                  theta       = 0.0,
-                 e_x         = array([1, 0, 0], float)):
+                 e_x         = array([1, 0, 0], float),
+                 e1          = array([0,1,0])):  # FIXME
         self.sspTemplate = dot(PoincareSection.zRotation(theta), e_x)  if len(sspTemplate)==1 else sspTemplate
         self.nTemplate   = dot(PoincareSection.zRotation(pi/2), self.sspTemplate) if len(nTemplate)==1 else nTemplate
-        self.e_1         =array([0,1,0])                         # FIXME
+        self.e_1         = e1
+        assert 0==dot(self.e_1,self.nTemplate), f'{self.e_1} {self.nTemplate} not orthogonal'
         self.e_2         = cross(self.nTemplate, self.e_1)
         self.integrator  = integrator
         self.dynamics    = dynamics
+        assert 0==dot(self.e_1,self.e_2), f'{self.e_1} {self.e_2} not orthogonal'
+        assert 0==dot(self.e_2,self.nTemplate), f'{self.e_2} {self.nTemplate} not orthogonal'
 
     def U(self, ssp):
         '''
@@ -186,9 +191,7 @@ class PoincareSection:
     def project_to_section(self,point):
         projection_normal = dot(self.nTemplate,point)
         projected         = point -  projection_normal*self.nTemplate
-        x                 = dot(projected,self.e_1)
-        y                 = dot(projected,self.e_2)
-        return x,y
+        return dot(projected,self.e_1),dot(projected,self.e_2)
 
     def project_to_space(self,point):
         x0,y0 = point
@@ -199,8 +202,7 @@ class PoincareSection:
         return y[0]
 
     def interpolate(self,dt0, y0):
-        return self.integrator.Flow(fsolve(lambda t: self.U(self.Flow(y0, t)), dt0)[0],
-                                    y0)
+        return self.integrator.Flow(fsolve(lambda t: self.U(self.Flow(y0, t)), dt0)[0], y0)
 
 
     def intersections(self,ts, orbit):
@@ -285,84 +287,74 @@ def plot_poincare(ax,section,ts,orbit,s=1):
 
 def parse_args():
     parser  = ArgumentParser(description = __doc__)
-    parser.add_argument('action', type = int)
-    parser.add_argument('--fp',   type = int, default = 1)
-    parser.add_argument('--figs', default = './figs')
+    parser.add_argument('--plot',
+                        nargs = '*',
+                        choices = ['all', 'orbit', 'map', 'cycles'],
+                        default = ['orbit'])
+    parser.add_argument('--dynamics',
+                        choices=['Lorentz', 'PseudoLorentz'],
+                        default = 'Lorentz')
+    parser.add_argument('--fp',
+                        type = int,
+                        default = 1)
+    parser.add_argument('--figs',
+                        default = './figs')
     return parser.parse_args()
 
+def create_dynamics(args):
+    if args.dynamics == 'Lorentz':
+        return Lorentz()
+    if args.dynamics == 'PseudoLorentz':
+        return PseudoLorentz()
+    raise Exception(f'Unknown dynamics: {args.dynamics}')
+
+
+def plot_requested(name,arg):
+    return len(set(arg).intersection([name,'all']))>0
+
 if __name__ == '__main__':
+
+
     rcParams['text.usetex'] = True
     args                    = parse_args()
-    fig                     = figure(figsize=(12,12))
 
-    if args.action==1:
-        dynamics      = Lorentz()
-        integrator    = Integrator(dynamics)
-        EQs           = dynamics.create_eqs()
-        section       = PoincareSection(dynamics,integrator,
-                                        sspTemplate = EQs[args.fp],
-                                        nTemplate   = array([1,0,0]))
+    dynamics      = create_dynamics(args)
+    integrator    = Integrator(dynamics)
+    EQs           = dynamics.create_eqs()
+    section       = PoincareSection(dynamics,integrator,
+                                    sspTemplate = EQs[args.fp],
+                                    nTemplate   = array([1,0,0]))
 
-        x0            = EQs[0,:] + 0.001*rand(3)
-        dt            = 0.005
-        nstp          = 50.0/dt
-        ts,orbit      = integrator.integrate(x0, 50.0, nstp)
+    x0            = EQs[0,:] + 0.001*rand(3)
+    dt            = 0.005
+    nstp          = 50.0/dt
+    ts,orbit      = integrator.integrate(x0, 50.0, nstp)
+    section.create_arclengths(ts,orbit)
 
+    if plot_requested('orbit',args.plot)>0:
+        fig = figure(figsize=(12,12))
         ax  = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                 c          = 'xkcd:blue',
                 label      = 'Orbit',
                 markersize = 1)
-        ax.scatter(EQs[0,0], EQs[0,1], EQs[0,2], marker='o', c='xkcd:red', label='EQ0')
-        ax.scatter(EQs[1,0], EQs[1,1], EQs[1,2], marker='1', c='xkcd:red', label='EQ1')
-        ax.scatter(EQs[2,0], EQs[2,1], EQs[2,2], marker='2', c='xkcd:red', label='EQ2')
+        m,_ = EQs.shape
+        for i in range(m):
+            ax.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
+                       marker = MarkerStyle.filled_markers[i],
+                       c      = 'xkcd:red',
+                       label  = f'EQ{i}')
+
         plot_poincare(ax,section,ts,orbit)
         ax.set_title(dynamics.get_title())
         ax.set_xlabel(dynamics.get_x_label())
         ax.set_ylabel(dynamics.get_y_label())
         ax.set_zlabel(dynamics.get_z_label())
+        ax.legend()
+        savefig(join(args.figs,f'{args.dynamics}-orbit'))
 
-
-    if args.action==2:
-        dynamics   = PseudoLorentz()
-        integrator = Integrator(dynamics)
-        EQs        = dynamics.create_eqs()
-        section    = PoincareSection(dynamics,integrator,
-                                        sspTemplate = EQs[args.fp],
-                                        nTemplate   = array([1,0,0]))
-        x0         = EQs[0,:] + 0.001*rand(3)
-        dt         = 0.001
-        nstp       = 50.0/dt
-        ts,orbit   = integrator.integrate(x0, 50.0, nstp)
-
-        ax  = fig.add_subplot(111, projection='3d')
-        ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
-                markersize = 1,
-                c          = 'xkcd:blue',
-                label      = 'Orbit')
-        ax.scatter(EQs[0,0], EQs[0,1], EQs[0,2], marker='o', c='xkcd:red', label='EQ0')
-        ax.scatter(EQs[1,0], EQs[1,1], EQs[1,2], marker='1', c='xkcd:red', label='EQ1')
-        plot_poincare(ax,section,ts,orbit)
-        ax.set_title(dynamics.get_title())
-        ax.set_xlabel(dynamics.get_x_label())
-        ax.set_ylabel(dynamics.get_y_label())
-        ax.set_zlabel(dynamics.get_z_label())
-
-
-    if args.action==3:
-        dynamics      = Lorentz()
-        integrator    = Integrator(dynamics)
-        EQs           = dynamics.create_eqs()
-        section       = PoincareSection(dynamics,integrator,
-                                        sspTemplate = EQs[args.fp],
-                                        nTemplate   = array([1,0,0]))
-
-        x0            = EQs[0,:] + 0.001*rand(3)
-        dt            = 0.005
-        nstp          = 50.0/dt
-        ts,orbit      = integrator.integrate(x0, 50.0, nstp)
-        section.create_arclengths(ts,orbit)
-
+    if plot_requested('map',args.plot)>0:
+        fig = figure(figsize=(12,12))
         ax = fig.add_subplot(111)
         ax.scatter(section.sn1, section.sn2,
                    color  = 'xkcd:red',
@@ -378,20 +370,11 @@ if __name__ == '__main__':
                 color = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
+        ax.legend()
+        savefig(join(args.figs,f'{args.dynamics}-map'))
 
-    if args.action==4:
-        dynamics      = Lorentz()
-        integrator    = Integrator(dynamics)
-        EQs           = dynamics.create_eqs()
-        section       = PoincareSection(dynamics,integrator,
-                                        sspTemplate = EQs[args.fp],
-                                        nTemplate   = array([1,0,0]))
-
-        x0            = EQs[0,:] + 0.001*rand(3)
-        dt            = 0.005
-        nstp          = 50.0/dt
-        ts,orbit      = integrator.integrate(x0, 50.0, nstp)
-        section.create_arclengths(ts,orbit)
+    if plot_requested('cycles',args.plot)>0:
+        fig = figure(figsize=(12,12))
         sfixed, sspfixed = section.get_fixed(12.0)
         fdeltat = lambda deltat: section.U(section.Flow(sspfixed, deltat))
         tFinal = 1000
@@ -403,6 +386,7 @@ if __name__ == '__main__':
                 markersize = 1,
                 c          = 'xkcd:blue',
                 label      = 'Orbit')
-    ax.legend()
-    savefig(join(args.figs,f'{Path(__file__).stem}{args.action}'))
+        ax.legend()
+        savefig(join(args.figs,f'{args.dynamics}-cycles'))
+
     show()
