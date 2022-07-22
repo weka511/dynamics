@@ -183,6 +183,17 @@ class PoincareSection:
         '''
         return dot((ssp - self.sspTemplate),self.nTemplate)
 
+    def project_to_section(self,point):
+        projection_normal = dot(self.nTemplate,point)
+        projected         = point -  projection_normal*self.nTemplate
+        x                 = dot(projected,self.e_1)
+        y                 = dot(projected,self.e_2)
+        return x,y
+
+    def project_to_space(self,point):
+        x0,y0 = point
+        return x0*self.e_1 + y0*self.e_2 + self.nTemplate
+
     def Flow(self,y0,dt):
         _,y = self.integrator.integrate(y0,dt)
         return y[0]
@@ -192,64 +203,59 @@ class PoincareSection:
                                     y0)
 
 
-    def interections(self,ts, orbit):
+    def intersections(self,ts, orbit):
         _,n = orbit.shape
         for i in range(n-1):
             if self.U(orbit[:,i])<0 and self.U(orbit[:,i+1])>0:
                 yield self.interpolate(0.5*(ts[i+1]-ts[i]), orbit[:,i])
 
-    def project(self,point):
-        projection_normal = dot(self.nTemplate,point)
-        projected         = point -  projection_normal*self.nTemplate
-        x                 = dot(projected,self.e_1)
-        y                 = dot(projected,self.e_2)
-        return x,y
 
-    def create_arclengths(self):
-        ps                    = array([self.project(point) for _,point in self.interections(ts,orbit)])
+
+    def create_arclengths(self,ts,orbit):
+        ps                    = array([self.project_to_section(point) for _,point in self.intersections(ts,orbit)])
         Distance              = squareform(pdist(ps))
         SortedPoincareSection = ps.copy()
         ArcLengths            = zeros(size(SortedPoincareSection, 0))
         sn                    = zeros(size(ps, 0)) # the arclengths of the Poincare section points keeping their dynamical order for use in the return map
         for k in range(size(SortedPoincareSection, 0) - 1):
-            m             = argmin(Distance[k, k + 1:]) + k + 1     #Find the element which is closest to the kth point:
-            dummyPoincare = SortedPoincareSection[k + 1, :].copy()  #Hold the (k+1)th row in the dummy vector:
-            SortedPoincareSection[k + 1, :] = SortedPoincareSection[m, :]  #Replace (k+1)th row with the closest point:
-            SortedPoincareSection[m, :] = dummyPoincare    #Assign the previous (k+1)th row to the mth row:
+            index_closest_point_to_k        = argmin(Distance[k, k + 1:]) + k + 1
 
-            #Rearrange the distance matrix according to the new form of the
-            #SortedPoincareSection array:
-            dummyColumn = Distance[:, k + 1].copy()  # Hold (k+1)th column of the
-                                                     # distance matrix in a dummy
-                                                     # array
-            Distance[:, k + 1] = Distance[:, m]  # Assign mth column to kth
-            Distance[:, m] = dummyColumn
+            saved_poincare_row                                 = SortedPoincareSection[k + 1, :].copy()
+            SortedPoincareSection[k + 1, :]                    = SortedPoincareSection[index_closest_point_to_k, :]
+            SortedPoincareSection[index_closest_point_to_k, :] = saved_poincare_row
 
-            dummyRow = Distance[k + 1, :].copy()  # Hold (k+1)th row in a dummy array
-            Distance[k + 1, :] = Distance[m, :]
-            Distance[m, :] = dummyRow
+            #Rearrange the distance matrix according to the new form of the SortedPoincareSection array:
+            saved_column                          = Distance[:, k + 1].copy()
+            Distance[:, k + 1]                    = Distance[:, index_closest_point_to_k]
+            Distance[:, index_closest_point_to_k] = saved_column
+
+            saved_row                              = Distance[k + 1, :].copy()
+            Distance[k + 1, :]                     = Distance[index_closest_point_to_k, :]
+            Distance[index_closest_point_to_k, :]  = saved_row
 
             ArcLengths[k + 1] = ArcLengths[k] + Distance[k, k + 1] #Assign the arclength of (k+1)th element:
-            #Find this point in the PoincareSection array and assign sn to its
-            #corresponding arclength:
+            #Find this point in the PoincareSection array and assign sn to its  corresponding arclength:
             sn[argwhere(ps[:, 0] == SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
 
         #Parametric spline interpolation to the Poincare section:
         self.tckPoincare, u = splprep([SortedPoincareSection[:, 0], SortedPoincareSection[:, 1]],
                                       u = ArcLengths,
                                       s = 0)
-        sArray = linspace(min(ArcLengths), max(ArcLengths), 1000)
+        self.sArray = linspace(min(ArcLengths), max(ArcLengths), 1000)
         #Evaluate the interpolation:
-        InterpolatedPoincareSection = self.fPoincare(sArray)
+        InterpolatedPoincareSection = self.fPoincare(self.sArray)
 
-        sn1       = sn[0:-1]
-        sn2       = sn[1:]
-        isort     = argsort(sn1)
-        sn1       = sn1[isort]  # sort radii1
-        sn2       = sn2[isort]  # sort radii2
-        tckReturn = splrep(sn1,sn2)
-        snPlus1   = splev(sArray, tckReturn)
-        return sn1,sn2,sArray,snPlus1
+        sn1          = sn[0:-1]
+        sn2          = sn[1:]
+        isort        = argsort(sn1)
+        self.sn1     = sn1[isort]  # sort radii1
+        self.sn2     = sn2[isort]  # sort radii2
+        self.tckReturn = splrep(self.sn1,self.sn2)
+        self.snPlus1 = splev(self.sArray, self.tckReturn)
+
+    def get_fixed(self, s0=12.0):
+        sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
+        return  sfixed,self.project_to_space(self.fPoincare(sfixed))
 
     def fPoincare(self,s):
         '''
@@ -265,7 +271,7 @@ class PoincareSection:
         return array([interpolation[0], interpolation[1]], float).transpose()
 
 def plot_poincare(ax,section,ts,orbit,s=1):
-    for t,point in section.interections(ts,orbit):
+    for t,point in section.intersections(ts,orbit):
         ax.scatter(point[0],point[1],point[2],
                    c      = 'xkcd:green',
                    s      = s,
@@ -355,24 +361,48 @@ if __name__ == '__main__':
         dt            = 0.005
         nstp          = 50.0/dt
         ts,orbit      = integrator.integrate(x0, 50.0, nstp)
-        sn1,sn2,sArray,snPlus1 = section.create_arclengths()
+        section.create_arclengths(ts,orbit)
 
         ax = fig.add_subplot(111)
-        # ax.set_aspect('equal')
-        ax.scatter(sn1, sn2,
+        ax.scatter(section.sn1, section.sn2,
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'Sorted')
-        ax.scatter(sArray, snPlus1,
+        ax.scatter(section.sArray, section.snPlus1,
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax.plot(sArray, sArray,
+        ax.plot(section.sArray, section.sArray,
                 color = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
+
+    if args.action==4:
+        dynamics      = Lorentz()
+        integrator    = Integrator(dynamics)
+        EQs           = dynamics.create_eqs()
+        section       = PoincareSection(dynamics,integrator,
+                                        sspTemplate = EQs[args.fp],
+                                        nTemplate   = array([1,0,0]))
+
+        x0            = EQs[0,:] + 0.001*rand(3)
+        dt            = 0.005
+        nstp          = 50.0/dt
+        ts,orbit      = integrator.integrate(x0, 50.0, nstp)
+        section.create_arclengths(ts,orbit)
+        sfixed, sspfixed = section.get_fixed(12.0)
+        fdeltat = lambda deltat: section.U(section.Flow(sspfixed, deltat))
+        tFinal = 1000
+        Tguess = tFinal / 28#FIXME size(PoincareSection, 0)
+        Tnext = fsolve(fdeltat, Tguess)[0]
+        ts,orbit      = integrator.integrate(sspfixed, Tnext, nstp)
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+                markersize = 1,
+                c          = 'xkcd:blue',
+                label      = 'Orbit')
     ax.legend()
     savefig(join(args.figs,f'{Path(__file__).stem}{args.action}'))
     show()
