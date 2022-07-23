@@ -23,11 +23,13 @@
 # Much of the code has been shamelessly stolen from Newton.py
 # on page https://phys7224.herokuapp.com/grader/homework3
 
+from abc                    import ABC,abstractmethod
 from argparse               import ArgumentParser
 from matplotlib.markers     import MarkerStyle
 from matplotlib.pyplot      import figure, rcParams, savefig, show, suptitle
-from numpy                  import arange, argmin, argsort, argwhere, array, cos, cross, dot, linspace, pi, sin, size, sqrt, zeros
-from numpy.random           import rand
+from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, iinfo, int64, linspace, pi, real, sin, size, sqrt, zeros
+from numpy.linalg           import eig, inv, norm
+from numpy.random           import default_rng
 from os.path                import join, basename, split
 from pathlib                import Path
 from scipy.integrate        import solve_ivp
@@ -36,7 +38,19 @@ from scipy.linalg           import eig, norm
 from scipy.optimize         import fsolve
 from scipy.spatial.distance import pdist, squareform
 
-class Dynamics:
+class Dynamics(ABC):
+
+    def __init__(self,name=None):
+        self.name = name
+
+    '''This abstract class represents the dynamics, i.e. the differential equation.'''
+    @abstractmethod
+    def create_eqs(self):
+        ...
+
+    @abstractmethod
+    def Velocity(self, t,stateVec):
+        ...
 
     def get_title(self):
         return fr'{self.name} $\sigma=${self.sigma}, $\rho=${self.rho}, b={self.b}'
@@ -52,28 +66,28 @@ class Dynamics:
 
 
 class Lorentz(Dynamics):
+    '''Dynamics of Lorentz Equation'''
     def __init__(self,
                  sigma = 10.0,
                  rho   = 28.0,
                  b     = 8.0/3.0):
+        super().__init__('Lorentz')
         self.sigma = sigma
         self.rho   = rho
         self.b     = b
-        self.name  = 'Lorentz'
 
     def create_eqs(self):
-        eq0 = [0,0,0]
         if self.rho<1:
-            return array([eq0])
+            return array([0,0,0])
         else:
             x = sqrt(self.b*(self.rho-1))
-            return array([eq0,
-                         [x,x,self.rho-1],
-                         [-x,-x,self.rho-1]])
+            return array([[0,  0,  0],
+                          [x,  x,  self.rho-1],
+                          [-x, -x, self.rho-1]])
 
-    def velocity(self, t,stateVec):
+    def Velocity(self, t,stateVec):
         '''
-        return the velocity field of Lorentz system.
+        Return the Velocity field of Lorentz system.
         stateVec : the state vector in the full space. [x, y, z]
         t : time is used since solve_ivp() requires it.
         '''
@@ -87,21 +101,22 @@ class Lorentz(Dynamics):
                       x*y - self.b*z])
 
 class PseudoLorentz(Dynamics):
+    '''Dynamics of Pseudo Lorentz Equation'''
     def __init__(self,
                  sigma = 10.0,
                  rho   = 28.0,
                  b     = 8.0/3.0):
+        super().__init__('PseudoLorentz')
         self.sigma = sigma
         self.rho   = rho
         self.b     = b
-        self.name     = 'Pseudo Lorentz'
 
     def create_eqs(self):
         eq0 = [0,0,0]
         eq1 = [0,2*self.b*(self.rho-1),self.rho-1]
         return  array([eq0,eq1])
 
-    def velocity(self,t,stateVec):
+    def Velocity(self,t,stateVec):
         u = stateVec[0]
         v = stateVec[1]
         z = stateVec[2]
@@ -116,10 +131,66 @@ class PseudoLorentz(Dynamics):
     def get_y_label(self):
         return 'v'
 
+class Rossler(Dynamics):
+    def __init__(self,
+                 a = 0.2,
+                 b = 0.2,
+                 c = 5.7):
+        super().__init__('Rossler')
+        self.a = a
+        self.b = b
+        self.c = c
+
+    def create_eqs(self):
+        term1 = 0.5*self.c/self.a
+        term2 = sqrt(term1**2-self.b/self.a)
+        y1    = term1 + term2
+        y2    = term1 - term2
+        return  array([[-self.a*y1,y1,-y1],[-self.a*y2,y2,-y2]])
+
+    def Velocity(self, t,stateVec):
+        '''
+        Return the Velocity field of Lorentz system.
+        stateVec : the state vector in the full space. [x, y, z]
+        t : time is used since solve_ivp() requires it.
+        '''
+
+        x = stateVec[0]
+        y = stateVec[1]
+        z = stateVec[2]
+
+        dxdt = - y - z
+        dydt = x + self.a * y
+        dzdt = self.b + z * (x - self.c)
+
+        return array([dxdt, dydt, dzdt], float)  # Velocity vector
+
+    def StabilityMatrix(self,ssp):
+        '''
+        Stability matrix for the Rossler flow
+
+        Inputs:
+            ssp: State space vector. dx1 NumPy array: ssp = [x, y, z]
+        Outputs:
+            A: Stability matrix evaluated at ssp. dxd NumPy array
+               A[i, j] = del Velocity[i] / del ssp[j]
+        '''
+
+        x, y, z = ssp  # Read state space points
+
+
+        return array([[0, -1, -1],
+                      [1, self.a, 0],
+                      [z, 0, x-self.c]],
+                     float)
+
+    def get_title(self):
+        return 'Rossler'
+
 class Integrator:
+    '''This class is used to integrate  the ODEs for a specified Dynamics'''
     def __init__(self,dynamics):
         self.dynamics = dynamics
-
 
     def integrate(self,init_x, dt, nstp=1):
         '''
@@ -131,16 +202,17 @@ class Integrator:
         return : a [ nstp x 3 ] vector
         '''
 
-        bunch = solve_ivp(dynamics.velocity, (0, dt), init_x, t_eval=arange(0,dt,dt/nstp))
+        bunch = solve_ivp(dynamics.Velocity, (0, dt), init_x, t_eval = arange(0,dt,dt/nstp))
         if bunch.status==0:
             return bunch.t, bunch.y
         else:
-            raise(Exception(f'{bunch.status} {bunch.message}'))
+            raise(Exception(f'Integration error: {bunch.status} {bunch.message}'))
 
 
 
     def Flow(self,deltat,y):
-        bunch = solve_ivp(dynamics.velocity, (0, deltat), y)
+        '''Used to integrate for a single step'''
+        bunch = solve_ivp(dynamics.Velocity, (0, deltat), y)
         return bunch.t[1],bunch.y[:,1]
 
 class PoincareSection:
@@ -163,17 +235,15 @@ class PoincareSection:
                  sspTemplate = None,
                  nTemplate   = None,
                  theta       = 0.0,
-                 e_x         = array([1, 0, 0], float),
-                 e1          = array([0,1,0])):  # FIXME
-        self.sspTemplate = dot(PoincareSection.zRotation(theta), e_x)  if len(sspTemplate)==1 else sspTemplate
-        self.nTemplate   = dot(PoincareSection.zRotation(pi/2), self.sspTemplate) if len(nTemplate)==1 else nTemplate
-        self.e_1         = e1
-        assert 0==dot(self.e_1,self.nTemplate), f'{self.e_1} {self.nTemplate} not orthogonal'
-        self.e_2         = cross(self.nTemplate, self.e_1)
+                 e_z         = array([0, 0, 1], float)):
+        e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
+        self.sspTemplate = dot(PoincareSection.zRotation(theta), e_x)#  if len(sspTemplate)==1 else sspTemplate
+        self.nTemplate   = dot(PoincareSection.zRotation(pi/2), self.sspTemplate) #if len(nTemplate)==1 else nTemplate
+        self.ProjPoincare = array([self.sspTemplate,
+                                     e_z,
+                                     self.nTemplate], float)
         self.integrator  = integrator
         self.dynamics    = dynamics
-        assert 0==dot(self.e_1,self.e_2), f'{self.e_1} {self.e_2} not orthogonal'
-        assert 0==dot(self.e_2,self.nTemplate), f'{self.e_2} {self.nTemplate} not orthogonal'
 
     def U(self, ssp):
         '''
@@ -188,14 +258,16 @@ class PoincareSection:
         '''
         return dot((ssp - self.sspTemplate),self.nTemplate)
 
-    def project_to_section(self,point):
-        projection_normal = dot(self.nTemplate,point)
-        projected         = point -  projection_normal*self.nTemplate
-        return dot(projected,self.e_1),dot(projected,self.e_2)
+    def project_to_section(self,points):
+        '''Transform a point on the section from (x,y,z) to coordinates embedded in surface'''
+        Transformed = dot(self.ProjPoincare, points.transpose())
+        Transformed =  Transformed.transpose()
+        return  Transformed[:, 0:2]
 
-    def project_to_space(self,point):
-        x0,y0 = point
-        return x0*self.e_1 + y0*self.e_2 + self.nTemplate
+    def project_to_space(self,points):
+        '''Transform a point embedded in surface back to (x,y,z) coordinates '''
+        return dot(append(points, 0.0), self.ProjPoincare)
+
 
     def Flow(self,y0,dt):
         _,y = self.integrator.integrate(y0,dt)
@@ -206,6 +278,7 @@ class PoincareSection:
 
 
     def intersections(self,ts, orbit):
+        '''Used to iterate through intersections between orbit and section'''
         _,n = orbit.shape
         for i in range(n-1):
             if self.U(orbit[:,i])<0 and self.U(orbit[:,i+1])>0:
@@ -214,11 +287,11 @@ class PoincareSection:
 
 
     def create_arclengths(self,ts,orbit):
-        ps                    = array([self.project_to_section(point) for _,point in self.intersections(ts,orbit)])
-        Distance              = squareform(pdist(ps))
-        SortedPoincareSection = ps.copy()
+        self.ps               = self.project_to_section(array([point for _,point in self.intersections(ts,orbit)]))
+        Distance              = squareform(pdist(self.ps))
+        SortedPoincareSection = self.ps.copy()
         ArcLengths            = zeros(size(SortedPoincareSection, 0))
-        sn                    = zeros(size(ps, 0)) # the arclengths of the Poincare section points keeping their dynamical order for use in the return map
+        sn                    = zeros(size(self.ps, 0)) # the arclengths of the Poincare section points keeping their dynamical order for use in the return map
         for k in range(size(SortedPoincareSection, 0) - 1):
             index_closest_point_to_k        = argmin(Distance[k, k + 1:]) + k + 1
 
@@ -237,7 +310,7 @@ class PoincareSection:
 
             ArcLengths[k + 1] = ArcLengths[k] + Distance[k, k + 1] #Assign the arclength of (k+1)th element:
             #Find this point in the PoincareSection array and assign sn to its  corresponding arclength:
-            sn[argwhere(ps[:, 0] == SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
+            sn[argwhere(self.ps[:, 0] == SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
 
         #Parametric spline interpolation to the Poincare section:
         self.tckPoincare, u = splprep([SortedPoincareSection[:, 0], SortedPoincareSection[:, 1]],
@@ -247,15 +320,15 @@ class PoincareSection:
         #Evaluate the interpolation:
         InterpolatedPoincareSection = self.fPoincare(self.sArray)
 
-        sn1          = sn[0:-1]
-        sn2          = sn[1:]
-        isort        = argsort(sn1)
-        self.sn1     = sn1[isort]  # sort radii1
-        self.sn2     = sn2[isort]  # sort radii2
+        sn1            = sn[0:-1]
+        sn2            = sn[1:]
+        isort          = argsort(sn1)
+        self.sn1       = sn1[isort]  # sort radii1
+        self.sn2       = sn2[isort]  # sort radii2
         self.tckReturn = splrep(self.sn1,self.sn2)
-        self.snPlus1 = splev(self.sArray, self.tckReturn)
+        self.snPlus1   = splev(self.sArray, self.tckReturn)
 
-    def get_fixed(self, s0=12.0):
+    def get_fixed(self, s0=10.0):
         sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
         return  sfixed,self.project_to_space(self.fPoincare(sfixed))
 
@@ -292,13 +365,16 @@ def parse_args():
                         choices = ['all', 'orbit', 'map', 'cycles'],
                         default = ['orbit'])
     parser.add_argument('--dynamics',
-                        choices=['Lorentz', 'PseudoLorentz'],
+                        choices=['Lorentz', 'PseudoLorentz', 'Rossler'],
                         default = 'Lorentz')
     parser.add_argument('--fp',
                         type = int,
                         default = 1)
     parser.add_argument('--figs',
                         default = './figs')
+    parser.add_argument('--seed',
+                        type = int,
+                        help='For random number generator')
     return parser.parse_args()
 
 def create_dynamics(args):
@@ -306,29 +382,47 @@ def create_dynamics(args):
         return Lorentz()
     if args.dynamics == 'PseudoLorentz':
         return PseudoLorentz()
+    if args.dynamics == 'Rossler':
+        return Rossler()
     raise Exception(f'Unknown dynamics: {args.dynamics}')
 
 
 def plot_requested(name,arg):
     return len(set(arg).intersection([name,'all']))>0
 
-if __name__ == '__main__':
+def get_seed(seed):
+    '''Choose seed for random number generator'''
+    if seed == None:
+        rng      = default_rng()
+        new_seed = rng.integers(iinfo(int64).max)
+        print (f'Seed={new_seed}')
+        return new_seed
+    else:
+        return seed
 
+if __name__ == '__main__':
 
     rcParams['text.usetex'] = True
     args                    = parse_args()
-
-    dynamics      = create_dynamics(args)
-    integrator    = Integrator(dynamics)
-    EQs           = dynamics.create_eqs()
-    section       = PoincareSection(dynamics,integrator,
-                                    sspTemplate = EQs[args.fp],
-                                    nTemplate   = array([1,0,0]))
-
-    x0            = EQs[0,:] + 0.001*rand(3)
-    dt            = 0.005
-    nstp          = 50.0/dt
-    ts,orbit      = integrator.integrate(x0, 50.0, nstp)
+    rng                     = default_rng(get_seed(args.seed))
+    dynamics                = create_dynamics(args)
+    integrator              = Integrator(dynamics)
+    EQs                     = dynamics.create_eqs()
+    section                 = PoincareSection(dynamics,integrator,
+                                              sspTemplate = None,#EQs[args.fp],
+                                              nTemplate   = None)#array([1,0,0]))
+    # eq0                       = fsolve(lambda x:dynamics.Velocity(0,x), array([0, 0, 0], float))
+    eq0                       = EQs[args.fp]
+    Aeq0                      = dynamics.StabilityMatrix(eq0)
+    eigenValues, eigenVectors = eig(Aeq0)
+    v1                        = real(eigenVectors[:, 0]) #Real part of the leading eigenvector
+    v1                        = v1 / norm(v1)
+    x0                        = eq0 + 1e-6 * v1  #Initial condition as a slight perturbation to the eq0 in v1 direction
+    # x00                     = EQs[0,:] + 0.001*rng.random(3)
+    dt                      = 0.005
+    tFinal = 1000
+    nstp                    = tFinal/dt
+    ts,orbit                = integrator.integrate(x0, tFinal, nstp)
     section.create_arclengths(ts,orbit)
 
     if plot_requested('orbit',args.plot)>0:
@@ -375,10 +469,10 @@ if __name__ == '__main__':
 
     if plot_requested('cycles',args.plot)>0:
         fig = figure(figsize=(12,12))
-        sfixed, sspfixed = section.get_fixed(12.0)
+        sfixed, sspfixed = section.get_fixed(1.0)
         fdeltat = lambda deltat: section.U(section.Flow(sspfixed, deltat))
         tFinal = 1000
-        Tguess = tFinal / 28#FIXME size(PoincareSection, 0)
+        Tguess = tFinal / size(section.ps, 0)
         Tnext = fsolve(fdeltat, Tguess)[0]
         ts,orbit      = integrator.integrate(sspfixed, Tnext, nstp)
         ax = fig.add_subplot(111, projection='3d')
