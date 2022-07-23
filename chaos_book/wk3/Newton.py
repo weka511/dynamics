@@ -1,7 +1,7 @@
 '''Q3.1 Shortest periodic orbit of the Rössler system '''
 
 from matplotlib.pyplot      import figure, show
-from numpy                  import abs, append, argmin, argsort, argwhere, array, dot, cos, linspace, max, pi, real, sin, size, zeros
+from numpy                  import abs, append, argmin, argsort, argwhere, array, cos, dot, linspace, max, pi, real, sin, size, zeros
 from numpy.linalg           import eig, inv, norm
 from scipy.integrate        import odeint
 from scipy.optimize         import fsolve
@@ -117,7 +117,7 @@ PoincareSection =  PoincareSection.transpose()   #We return to the usual N x 3 f
 #Third column of this matrix should be zero if everything is correct, so we
 #discard it:
 
-PoincareSection = PoincareSection[:, 0:2]  # Does this actually do anything?
+PoincareSection = PoincareSection[:, 0:2]  # Drop z coordinate (zero)
 
 # We are now going to compute the pairwise distances between PoincareSection
 # elements in order to sort them according to the increasing distance
