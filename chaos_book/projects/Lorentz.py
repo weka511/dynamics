@@ -27,7 +27,7 @@ from abc                    import ABC,abstractmethod
 from argparse               import ArgumentParser
 from matplotlib.markers     import MarkerStyle
 from matplotlib.pyplot      import figure, rcParams, savefig, show, suptitle
-from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, iinfo, int64, linspace, pi, real, sin, size, sqrt, zeros
+from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, identity, iinfo, int64, linspace, pi, real, reshape, sin, size, sqrt, zeros
 from numpy.linalg           import eig, inv, norm
 from os.path                import join, basename, split
 from pathlib                import Path
@@ -190,6 +190,57 @@ class Rossler(Dynamics):
         dzdt = self.b + z * (x - self.c)
 
         return array([dxdt, dydt, dzdt], float)  # Velocity vector
+
+    def JacobianVelocity(self,t, sspJacobian):
+        '''
+        Velocity function for the Jacobian integration
+
+        Inputs:
+            sspJacobian: (d+d^2)x1 dimensional state space vector including both the
+                         state space itself and the tangent space
+            t: Time. Has no effect on the function, we have it as an input so that our
+               ODE would be compatible for use with generic integrators from
+               scipy.integrate
+
+        Outputs:
+            velJ = (d+d^2)x1 dimensional velocity vector
+        '''
+
+        ssp        = sspJacobian[0:3]                 # First three elements form the original state space vector
+        J          = sspJacobian[3:].reshape((3, 3))  # Last nine elements corresponds to the elements of Jacobian.
+        velJ       = zeros(size(sspJacobian))         # Initiate the velocity vector as a vector of same size as sspJacobian
+        velJ[0:3]  = self.Velocity(t, ssp)
+        velTangent = dot(self.StabilityMatrix(ssp), J)     # Velocity matrix for  the tangent space
+        velJ[3:]   = reshape(velTangent, 9)           # Last dxd elements of the velJ are determined by the action of
+                                                      # stability matrix on the current value of the Jacobian:
+        return velJ
+
+    def Jacobian(self,ssp, t, integrator=None,
+                 Nt = 500):
+        '''
+        Jacobian function for the trajectory started on ssp, evolved for time t
+
+        Inputs:
+            ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
+            t: Integration time
+        Outputs:
+            J: Jacobian of trajectory f^t(ssp). dxd NumPy array
+        '''
+
+        Jacobian0 = identity(3)
+        # Initial condition for Jacobian integral is a d+d^2 dimensional matrix
+        # formed by concatenation of initial condition for state space and the Jacobian:
+        sspJacobian0        = zeros(3 + 3 ** 2)  # Initiate
+        sspJacobian0[0:3]   = ssp  # First 3 elemenets
+        sspJacobian0[3:]    = reshape(Jacobian0, 9)  # Remaining 9 elements
+        tInitial            = 0
+        tFinal              = t
+
+        # tArray              = linspace(tInitial, tFinal, Nt)  # Time array for solution
+        bunch = solve_ivp(dynamics.JacobianVelocity, (0, t), sspJacobian0)
+        # sspJacobianSolution =  integrator.integrate(self.JacobianVelocity, sspJacobian0, tInitial)#odeint(JacobianVelocity, sspJacobian0, tArray)
+        sspJacobianSolution = bunch.y[:,-1]
+        return sspJacobianSolution[3:].reshape((3, 3))
 
     def StabilityMatrix(self,ssp):
         '''
@@ -506,11 +557,49 @@ if __name__ == '__main__':
     if plot_requested('cycles',args.plot):
         fig = figure(figsize=(12,12))
         sfixed, sspfixed = section.get_fixed()
-        # fdeltat = lambda dt: section.U(integrator.integrate(sspfixed,dt)[0])#section.Flow(sspfixed, deltat))
-        # Tguess = tFinal / size(section.Section, 0)
         Tnext = fsolve(lambda dt: section.U(integrator.integrate(sspfixed,dt)[0]),
-                       tFinal / size(section.Section, 0))#[0]
+                       tFinal / size(section.Section, 0))
         ts,orbit      = integrator.integrate(sspfixed, Tnext, nstp)
+        #Newton
+
+        tol        = 1e-9
+        period     = Tnext.copy()  # copy Tnext to a new variable period
+        error      = zeros(4)  # Initiate the error vector
+        Delta      = zeros(4)  # Initiate the delta vector
+        error[0:3] = integrator.integrate(sspfixed,period)[0] - sspfixed
+        Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+
+        k    = 0
+        kmax = 20
+        #We are going to iterate the newton method until the maximum value of the
+        #absolute error meets the tolerance:
+        while max(abs(error)) > tol:
+            if k > kmax:
+                print("Passed the maximum number of iterations")
+                break
+            k += 1
+
+            Newton[0:3, 0:3] = 1-dynamics.Jacobian(sspfixed,Tnext, integrator=integrator)     #First 3x3 block is 1 - J^t(x)
+            Newton[0:3, 3]  = -dynamics.Velocity(Tnext,sspfixed)   #Fourth column is the negative velocity at time T: -v(f^T(x))
+            Newton[3, 0:3]  = section.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
+            Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
+            sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
+            period          = period + Delta[3]
+            error[0:3]      = integrator.integrate(sspfixed,period)[0] - sspfixed#Flow(sspfixed, period) - sspfixed #Compute the new errors:
+            print(f'Iteration {k} {error}')
+
+        print("Shortest periodic orbit is at: ", sspfixed[0],
+                                                 sspfixed[1],
+                                                 sspfixed[2])
+        print("Period:", period)
+
+        #Let us integrate the periodic orbit:
+        tArray        = linspace(0, period, 1000)  # Time array for solution integration
+        # periodicOrbit = odeint(Velocity, sspfixed, tArray)
+        nstp                    = period/dt
+        ts,periodicOrbit                = integrator.integrate(sspfixed, period, nstp)
+
+        #notweN
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                 markersize = 1,
@@ -521,6 +610,10 @@ if __name__ == '__main__':
                    marker = 'x',
                    s      = 64,
                    label  = 'Start')
+        ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                markersize = 10,
+                c          = 'xkcd:magenta',
+                label      = 'periodicOrbit')
         ax.legend()
         savefig(join(args.figs,f'{args.dynamics}-cycles'))
 
