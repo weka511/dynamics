@@ -29,7 +29,6 @@ from matplotlib.markers     import MarkerStyle
 from matplotlib.pyplot      import figure, rcParams, savefig, show, suptitle
 from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, iinfo, int64, linspace, pi, real, sin, size, sqrt, zeros
 from numpy.linalg           import eig, inv, norm
-from numpy.random           import default_rng
 from os.path                import join, basename, split
 from pathlib                import Path
 from scipy.integrate        import solve_ivp
@@ -52,6 +51,10 @@ class Dynamics(ABC):
     def Velocity(self, t,stateVec):
         ...
 
+    @abstractmethod
+    def StabilityMatrix(self,stateVec):
+        ...
+
     def get_title(self):
         return fr'{self.name} $\sigma=${self.sigma}, $\rho=${self.rho}, b={self.b}'
 
@@ -64,6 +67,12 @@ class Dynamics(ABC):
     def get_z_label(self):
         return 'z'
 
+    def get_start_on_unstable_manifold(self,eq0, eps=1e-6):
+        '''Initial condition as a slight perturbation to the eq0 in v1 direction'''
+        Aeq0            = self.StabilityMatrix(eq0)
+        _, eigenVectors = eig(Aeq0)
+        v1              = real(eigenVectors[:, 0])
+        return eq0 + eps * v1  / norm(v1)
 
 class Lorentz(Dynamics):
     '''Dynamics of Lorentz Equation'''
@@ -99,6 +108,23 @@ class Lorentz(Dynamics):
         return array([self.sigma * (y-x),
                       self.rho*x - y - x*z,
                       x*y - self.b*z])
+
+    def StabilityMatrix(self,stateVec):
+        '''
+        return the stability matrix at a state point.
+        stateVec: the state vector in the full space. [x, y, z]
+        '''
+
+        x = stateVec[0]
+        y = stateVec[1]
+        z = stateVec[2];
+        return array([
+            [-self.sigma, self.sigma, 0],
+            [self.rho-z,  -1 ,       -x],
+            [y,           x,         -self.b]
+        ])
+
+
 
 class PseudoLorentz(Dynamics):
     '''Dynamics of Pseudo Lorentz Equation'''
@@ -236,9 +262,9 @@ class PoincareSection:
                  nTemplate   = None,
                  theta       = 0.0,
                  e_z         = array([0, 0, 1], float)):
-        e_x         = array([1, 0, 0], float)  # Unit vector in x-direction
-        self.sspTemplate = dot(PoincareSection.zRotation(theta), e_x)#  if len(sspTemplate)==1 else sspTemplate
-        self.nTemplate   = dot(PoincareSection.zRotation(pi/2), self.sspTemplate) #if len(nTemplate)==1 else nTemplate
+        e_x               = array([1, 0, 0], float)  # Unit vector in x-direction
+        self.sspTemplate  = dot(PoincareSection.zRotation(theta), e_x)#  if len(sspTemplate)==1 else sspTemplate
+        self.nTemplate    = dot(PoincareSection.zRotation(pi/2), self.sspTemplate) #if len(nTemplate)==1 else nTemplate
         self.ProjPoincare = array([self.sspTemplate,
                                      e_z,
                                      self.nTemplate], float)
@@ -259,18 +285,20 @@ class PoincareSection:
         return dot((ssp - self.sspTemplate),self.nTemplate)
 
     def project_to_section(self,points):
-        '''Transform a point on the section from (x,y,z) to coordinates embedded in surface'''
+        '''Transform point on the section from (x,y,z) to coordinates embedded in surface'''
         Transformed = dot(self.ProjPoincare, points.transpose())
         Transformed =  Transformed.transpose()
         return  Transformed[:, 0:2]
 
-    def project_to_space(self,points):
+    def project_to_space(self,point):
         '''Transform a point embedded in surface back to (x,y,z) coordinates '''
-        return dot(append(points, 0.0), self.ProjPoincare)
+        return dot(append(point, 0.0), self.ProjPoincare)
 
 
     def Flow(self,y0,dt):
         _,y = self.integrator.integrate(y0,dt)
+        _,n = y.shape
+        assert n==1
         return y[0]
 
     def interpolate(self,dt0, y0):
@@ -287,17 +315,17 @@ class PoincareSection:
 
 
     def create_arclengths(self,ts,orbit):
-        self.ps               = self.project_to_section(array([point for _,point in self.intersections(ts,orbit)]))
-        Distance              = squareform(pdist(self.ps))
-        SortedPoincareSection = self.ps.copy()
-        ArcLengths            = zeros(size(SortedPoincareSection, 0))
-        sn                    = zeros(size(self.ps, 0)) # the arclengths of the Poincare section points keeping their dynamical order for use in the return map
-        for k in range(size(SortedPoincareSection, 0) - 1):
+        self.Section               = self.project_to_section(array([point for _,point in self.intersections(ts,orbit)]))
+        Distance              = squareform(pdist(self.Section))
+        self.SortedPoincareSection = self.Section.copy()
+        ArcLengths            = zeros(size(self.SortedPoincareSection, 0))
+        sn                    = zeros(size(self.Section, 0)) # the arclengths of the Poincare section points keeping their dynamical order for use in the return map
+        for k in range(size(self.SortedPoincareSection, 0) - 1):
             index_closest_point_to_k        = argmin(Distance[k, k + 1:]) + k + 1
 
-            saved_poincare_row                                 = SortedPoincareSection[k + 1, :].copy()
-            SortedPoincareSection[k + 1, :]                    = SortedPoincareSection[index_closest_point_to_k, :]
-            SortedPoincareSection[index_closest_point_to_k, :] = saved_poincare_row
+            saved_poincare_row                                      = self.SortedPoincareSection[k + 1, :].copy()
+            self.SortedPoincareSection[k + 1, :]                    = self.SortedPoincareSection[index_closest_point_to_k, :]
+            self.SortedPoincareSection[index_closest_point_to_k, :] = saved_poincare_row
 
             #Rearrange the distance matrix according to the new form of the SortedPoincareSection array:
             saved_column                          = Distance[:, k + 1].copy()
@@ -310,15 +338,15 @@ class PoincareSection:
 
             ArcLengths[k + 1] = ArcLengths[k] + Distance[k, k + 1] #Assign the arclength of (k+1)th element:
             #Find this point in the PoincareSection array and assign sn to its  corresponding arclength:
-            sn[argwhere(self.ps[:, 0] == SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
+            sn[argwhere(self.Section[:, 0] == self.SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
 
         #Parametric spline interpolation to the Poincare section:
-        self.tckPoincare, u = splprep([SortedPoincareSection[:, 0], SortedPoincareSection[:, 1]],
+        self.tckPoincare, u = splprep([self.SortedPoincareSection[:, 0], self.SortedPoincareSection[:, 1]],
                                       u = ArcLengths,
                                       s = 0)
         self.sArray = linspace(min(ArcLengths), max(ArcLengths), 1000)
         #Evaluate the interpolation:
-        InterpolatedPoincareSection = self.fPoincare(self.sArray)
+        self.InterpolatedPoincareSection = self.fPoincare(self.sArray)
 
         sn1            = sn[0:-1]
         sn2            = sn[1:]
@@ -330,6 +358,7 @@ class PoincareSection:
 
     def get_fixed(self, s0=10.0):
         sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
+        print (sfixed,self.fPoincare(sfixed),self.project_to_space(self.fPoincare(sfixed)))
         return  sfixed,self.project_to_space(self.fPoincare(sfixed))
 
     def fPoincare(self,s):
@@ -362,7 +391,7 @@ def parse_args():
     parser  = ArgumentParser(description = __doc__)
     parser.add_argument('--plot',
                         nargs = '*',
-                        choices = ['all', 'orbit', 'map', 'cycles'],
+                        choices = ['all', 'orbit', 'sections', 'map', 'cycles'],
                         default = ['orbit'])
     parser.add_argument('--dynamics',
                         choices=['Lorentz', 'PseudoLorentz', 'Rossler'],
@@ -372,9 +401,6 @@ def parse_args():
                         default = 1)
     parser.add_argument('--figs',
                         default = './figs')
-    parser.add_argument('--seed',
-                        type = int,
-                        help='For random number generator')
     return parser.parse_args()
 
 def create_dynamics(args):
@@ -390,42 +416,25 @@ def create_dynamics(args):
 def plot_requested(name,arg):
     return len(set(arg).intersection([name,'all']))>0
 
-def get_seed(seed):
-    '''Choose seed for random number generator'''
-    if seed == None:
-        rng      = default_rng()
-        new_seed = rng.integers(iinfo(int64).max)
-        print (f'Seed={new_seed}')
-        return new_seed
-    else:
-        return seed
-
 if __name__ == '__main__':
 
     rcParams['text.usetex'] = True
     args                    = parse_args()
-    rng                     = default_rng(get_seed(args.seed))
     dynamics                = create_dynamics(args)
     integrator              = Integrator(dynamics)
     EQs                     = dynamics.create_eqs()
     section                 = PoincareSection(dynamics,integrator,
                                               sspTemplate = None,#EQs[args.fp],
                                               nTemplate   = None)#array([1,0,0]))
-    # eq0                       = fsolve(lambda x:dynamics.Velocity(0,x), array([0, 0, 0], float))
-    eq0                       = EQs[args.fp]
-    Aeq0                      = dynamics.StabilityMatrix(eq0)
-    eigenValues, eigenVectors = eig(Aeq0)
-    v1                        = real(eigenVectors[:, 0]) #Real part of the leading eigenvector
-    v1                        = v1 / norm(v1)
-    x0                        = eq0 + 1e-6 * v1  #Initial condition as a slight perturbation to the eq0 in v1 direction
-    # x00                     = EQs[0,:] + 0.001*rng.random(3)
+
+    x0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
     dt                      = 0.005
-    tFinal = 1000
+    tFinal                  = 100
     nstp                    = tFinal/dt
     ts,orbit                = integrator.integrate(x0, tFinal, nstp)
     section.create_arclengths(ts,orbit)
 
-    if plot_requested('orbit',args.plot)>0:
+    if plot_requested('orbit',args.plot):
         fig = figure(figsize=(12,12))
         ax  = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
@@ -439,7 +448,7 @@ if __name__ == '__main__':
                        c      = 'xkcd:red',
                        label  = f'EQ{i}')
 
-        plot_poincare(ax,section,ts,orbit)
+        plot_poincare(ax,section,ts,orbit, s=5)
         ax.set_title(dynamics.get_title())
         ax.set_xlabel(dynamics.get_x_label())
         ax.set_ylabel(dynamics.get_y_label())
@@ -447,7 +456,34 @@ if __name__ == '__main__':
         ax.legend()
         savefig(join(args.figs,f'{args.dynamics}-orbit'))
 
-    if plot_requested('map',args.plot)>0:
+    if plot_requested('sections', args.plot):
+        fig = figure(figsize=(12,12))
+        ax  = fig.gca()
+        ax.scatter(section.Section[:, 0], section.Section[:, 1],
+                c      = 'xkcd:red',
+                marker = 'x',
+                s      = 25,
+                label      = 'Poincare Section')
+
+        ax.scatter(section.SortedPoincareSection[:, 0], section.SortedPoincareSection[:, 1],
+                c      = 'xkcd:blue',
+                marker = '+',
+                s      = 25,
+                label  = 'Sorted Poincare Section')
+
+        ax.scatter(section.InterpolatedPoincareSection[:, 0], section.InterpolatedPoincareSection[:, 1],
+                c      = 'xkcd:green',
+                marker = 'o',
+                s      = 1,
+                label  = 'Interpolated Poincare Section')
+
+        ax.set_title('Poincare Section, showing Interpolation')
+        ax.set_xlabel('$\\hat{x}\'$')
+        ax.set_ylabel('$z$')
+        ax.legend()
+        savefig(join(args.figs,f'{args.dynamics}-sections'))
+
+    if plot_requested('map',args.plot):
         fig = figure(figsize=(12,12))
         ax = fig.add_subplot(111)
         ax.scatter(section.sn1, section.sn2,
@@ -467,19 +503,24 @@ if __name__ == '__main__':
         ax.legend()
         savefig(join(args.figs,f'{args.dynamics}-map'))
 
-    if plot_requested('cycles',args.plot)>0:
+    if plot_requested('cycles',args.plot):
         fig = figure(figsize=(12,12))
-        sfixed, sspfixed = section.get_fixed(1.0)
-        fdeltat = lambda deltat: section.U(section.Flow(sspfixed, deltat))
-        tFinal = 1000
-        Tguess = tFinal / size(section.ps, 0)
-        Tnext = fsolve(fdeltat, Tguess)[0]
+        sfixed, sspfixed = section.get_fixed()
+        # fdeltat = lambda dt: section.U(integrator.integrate(sspfixed,dt)[0])#section.Flow(sspfixed, deltat))
+        # Tguess = tFinal / size(section.Section, 0)
+        Tnext = fsolve(lambda dt: section.U(integrator.integrate(sspfixed,dt)[0]),
+                       tFinal / size(section.Section, 0))#[0]
         ts,orbit      = integrator.integrate(sspfixed, Tnext, nstp)
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                 markersize = 1,
                 c          = 'xkcd:blue',
                 label      = 'Orbit')
+        ax.scatter(orbit[0,0], orbit[1,0], orbit[2,0],
+                   color  = 'xkcd:red',
+                   marker = 'x',
+                   s      = 64,
+                   label  = 'Start')
         ax.legend()
         savefig(join(args.figs,f'{args.dynamics}-cycles'))
 
