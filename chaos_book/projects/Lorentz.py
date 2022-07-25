@@ -39,8 +39,10 @@ from scipy.spatial.distance import pdist, squareform
 
 class Dynamics(ABC):
 
-    def __init__(self,name=None):
+    def __init__(self, name = None,
+                 d          = 3):
         self.name = name
+        self.d    = d
 
     '''This abstract class represents the dynamics, i.e. the differential equation.'''
     @abstractmethod
@@ -54,6 +56,29 @@ class Dynamics(ABC):
     @abstractmethod
     def StabilityMatrix(self,stateVec):
         ...
+
+    def JacobianVelocity(self,t, sspJacobian):
+        '''
+        Velocity function for the Jacobian integration
+
+        Inputs:
+            sspJacobian: (d+d^2)x1 dimensional state space vector including both the
+                         state space itself and the tangent space
+            t: Time. Has no effect on the function, we have it as an input so that our
+               ODE would be compatible for use with generic integrators from
+               scipy.integrate
+
+        Outputs:
+            velJ = (d+d^2)x1 dimensional velocity vector
+        '''
+
+        ssp            = sspJacobian[0:self.d]
+        J              = sspJacobian[self.d:].reshape((self.d, self.d))
+        velJ           = zeros(size(sspJacobian))
+        velJ[0:self.d] = self.Velocity(t, ssp)
+        velTangent     = dot(self.StabilityMatrix(ssp), J)
+        velJ[self.d:]  = reshape(velTangent, self.d**2)
+        return velJ
 
     def get_title(self):
         return fr'{self.name} $\sigma=${self.sigma}, $\rho=${self.rho}, b={self.b}'
@@ -191,56 +216,7 @@ class Rossler(Dynamics):
 
         return array([dxdt, dydt, dzdt], float)  # Velocity vector
 
-    def JacobianVelocity(self,t, sspJacobian):
-        '''
-        Velocity function for the Jacobian integration
 
-        Inputs:
-            sspJacobian: (d+d^2)x1 dimensional state space vector including both the
-                         state space itself and the tangent space
-            t: Time. Has no effect on the function, we have it as an input so that our
-               ODE would be compatible for use with generic integrators from
-               scipy.integrate
-
-        Outputs:
-            velJ = (d+d^2)x1 dimensional velocity vector
-        '''
-
-        ssp        = sspJacobian[0:3]                 # First three elements form the original state space vector
-        J          = sspJacobian[3:].reshape((3, 3))  # Last nine elements corresponds to the elements of Jacobian.
-        velJ       = zeros(size(sspJacobian))         # Initiate the velocity vector as a vector of same size as sspJacobian
-        velJ[0:3]  = self.Velocity(t, ssp)
-        velTangent = dot(self.StabilityMatrix(ssp), J)     # Velocity matrix for  the tangent space
-        velJ[3:]   = reshape(velTangent, 9)           # Last dxd elements of the velJ are determined by the action of
-                                                      # stability matrix on the current value of the Jacobian:
-        return velJ
-
-    def Jacobian(self,ssp, t, integrator=None,
-                 Nt = 500):
-        '''
-        Jacobian function for the trajectory started on ssp, evolved for time t
-
-        Inputs:
-            ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
-            t: Integration time
-        Outputs:
-            J: Jacobian of trajectory f^t(ssp). dxd NumPy array
-        '''
-
-        Jacobian0 = identity(3)
-        # Initial condition for Jacobian integral is a d+d^2 dimensional matrix
-        # formed by concatenation of initial condition for state space and the Jacobian:
-        sspJacobian0        = zeros(3 + 3 ** 2)  # Initiate
-        sspJacobian0[0:3]   = ssp  # First 3 elemenets
-        sspJacobian0[3:]    = reshape(Jacobian0, 9)  # Remaining 9 elements
-        tInitial            = 0
-        tFinal              = t
-
-        # tArray              = linspace(tInitial, tFinal, Nt)  # Time array for solution
-        bunch = solve_ivp(dynamics.JacobianVelocity, (0, t), sspJacobian0)
-        # sspJacobianSolution =  integrator.integrate(self.JacobianVelocity, sspJacobian0, tInitial)#odeint(JacobianVelocity, sspJacobian0, tArray)
-        sspJacobianSolution = bunch.y[:,-1]
-        return sspJacobianSolution[3:].reshape((3, 3))
 
     def StabilityMatrix(self,ssp):
         '''
@@ -255,10 +231,9 @@ class Rossler(Dynamics):
 
         x, y, z = ssp  # Read state space points
 
-
-        return array([[0, -1, -1],
+        return array([[0, -1, -   1],
                       [1, self.a, 0],
-                      [z, 0, x-self.c]],
+                      [z, 0,      x - self.c]],
                      float)
 
     def get_title(self):
@@ -292,6 +267,32 @@ class Integrator:
         bunch = solve_ivp(dynamics.Velocity, (0, deltat), y)
         return bunch.t[1],bunch.y[:,1]
 
+    def Jacobian(self,ssp, t):
+        '''
+        Jacobian function for the trajectory started on ssp, evolved for time t
+
+        Inputs:
+            ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
+            t: Integration time
+        Outputs:
+            J: Jacobian of trajectory f^t(ssp). dxd NumPy array
+        '''
+
+        Jacobian0                   = identity(dynamics.d)
+        sspJacobian0               = zeros(dynamics.d + dynamics.d ** 2)  # Initiate
+        sspJacobian0[0:dynamics.d] = ssp  # First 3 elemenets
+        sspJacobian0[dynamics.d:]  = reshape(Jacobian0, dynamics.d**2)  # Remaining 9 elements
+        bunch                      = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,method='RK45')
+
+        if bunch.status==0:
+            assert  t == bunch.t[-1]
+            sspJacobianSolution = bunch.y[:,-1]
+            return sspJacobianSolution[3:].reshape((3, 3))
+        else:
+            raise(Exception(f'Integration error: {bunch.status} {bunch.message}'))
+
+
+
 class PoincareSection:
     ''' This class represents a Poincare Section'''
     @staticmethod
@@ -309,13 +310,11 @@ class PoincareSection:
                      float)
 
     def __init__(self,dynamics,integrator,
-                 sspTemplate = None,
-                 nTemplate   = None,
-                 theta       = 0.0,
-                 e_z         = array([0, 0, 1], float)):
-        e_x               = array([1, 0, 0], float)  # Unit vector in x-direction
-        self.sspTemplate  = dot(PoincareSection.zRotation(theta), e_x)#  if len(sspTemplate)==1 else sspTemplate
-        self.nTemplate    = dot(PoincareSection.zRotation(pi/2), self.sspTemplate) #if len(nTemplate)==1 else nTemplate
+                 theta       = 0.0):
+        e_z         = array([0, 0, 1], float)
+        e_x               = array([1, 0, 0], float)
+        self.sspTemplate  = dot(PoincareSection.zRotation(theta), e_x)
+        self.nTemplate    = dot(PoincareSection.zRotation(pi/2), self.sspTemplate)
         self.ProjPoincare = array([self.sspTemplate,
                                      e_z,
                                      self.nTemplate], float)
@@ -467,6 +466,33 @@ def create_dynamics(args):
 def plot_requested(name,arg):
     return len(set(arg).intersection([name,'all']))>0
 
+def solve(Tnext,  sspfixed,
+          integrator = None,
+          dynamics   = None,
+          tol        = 1e-9,
+          kmax       = 20):
+    period     = Tnext
+    error      = zeros(dynamics.d+1)
+    error[0:dynamics.d] = integrator.integrate(sspfixed,period)[0] - sspfixed
+    Newton     = zeros((dynamics.d+1, dynamics.d+1))
+    k          = 0
+    print(f'Iteration {0} {error}')
+    while max(abs(error)) > tol:
+        if k > kmax:
+            print(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
+            break
+        k += 1
+
+        Newton[0:dynamics.d, 0:dynamics.d] = 1 - integrator.Jacobian(sspfixed,period)
+        Newton[0:dynamics.d, dynamics.d]   = - dynamics.Velocity(period,sspfixed)
+        Newton[dynamics.d, 0:dynamics.d]   = section.nTemplate
+        Delta                              = dot(inv(Newton), error)
+        sspfixed                           = sspfixed + Delta[0:dynamics.d]
+        period                             = period + Delta[dynamics.d]
+        error[0:dynamics.d]                = integrator.Flow(period,sspfixed)[0] - sspfixed
+        print(f'Iteration {k} {error}')
+    return period, sspfixed
+
 if __name__ == '__main__':
 
     rcParams['text.usetex'] = True
@@ -474,10 +500,7 @@ if __name__ == '__main__':
     dynamics                = create_dynamics(args)
     integrator              = Integrator(dynamics)
     EQs                     = dynamics.create_eqs()
-    section                 = PoincareSection(dynamics,integrator,
-                                              sspTemplate = None,#EQs[args.fp],
-                                              nTemplate   = None)#array([1,0,0]))
-
+    section                 = PoincareSection(dynamics,integrator)
     x0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
     dt                      = 0.005
     tFinal                  = 100
@@ -555,51 +578,23 @@ if __name__ == '__main__':
         savefig(join(args.figs,f'{args.dynamics}-map'))
 
     if plot_requested('cycles',args.plot):
-        fig = figure(figsize=(12,12))
+        fig              = figure(figsize=(12,12))
         sfixed, sspfixed = section.get_fixed()
-        Tnext = fsolve(lambda dt: section.U(integrator.integrate(sspfixed,dt)[0]),
-                       tFinal / size(section.Section, 0))
-        ts,orbit      = integrator.integrate(sspfixed, Tnext, nstp)
-        #Newton
+        Tnext            = fsolve(lambda dt: section.U(integrator.integrate(sspfixed,dt)[0]),
+                                  0.6*tFinal / size(section.Section, 0))[0]
+        ts,orbit         = integrator.integrate(sspfixed, Tnext, nstp)
 
-        tol        = 1e-9
-        period     = Tnext.copy()  # copy Tnext to a new variable period
-        error      = zeros(4)  # Initiate the error vector
-        Delta      = zeros(4)  # Initiate the delta vector
-        error[0:3] = integrator.integrate(sspfixed,period)[0] - sspfixed
-        Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+        print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
+        print (f'{orbit[:,-1]}')
+        period, sspfixed =  solve(Tnext, sspfixed,
+                                  integrator = integrator,
+                                  dynamics   = dynamics)
 
-        k    = 0
-        kmax = 20
-        #We are going to iterate the newton method until the maximum value of the
-        #absolute error meets the tolerance:
-        while max(abs(error)) > tol:
-            if k > kmax:
-                print("Passed the maximum number of iterations")
-                break
-            k += 1
+        print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
 
-            Newton[0:3, 0:3] = 1-dynamics.Jacobian(sspfixed,Tnext, integrator=integrator)     #First 3x3 block is 1 - J^t(x)
-            Newton[0:3, 3]  = -dynamics.Velocity(Tnext,sspfixed)   #Fourth column is the negative velocity at time T: -v(f^T(x))
-            Newton[3, 0:3]  = section.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
-            Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
-            sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
-            period          = period + Delta[3]
-            error[0:3]      = integrator.integrate(sspfixed,period)[0] - sspfixed#Flow(sspfixed, period) - sspfixed #Compute the new errors:
-            print(f'Iteration {k} {error}')
-
-        print("Shortest periodic orbit is at: ", sspfixed[0],
-                                                 sspfixed[1],
-                                                 sspfixed[2])
-        print("Period:", period)
-
-        #Let us integrate the periodic orbit:
-        tArray        = linspace(0, period, 1000)  # Time array for solution integration
-        # periodicOrbit = odeint(Velocity, sspfixed, tArray)
         nstp                    = period/dt
-        ts,periodicOrbit                = integrator.integrate(sspfixed, period, nstp)
+        ts,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
 
-        #notweN
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                 markersize = 1,
@@ -610,10 +605,10 @@ if __name__ == '__main__':
                    marker = 'x',
                    s      = 64,
                    label  = 'Start')
-        ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
-                markersize = 10,
-                c          = 'xkcd:magenta',
-                label      = 'periodicOrbit')
+        # ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                # markersize = 10,
+                # c          = 'xkcd:magenta',
+                # label      = 'periodicOrbit')
         ax.legend()
         savefig(join(args.figs,f'{args.dynamics}-cycles'))
 
