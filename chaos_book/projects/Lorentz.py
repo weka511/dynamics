@@ -254,7 +254,9 @@ class Integrator:
         return : a [ nstp x 3 ] vector
         '''
 
-        bunch = solve_ivp(dynamics.Velocity, (0, dt), init_x, t_eval = arange(0,dt,dt/nstp))
+        bunch = solve_ivp(dynamics.Velocity, (0, dt), init_x,
+                          t_eval = arange(0,dt,dt/nstp),
+                          method = 'Radau') # Need this to cloce cycles
         if bunch.status==0:
             return bunch.t, bunch.y
         else:
@@ -581,11 +583,11 @@ if __name__ == '__main__':
         fig              = figure(figsize=(12,12))
         sfixed, sspfixed = section.get_fixed()
         Tnext            = fsolve(lambda dt: section.U(integrator.integrate(sspfixed,dt)[0]),
-                                  0.6*tFinal / size(section.Section, 0))[0]
-        ts,orbit         = integrator.integrate(sspfixed, Tnext, nstp)
+                                  tFinal / size(section.Section, 0))[0]
+        ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp)
 
         print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
-        print (f'{orbit[:,-1]}')
+        # print (f'{orbit1[:,-1]}')
         period, sspfixed =  solve(Tnext, sspfixed,
                                   integrator = integrator,
                                   dynamics   = dynamics)
@@ -593,22 +595,23 @@ if __name__ == '__main__':
         print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
 
         nstp                    = period/dt
-        ts,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
+        _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
 
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+        ax.plot(orbit_guess[0,:], orbit_guess[1,:], orbit_guess[2,:],
                 markersize = 1,
                 c          = 'xkcd:blue',
                 label      = 'Orbit')
-        ax.scatter(orbit[0,0], orbit[1,0], orbit[2,0],
+        ax.scatter(orbit_guess[0,0], orbit_guess[1,0], orbit_guess[2,0],
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'Start')
-        # ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
-                # markersize = 10,
-                # c          = 'xkcd:magenta',
-                # label      = 'periodicOrbit')
+        plot_poincare(ax,section,ts,orbit, s=5)
+        ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                markersize = 10,
+                c          = 'xkcd:magenta',
+                label      = 'periodicOrbit')
         ax.legend()
         savefig(join(args.figs,f'{args.dynamics}-cycles'))
 
