@@ -27,7 +27,8 @@ from abc                    import ABC,abstractmethod
 from argparse               import ArgumentParser
 from matplotlib.markers     import MarkerStyle
 from matplotlib.pyplot      import figure, rcParams, savefig, show, suptitle
-from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, identity, iinfo, int64, linspace, pi, real, reshape, sin, size, sqrt, zeros
+from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, identity, \
+                                   iinfo, int64, linspace, pi, real, reshape, sin, size, sqrt, zeros
 from numpy.linalg           import eig, inv, norm
 from os.path                import join, basename, split
 from pathlib                import Path
@@ -36,6 +37,7 @@ from scipy.interpolate      import splev, splprep, splrep
 from scipy.linalg           import eig, norm
 from scipy.optimize         import fsolve
 from scipy.spatial.distance import pdist, squareform
+from sys                    import exc_info
 
 class Dynamics(ABC):
 
@@ -46,7 +48,7 @@ class Dynamics(ABC):
 
     '''This abstract class represents the dynamics, i.e. the differential equation.'''
     @abstractmethod
-    def create_eqs(self):
+    def find_equilibria(self):
         ...
 
     @abstractmethod
@@ -110,7 +112,7 @@ class Lorentz(Dynamics):
         self.rho   = rho
         self.b     = b
 
-    def create_eqs(self):
+    def find_equilibria(self):
         if self.rho<1:
             return array([0,0,0])
         else:
@@ -126,9 +128,7 @@ class Lorentz(Dynamics):
         t : time is used since solve_ivp() requires it.
         '''
 
-        x = stateVec[0]
-        y = stateVec[1]
-        z = stateVec[2]
+        x,y,z = stateVec
 
         return array([self.sigma * (y-x),
                       self.rho*x - y - x*z,
@@ -140,9 +140,8 @@ class Lorentz(Dynamics):
         stateVec: the state vector in the full space. [x, y, z]
         '''
 
-        x = stateVec[0]
-        y = stateVec[1]
-        z = stateVec[2];
+        x,y,z = stateVec
+
         return array([
             [-self.sigma, self.sigma, 0],
             [self.rho-z,  -1 ,       -x],
@@ -162,15 +161,13 @@ class PseudoLorentz(Dynamics):
         self.rho   = rho
         self.b     = b
 
-    def create_eqs(self):
+    def find_equilibria(self):
         eq0 = [0,0,0]
         eq1 = [0,2*self.b*(self.rho-1),self.rho-1]
         return  array([eq0,eq1])
 
     def Velocity(self,t,stateVec):
-        u = stateVec[0]
-        v = stateVec[1]
-        z = stateVec[2]
+        u,v,z = stateVec
         N = sqrt(u**2 + v**2)
         return array([-(self.sigma+1)*u + (self.sigma-self.rho)*v + (1-self.sigma)*N + v*z,
                       (self.rho-self.sigma)*u - (self.sigma+1)*v + (self.rho+self.sigma)*N - u*z -u*N,
@@ -192,7 +189,7 @@ class Rossler(Dynamics):
         self.b = b
         self.c = c
 
-    def create_eqs(self):
+    def find_equilibria(self):
         term1 = 0.5*self.c/self.a
         term2 = sqrt(term1**2-self.b/self.a)
         y1    = term1 + term2
@@ -206,9 +203,7 @@ class Rossler(Dynamics):
         t : time is used since solve_ivp() requires it.
         '''
 
-        x = stateVec[0]
-        y = stateVec[1]
-        z = stateVec[2]
+        x,y,z = stateVec
 
         dxdt = - y - z
         dydt = x + self.a * y
@@ -229,7 +224,7 @@ class Rossler(Dynamics):
                A[i, j] = del Velocity[i] / del ssp[j]
         '''
 
-        x, y, z = ssp  # Read state space points
+        x, y, z = ssp
 
         return array([[0, -1, -   1],
                       [1, self.a, 0],
@@ -241,8 +236,10 @@ class Rossler(Dynamics):
 
 class Integrator:
     '''This class is used to integrate  the ODEs for a specified Dynamics'''
-    def __init__(self,dynamics):
+    def __init__(self,dynamics,
+                method = 'RK45'): # I was using Radau, which seemed OK for Rossler but not Lorentz
         self.dynamics = dynamics
+        self.method   = method
 
     def integrate(self,init_x, dt, nstp=1):
         '''
@@ -256,7 +253,7 @@ class Integrator:
 
         bunch = solve_ivp(dynamics.Velocity, (0, dt), init_x,
                           t_eval = arange(0,dt,dt/nstp),
-                          method = 'Radau') # Need this to cloce cycles
+                          method = self.method) # Need this to close cycles
         if bunch.status==0:
             return bunch.t, bunch.y
         else:
@@ -266,7 +263,7 @@ class Integrator:
 
     def Flow(self,deltat,y):
         '''Used to integrate for a single step'''
-        bunch = solve_ivp(dynamics.Velocity, (0, deltat), y)
+        bunch = solve_ivp(dynamics.Velocity, (0, deltat), y,method=self.method)
         return bunch.t[1],bunch.y[:,1]
 
     def Jacobian(self,ssp, t):
@@ -284,7 +281,7 @@ class Integrator:
         sspJacobian0               = zeros(dynamics.d + dynamics.d ** 2)  # Initiate
         sspJacobian0[0:dynamics.d] = ssp  # First 3 elemenets
         sspJacobian0[dynamics.d:]  = reshape(Jacobian0, dynamics.d**2)  # Remaining 9 elements
-        bunch                      = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,method='RK45')
+        bunch                      = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,method=self.method)
 
         if bunch.status==0:
             assert  t == bunch.t[-1]
@@ -337,7 +334,7 @@ class PoincareSection:
         return dot((ssp - self.sspTemplate),self.nTemplate)
 
     def project_to_section(self,points):
-        '''Transform point on the section from (x,y,z) to coordinates embedded in surface'''
+        '''Transform points on the section from (x,y,z) to coordinates embedded in surface'''
         Transformed = dot(self.ProjPoincare, points.transpose())
         Transformed =  Transformed.transpose()
         return  Transformed[:, 0:2]
@@ -368,7 +365,7 @@ class PoincareSection:
 
     def create_arclengths(self,ts,orbit):
         self.Section               = self.project_to_section(array([point for _,point in self.intersections(ts,orbit)]))
-        Distance              = squareform(pdist(self.Section))
+        Distance                   = squareform(pdist(self.Section))
         self.SortedPoincareSection = self.Section.copy()
         ArcLengths            = zeros(size(self.SortedPoincareSection, 0))
         sn                    = zeros(size(self.Section, 0)) # the arclengths of the Poincare section points keeping their dynamical order for use in the return map
@@ -453,6 +450,8 @@ def parse_args():
                         default = 1)
     parser.add_argument('--figs',
                         default = './figs')
+    parser.add_argument('--dt', type = float, default = 0.005)
+    parser.add_argument('--tFinal', type = float, default = 100)
     return parser.parse_args()
 
 def create_dynamics(args):
@@ -477,23 +476,19 @@ def solve(Tnext,  sspfixed,
     error      = zeros(dynamics.d+1)
     error[0:dynamics.d] = integrator.integrate(sspfixed,period)[0] - sspfixed
     Newton     = zeros((dynamics.d+1, dynamics.d+1))
-    k          = 0
     print(f'Iteration {0} {error}')
-    while max(abs(error)) > tol:
-        if k > kmax:
-            print(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
-            break
-        k += 1
-
-        Newton[0:dynamics.d, 0:dynamics.d] = 1 - integrator.Jacobian(sspfixed,period)
+    for k in range(kmax):
+        Newton[0:dynamics.d, 0:dynamics.d] = identity(dynamics.d) - integrator.Jacobian(sspfixed,period)
         Newton[0:dynamics.d, dynamics.d]   = - dynamics.Velocity(period,sspfixed)
         Newton[dynamics.d, 0:dynamics.d]   = section.nTemplate
         Delta                              = dot(inv(Newton), error)
         sspfixed                           = sspfixed + Delta[0:dynamics.d]
         period                             = period + Delta[dynamics.d]
         error[0:dynamics.d]                = integrator.Flow(period,sspfixed)[0] - sspfixed
+
         print(f'Iteration {k} {error}')
-    return period, sspfixed
+        if max(abs(error)) > tol: return period, sspfixed
+    Exception(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
 
 if __name__ == '__main__':
 
@@ -501,14 +496,17 @@ if __name__ == '__main__':
     args                    = parse_args()
     dynamics                = create_dynamics(args)
     integrator              = Integrator(dynamics)
-    EQs                     = dynamics.create_eqs()
+    EQs                     = dynamics.find_equilibria()
     section                 = PoincareSection(dynamics,integrator)
     x0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
-    dt                      = 0.005
-    tFinal                  = 100
-    nstp                    = tFinal/dt
-    ts,orbit                = integrator.integrate(x0, tFinal, nstp)
-    section.create_arclengths(ts,orbit)
+    nstp                    = int(args.tFinal/args.dt)
+    ts,orbit                = integrator.integrate(x0, args.tFinal, nstp)
+    try:
+        section.create_arclengths(ts,orbit)
+        found_section = True
+    except ValueError as e:
+        print (f'{e}')
+        found_section = False
 
     if plot_requested('orbit',args.plot):
         fig = figure(figsize=(12,12))
@@ -524,7 +522,9 @@ if __name__ == '__main__':
                        c      = 'xkcd:red',
                        label  = f'EQ{i}')
 
-        plot_poincare(ax,section,ts,orbit, s=5)
+        if found_section:
+            plot_poincare(ax,section,ts,orbit, s=5)
+
         ax.set_title(dynamics.get_title())
         ax.set_xlabel(dynamics.get_x_label())
         ax.set_ylabel(dynamics.get_y_label())
@@ -583,20 +583,10 @@ if __name__ == '__main__':
         fig              = figure(figsize=(12,12))
         sfixed, sspfixed = section.get_fixed()
         Tnext            = fsolve(lambda dt: section.U(integrator.integrate(sspfixed,dt)[0]),
-                                  tFinal / size(section.Section, 0))[0]
+                                  args.tFinal / size(section.Section, 0),xtol=1e-9)[0]
         ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp)
 
         print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
-        # print (f'{orbit1[:,-1]}')
-        period, sspfixed =  solve(Tnext, sspfixed,
-                                  integrator = integrator,
-                                  dynamics   = dynamics)
-
-        print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
-
-        nstp                    = period/dt
-        _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
-
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(orbit_guess[0,:], orbit_guess[1,:], orbit_guess[2,:],
                 markersize = 1,
@@ -606,12 +596,34 @@ if __name__ == '__main__':
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
-                   label  = 'Start')
+                   label  = f'Start ({orbit_guess[0,0]}, {orbit_guess[1,0]}, {orbit_guess[2,0]})')
+        ax.scatter(orbit_guess[0,-1], orbit_guess[1,-1], orbit_guess[2,-1],
+                   color  = 'xkcd:red',
+                   marker = '+',
+                   s      = 64,
+                   label  = f'Return ({orbit_guess[0,-1]}, {orbit_guess[1,-1]}, {orbit_guess[2,-1]})')
         plot_poincare(ax,section,ts,orbit, s=5)
-        ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
-                markersize = 10,
-                c          = 'xkcd:magenta',
-                label      = 'periodicOrbit')
+        try:
+            period, sspfixed =  solve(Tnext, sspfixed,
+                                      integrator = integrator,
+                                      dynamics   = dynamics)
+
+            print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
+
+            nstp                    = period/dt
+            _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
+
+
+            ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                    markersize = 10,
+                    c          = 'xkcd:magenta',
+                    label      = 'periodicOrbit')
+        except:
+            print(exc_info())
+
+        ax.set_xlabel(dynamics.get_x_label())
+        ax.set_ylabel(dynamics.get_y_label())
+        ax.set_zlabel(dynamics.get_z_label())
         ax.legend()
         savefig(join(args.figs,f'{args.dynamics}-cycles'))
 
