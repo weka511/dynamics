@@ -167,10 +167,28 @@ class PseudoLorentz(Dynamics):
 
     def Velocity(self,t,stateVec):
         u,v,z = stateVec
-        N = sqrt(u**2 + v**2)
+        N     = sqrt(u**2 + v**2)
         return array([-(self.sigma+1)*u + (self.sigma-self.rho)*v + (1-self.sigma)*N + v*z,
                       (self.rho-self.sigma)*u - (self.sigma+1)*v + (self.rho+self.sigma)*N - u*z -u*N,
                       v/2 - self.b*z])
+
+    def StabilityMatrix(self,stateVec):
+        '''
+        return the stability matrix at a state point.
+        stateVec: the state vector in the full space. [x, y, z]
+        '''
+
+        u,v,z = stateVec
+        N = sqrt(u**2 + v**2)
+        return array([
+            [-(self.sigma+1) + (1-self.sigma)*u/N,
+             self.sigma -self.rho + (1-self.sigma)*v/N,
+             v],
+            [self.rho-self.sigma + (self.rho+self.sigma)*u/N -z -N - u**2/N,
+             -(self.sigma+1) +  (self.rho+self.sigma)*v/N - u*v/N,
+             -u],
+            [0,           0.5,         -self.b]
+        ])
 
     def get_x_label(self):
         return 'u'
@@ -361,14 +379,15 @@ class PoincareSection:
 
 
 
-class PoincareMap:
+class Recurrences:
+    '''This class kwwpa track of the recurrences of the Poincare nap'''
     def __init__(self,section,ts,orbit):
         self.section               = section
         self.Section               = section.project_to_section(array([point for _,point in section.intersections(ts,orbit)]))
         Distance                   = squareform(pdist(self.Section))
         self.SortedPoincareSection = self.Section.copy()
-        ArcLengths            = zeros(size(self.SortedPoincareSection, 0))
-        sn                    = zeros(size(self.Section, 0)) # the arclengths of the Poincare section points keeping their dynamical order for use in the return map
+        ArcLengths                 = zeros(size(self.SortedPoincareSection, 0))
+        sn                         = zeros(size(self.Section, 0))
         for k in range(size(self.SortedPoincareSection, 0) - 1):
             index_closest_point_to_k        = argmin(Distance[k, k + 1:]) + k + 1
 
@@ -419,7 +438,6 @@ class PoincareMap:
 
     def get_fixed(self, s0=10.0):
         sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
-        print (sfixed,self.fPoincare(sfixed),self.section.project_to_space(self.fPoincare(sfixed)))
         return  sfixed,self.section.project_to_space(self.fPoincare(sfixed))
 
 
@@ -436,23 +454,6 @@ def plot_poincare(ax,section,ts,orbit,s=1):
                label  = r'Poincar\'e return',
                marker = 'o')
 
-def parse_args():
-    parser  = ArgumentParser(description = __doc__)
-    parser.add_argument('--plot',
-                        nargs = '*',
-                        choices = ['all', 'orbit', 'sections', 'map', 'cycles'],
-                        default = ['orbit'])
-    parser.add_argument('--dynamics',
-                        choices=['Lorentz', 'PseudoLorentz', 'Rossler'],
-                        default = 'Lorentz')
-    parser.add_argument('--fp',
-                        type = int,
-                        default = 1)
-    parser.add_argument('--figs',
-                        default = './figs')
-    parser.add_argument('--dt', type = float, default = 0.005)
-    parser.add_argument('--tFinal', type = float, default = 100)
-    return parser.parse_args()
 
 def create_dynamics(args):
     if args.dynamics == 'Lorentz':
@@ -462,10 +463,6 @@ def create_dynamics(args):
     if args.dynamics == 'Rossler':
         return Rossler()
     raise Exception(f'Unknown dynamics: {args.dynamics}')
-
-
-def plot_requested(name,arg):
-    return len(set(arg).intersection([name,'all']))>0
 
 def solve(Tnext,  sspfixed,
           integrator = None,
@@ -490,18 +487,47 @@ def solve(Tnext,  sspfixed,
         if max(abs(error)) > tol: return period, sspfixed
     Exception(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
 
+def parse_args():
+    parser  = ArgumentParser(description = __doc__)
+    parser.add_argument('--plot',
+                        nargs = '*',
+                        choices = ['all', 'orbit', 'sections', 'map', 'cycles'],
+                        default = ['orbit'])
+    parser.add_argument('--dynamics',
+                        choices=['Lorentz', 'PseudoLorentz', 'Rossler'],
+                        default = 'Lorentz')
+    parser.add_argument('--fp',
+                        type = int,
+                        default = 1)
+    parser.add_argument('--figs',
+                        default = './figs')
+    parser.add_argument('--dt',
+                        type = float,
+                        default = 0.005)
+    parser.add_argument('--tFinal',
+                        type    = float,
+                        default = 100)
+    parser.add_argument('--theta',
+                        type    = float,
+                        default = 0)
+    return parser.parse_args()
+
+def plot_requested(name,arg):
+    return len(set(arg).intersection([name,'all']))>0
+
 if __name__ == '__main__':
     rcParams['text.usetex'] = True
     args                    = parse_args()
     dynamics                = create_dynamics(args)
     integrator              = Integrator(dynamics)
     EQs                     = dynamics.find_equilibria()
-    section                 = PoincareSection(dynamics,integrator)
+    section                 = PoincareSection(dynamics,integrator,
+                                              theta = args.theta * pi)
     x0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
     nstp                    = int(args.tFinal/args.dt)
     ts,orbit                = integrator.integrate(x0, args.tFinal, nstp)
 
-    poincare_map = PoincareMap(section,ts,orbit)
+    recurrences = Recurrences(section,ts,orbit)
 
     if plot_requested('orbit',args.plot):
         fig = figure(figsize=(12,12))
@@ -529,19 +555,19 @@ if __name__ == '__main__':
     if plot_requested('sections', args.plot):
         fig = figure(figsize=(12,12))
         ax  = fig.gca()
-        ax.scatter(poincare_map.Section[:, 0], poincare_map.Section[:, 1],
+        ax.scatter(recurrences.Section[:, 0], recurrences.Section[:, 1],
                 c      = 'xkcd:red',
                 marker = 'x',
                 s      = 25,
-                label      = 'Poincare Section')
+                label  = 'Poincare Section')
 
-        ax.scatter(poincare_map.SortedPoincareSection[:, 0], poincare_map.SortedPoincareSection[:, 1],
+        ax.scatter(recurrences.SortedPoincareSection[:, 0], recurrences.SortedPoincareSection[:, 1],
                 c      = 'xkcd:blue',
                 marker = '+',
                 s      = 25,
                 label  = 'Sorted Poincare Section')
 
-        ax.scatter(poincare_map.InterpolatedPoincareSection[:, 0], poincare_map.InterpolatedPoincareSection[:, 1],
+        ax.scatter(recurrences.InterpolatedPoincareSection[:, 0], recurrences.InterpolatedPoincareSection[:, 1],
                 c      = 'xkcd:green',
                 marker = 'o',
                 s      = 1,
@@ -556,17 +582,17 @@ if __name__ == '__main__':
     if plot_requested('map',args.plot):
         fig = figure(figsize=(12,12))
         ax = fig.add_subplot(111)
-        ax.scatter(poincare_map.sn1, poincare_map.sn2,
+        ax.scatter(recurrences.sn1, recurrences.sn2,
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'Sorted')
-        ax.scatter(poincare_map.sArray, poincare_map.snPlus1,
+        ax.scatter(recurrences.sArray, recurrences.snPlus1,
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax.plot(poincare_map.sArray, poincare_map.sArray,
+        ax.plot(recurrences.sArray, recurrences.sArray,
                 color = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
@@ -575,9 +601,9 @@ if __name__ == '__main__':
 
     if plot_requested('cycles',args.plot):
         fig              = figure(figsize=(12,12))
-        sfixed, sspfixed = poincare_map.get_fixed()
-        Tnext            = fsolve(lambda dt: poincare_map.section.U(integrator.integrate(sspfixed,dt)[0]),
-                                  args.tFinal / size(poincare_map.Section, 0),xtol=1e-9)[0]
+        sfixed, sspfixed = recurrences.get_fixed()
+        Tnext            = fsolve(lambda dt: recurrences.section.U(integrator.integrate(sspfixed,dt)[0]),
+                                  args.tFinal / size(recurrences.Section, 0),xtol=1e-9)[0]
         ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp)
 
         print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
