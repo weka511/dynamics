@@ -40,13 +40,12 @@ from scipy.spatial.distance import pdist, squareform
 from sys                    import exc_info
 
 class Dynamics(ABC):
-
+    '''This abstract class represents the dynamics, i.e. the differential equation.'''
     def __init__(self, name = None,
                  d          = 3):
         self.name = name
         self.d    = d
 
-    '''This abstract class represents the dynamics, i.e. the differential equation.'''
     @abstractmethod
     def find_equilibria(self):
         ...
@@ -251,20 +250,20 @@ class Integrator:
         return : a [ nstp x 3 ] vector
         '''
 
-        bunch = solve_ivp(dynamics.Velocity, (0, dt), init_x,
+        solution = solve_ivp(dynamics.Velocity, (0, dt), init_x,
                           t_eval = arange(0,dt,dt/nstp),
                           method = self.method) # Need this to close cycles
-        if bunch.status==0:
-            return bunch.t, bunch.y
+        if solution.status==0:
+            return solution.t, solution.y
         else:
-            raise(Exception(f'Integration error: {bunch.status} {bunch.message}'))
+            raise(Exception(f'Integration error: {solution.status} {solution.message}'))
 
 
 
     def Flow(self,deltat,y):
         '''Used to integrate for a single step'''
-        bunch = solve_ivp(dynamics.Velocity, (0, deltat), y,method=self.method)
-        return bunch.t[1],bunch.y[:,1]
+        solution = solve_ivp(dynamics.Velocity, (0, deltat), y,method=self.method)
+        return solution.t[1],solution.y[:,1]
 
     def Jacobian(self,ssp, t):
         '''
@@ -277,18 +276,18 @@ class Integrator:
             J: Jacobian of trajectory f^t(ssp). dxd NumPy array
         '''
 
-        Jacobian0                   = identity(dynamics.d)
-        sspJacobian0               = zeros(dynamics.d + dynamics.d ** 2)  # Initiate
-        sspJacobian0[0:dynamics.d] = ssp  # First 3 elemenets
-        sspJacobian0[dynamics.d:]  = reshape(Jacobian0, dynamics.d**2)  # Remaining 9 elements
-        bunch                      = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,method=self.method)
+        Jacobian0                  = identity(dynamics.d)
+        sspJacobian0               = zeros(dynamics.d + dynamics.d ** 2)
+        sspJacobian0[0:dynamics.d] = ssp
+        sspJacobian0[dynamics.d:]  = reshape(Jacobian0, dynamics.d**2)
+        solution                   = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,method=self.method)
 
-        if bunch.status==0:
-            assert  t == bunch.t[-1]
-            sspJacobianSolution = bunch.y[:,-1]
+        if solution.status==0:
+            assert  t == solution.t[-1]
+            sspJacobianSolution = solution.y[:,-1]
             return sspJacobianSolution[3:].reshape((3, 3))
         else:
-            raise(Exception(f'Integration error: {bunch.status} {bunch.message}'))
+            raise(Exception(f'Integration error: {solution.status} {solution.message}'))
 
 
 
@@ -310,13 +309,13 @@ class PoincareSection:
 
     def __init__(self,dynamics,integrator,
                  theta       = 0.0):
-        e_z         = array([0, 0, 1], float)
+        e_z               = array([0, 0, 1], float)
         e_x               = array([1, 0, 0], float)
         self.sspTemplate  = dot(PoincareSection.zRotation(theta), e_x)
         self.nTemplate    = dot(PoincareSection.zRotation(pi/2), self.sspTemplate)
         self.ProjPoincare = array([self.sspTemplate,
-                                     e_z,
-                                     self.nTemplate], float)
+                                   e_z,
+                                   self.nTemplate], float)
         self.integrator  = integrator
         self.dynamics    = dynamics
 
@@ -343,7 +342,6 @@ class PoincareSection:
         '''Transform a point embedded in surface back to (x,y,z) coordinates '''
         return dot(append(point, 0.0), self.ProjPoincare)
 
-
     def Flow(self,y0,dt):
         _,y = self.integrator.integrate(y0,dt)
         _,n = y.shape
@@ -352,7 +350,6 @@ class PoincareSection:
 
     def interpolate(self,dt0, y0):
         return self.integrator.Flow(fsolve(lambda t: self.U(self.Flow(y0, t)), dt0)[0], y0)
-
 
     def intersections(self,ts, orbit):
         '''Used to iterate through intersections between orbit and section'''
@@ -363,8 +360,11 @@ class PoincareSection:
 
 
 
-    def create_arclengths(self,ts,orbit):
-        self.Section               = self.project_to_section(array([point for _,point in self.intersections(ts,orbit)]))
+
+class PoincareMap:
+    def __init__(self,section,ts,orbit):
+        self.section               = section
+        self.Section               = section.project_to_section(array([point for _,point in section.intersections(ts,orbit)]))
         Distance                   = squareform(pdist(self.Section))
         self.SortedPoincareSection = self.Section.copy()
         ArcLengths            = zeros(size(self.SortedPoincareSection, 0))
@@ -385,30 +385,24 @@ class PoincareSection:
             Distance[k + 1, :]                     = Distance[index_closest_point_to_k, :]
             Distance[index_closest_point_to_k, :]  = saved_row
 
-            ArcLengths[k + 1] = ArcLengths[k] + Distance[k, k + 1] #Assign the arclength of (k+1)th element:
-            #Find this point in the PoincareSection array and assign sn to its  corresponding arclength:
-            sn[argwhere(self.Section[:, 0] == self.SortedPoincareSection[k + 1, 0])] = ArcLengths[k + 1]
+            ArcLengths[k + 1]                      = ArcLengths[k] + Distance[k, k + 1]
+            index_in_arc_lengths                   = argwhere(self.Section[:, 0] == self.SortedPoincareSection[k + 1, 0])
+            sn[index_in_arc_lengths]               = ArcLengths[k + 1]
 
         #Parametric spline interpolation to the Poincare section:
-        self.tckPoincare, u = splprep([self.SortedPoincareSection[:, 0], self.SortedPoincareSection[:, 1]],
-                                      u = ArcLengths,
-                                      s = 0)
-        self.sArray = linspace(min(ArcLengths), max(ArcLengths), 1000)
-        #Evaluate the interpolation:
+        self.tckPoincare, u              = splprep([self.SortedPoincareSection[:, 0], self.SortedPoincareSection[:, 1]],
+                                                   u = ArcLengths,
+                                                   s = 0)
+        self.sArray                      = linspace(min(ArcLengths), max(ArcLengths), 1000)
         self.InterpolatedPoincareSection = self.fPoincare(self.sArray)
 
         sn1            = sn[0:-1]
         sn2            = sn[1:]
         isort          = argsort(sn1)
-        self.sn1       = sn1[isort]  # sort radii1
-        self.sn2       = sn2[isort]  # sort radii2
+        self.sn1       = sn1[isort]
+        self.sn2       = sn2[isort]
         self.tckReturn = splrep(self.sn1,self.sn2)
         self.snPlus1   = splev(self.sArray, self.tckReturn)
-
-    def get_fixed(self, s0=10.0):
-        sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
-        print (sfixed,self.fPoincare(sfixed),self.project_to_space(self.fPoincare(sfixed)))
-        return  sfixed,self.project_to_space(self.fPoincare(sfixed))
 
     def fPoincare(self,s):
         '''
@@ -422,6 +416,12 @@ class PoincareSection:
         '''
         interpolation = splev(s, self.tckPoincare)
         return array([interpolation[0], interpolation[1]], float).transpose()
+
+    def get_fixed(self, s0=10.0):
+        sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
+        print (sfixed,self.fPoincare(sfixed),self.section.project_to_space(self.fPoincare(sfixed)))
+        return  sfixed,self.section.project_to_space(self.fPoincare(sfixed))
+
 
 def plot_poincare(ax,section,ts,orbit,s=1):
     for t,point in section.intersections(ts,orbit):
@@ -491,7 +491,6 @@ def solve(Tnext,  sspfixed,
     Exception(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
 
 if __name__ == '__main__':
-
     rcParams['text.usetex'] = True
     args                    = parse_args()
     dynamics                = create_dynamics(args)
@@ -501,12 +500,8 @@ if __name__ == '__main__':
     x0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
     nstp                    = int(args.tFinal/args.dt)
     ts,orbit                = integrator.integrate(x0, args.tFinal, nstp)
-    try:
-        section.create_arclengths(ts,orbit)
-        found_section = True
-    except ValueError as e:
-        print (f'{e}')
-        found_section = False
+
+    poincare_map = PoincareMap(section,ts,orbit)
 
     if plot_requested('orbit',args.plot):
         fig = figure(figsize=(12,12))
@@ -522,8 +517,7 @@ if __name__ == '__main__':
                        c      = 'xkcd:red',
                        label  = f'EQ{i}')
 
-        if found_section:
-            plot_poincare(ax,section,ts,orbit, s=5)
+        plot_poincare(ax,section,ts,orbit, s=5)
 
         ax.set_title(dynamics.get_title())
         ax.set_xlabel(dynamics.get_x_label())
@@ -535,19 +529,19 @@ if __name__ == '__main__':
     if plot_requested('sections', args.plot):
         fig = figure(figsize=(12,12))
         ax  = fig.gca()
-        ax.scatter(section.Section[:, 0], section.Section[:, 1],
+        ax.scatter(poincare_map.Section[:, 0], poincare_map.Section[:, 1],
                 c      = 'xkcd:red',
                 marker = 'x',
                 s      = 25,
                 label      = 'Poincare Section')
 
-        ax.scatter(section.SortedPoincareSection[:, 0], section.SortedPoincareSection[:, 1],
+        ax.scatter(poincare_map.SortedPoincareSection[:, 0], poincare_map.SortedPoincareSection[:, 1],
                 c      = 'xkcd:blue',
                 marker = '+',
                 s      = 25,
                 label  = 'Sorted Poincare Section')
 
-        ax.scatter(section.InterpolatedPoincareSection[:, 0], section.InterpolatedPoincareSection[:, 1],
+        ax.scatter(poincare_map.InterpolatedPoincareSection[:, 0], poincare_map.InterpolatedPoincareSection[:, 1],
                 c      = 'xkcd:green',
                 marker = 'o',
                 s      = 1,
@@ -562,17 +556,17 @@ if __name__ == '__main__':
     if plot_requested('map',args.plot):
         fig = figure(figsize=(12,12))
         ax = fig.add_subplot(111)
-        ax.scatter(section.sn1, section.sn2,
+        ax.scatter(poincare_map.sn1, poincare_map.sn2,
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'Sorted')
-        ax.scatter(section.sArray, section.snPlus1,
+        ax.scatter(poincare_map.sArray, poincare_map.snPlus1,
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax.plot(section.sArray, section.sArray,
+        ax.plot(poincare_map.sArray, poincare_map.sArray,
                 color = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
@@ -581,9 +575,9 @@ if __name__ == '__main__':
 
     if plot_requested('cycles',args.plot):
         fig              = figure(figsize=(12,12))
-        sfixed, sspfixed = section.get_fixed()
-        Tnext            = fsolve(lambda dt: section.U(integrator.integrate(sspfixed,dt)[0]),
-                                  args.tFinal / size(section.Section, 0),xtol=1e-9)[0]
+        sfixed, sspfixed = poincare_map.get_fixed()
+        Tnext            = fsolve(lambda dt: poincare_map.section.U(integrator.integrate(sspfixed,dt)[0]),
+                                  args.tFinal / size(poincare_map.Section, 0),xtol=1e-9)[0]
         ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp)
 
         print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
@@ -610,7 +604,6 @@ if __name__ == '__main__':
 
             print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
 
-            nstp                    = period/dt
             _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
 
 
