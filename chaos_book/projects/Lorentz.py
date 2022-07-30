@@ -156,13 +156,13 @@ class Lorentz(Dynamics):
 
 
 
-class PseudoLorentz(Dynamics):
-    '''Dynamics of Pseudo Lorentz Equation'''
+class ProtoLorentz(Dynamics):
+    '''Dynamics of Proto-Lorentz Equation'''
     def __init__(self,
                  sigma = 10.0,
                  rho   = 28.0,
                  b     = 8.0/3.0):
-        super().__init__('PseudoLorentz')
+        super().__init__('Proto-Lorentz')
         self.sigma = sigma
         self.rho   = rho
         self.b     = b
@@ -262,6 +262,20 @@ class Rossler(Dynamics):
 
     def get_title(self):
         return 'Rossler'
+
+class DynamicsFactory:
+    '''Factory class for instantiating Dynamics '''
+    products = ['Lorentz', 'ProtoLorentz', 'Rossler']
+
+    @classmethod
+    def create(cls,args):
+        if args.dynamics == 'Lorentz':
+            return Lorentz()
+        if args.dynamics == 'ProtoLorentz':
+            return ProtoLorentz()
+        if args.dynamics == 'Rossler':
+            return Rossler()
+        raise Exception(f'Unknown dynamics: {args.dynamics}')
 
 class Integrator:
     '''This class is used to integrate  the ODEs for a specified Dynamics'''
@@ -457,15 +471,15 @@ class Recurrences:
               dynamics   = None,
               tol        = 1e-9,
               kmax       = 20):
-        period     = Tnext
-        error      = zeros(dynamics.d+1)
+        period              = Tnext
+        error               = zeros(dynamics.d+1)
         error[0:dynamics.d] = integrator.integrate(sspfixed,period)[0] - sspfixed
-        Newton     = zeros((dynamics.d+1, dynamics.d+1))
+        Newton              = zeros((dynamics.d+1, dynamics.d+1))
         print(f'Iteration {0} {error}')
         for k in range(kmax):
             Newton[0:dynamics.d, 0:dynamics.d] = identity(dynamics.d) - integrator.Jacobian(sspfixed,period)
             Newton[0:dynamics.d, dynamics.d]   = - dynamics.Velocity(period,sspfixed)
-            Newton[dynamics.d, 0:dynamics.d]   = section.nTemplate
+            Newton[dynamics.d, 0:dynamics.d]   = self.section.nTemplate
             Delta                              = dot(inv(Newton), error)
             sspfixed                           = sspfixed + Delta[0:dynamics.d]
             period                             = period + Delta[dynamics.d]
@@ -479,7 +493,9 @@ class Recurrences:
         return fsolve(lambda dt: self.section.U(integrator.integrate(sspfixed,dt)[0]),
                               args.tFinal / size(self.Section, 0),xtol=1e-9)[0]
 
-def plot_poincare(ax,section,ts,orbit,s=1):
+def plot_poincare(ax,section,ts,orbit,
+                  s = 1):
+    '''A function to plot the recurrent points '''
     for t,point in section.intersections(ts,orbit):
         ax.scatter(point[0],point[1],point[2],
                    c      = 'xkcd:green',
@@ -492,27 +508,16 @@ def plot_poincare(ax,section,ts,orbit,s=1):
                label  = r'Poincar\'e return',
                marker = 'o')
 
-
-def create_dynamics(args):
-    if args.dynamics == 'Lorentz':
-        return Lorentz()
-    if args.dynamics == 'PseudoLorentz':
-        return PseudoLorentz()
-    if args.dynamics == 'Rossler':
-        return Rossler()
-    raise Exception(f'Unknown dynamics: {args.dynamics}')
-
-
-
 def parse_args():
+    '''Parse command line parameters'''
     parser  = ArgumentParser(description = __doc__)
     parser.add_argument('--plot',
                         nargs = '*',
                         choices = ['all', 'orbit', 'sections', 'map', 'cycles'],
                         default = ['orbit'])
     parser.add_argument('--dynamics',
-                        choices=['Lorentz', 'PseudoLorentz', 'Rossler'],
-                        default = 'Lorentz')
+                        choices = DynamicsFactory.products,
+                        default = DynamicsFactory.products[0])
     parser.add_argument('--fp',
                         type = int,
                         default = 1)
@@ -530,12 +535,21 @@ def parse_args():
     return parser.parse_args()
 
 def plot_requested(name,arg):
+    '''
+    Verify that user has requested a specific plot
+
+    Parameters:
+        name                Name of plot
+        arg                 List of all plots that user has requested
+
+    Returns True if name appears in arg, or 'all' plots have been specified
+    '''
     return len(set(arg).intersection([name,'all']))>0
 
 if __name__ == '__main__':
     rcParams['text.usetex'] = True
     args                    = parse_args()
-    dynamics                = create_dynamics(args)
+    dynamics                = DynamicsFactory.create(args)
     integrator              = Integrator(dynamics)
     EQs                     = dynamics.find_equilibria()
     section                 = PoincareSection(dynamics,integrator,
