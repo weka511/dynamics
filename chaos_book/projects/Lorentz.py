@@ -82,22 +82,29 @@ class Dynamics(ABC):
         return velJ
 
     def get_title(self):
+        '''For display on plots'''
         return fr'{self.name} $\sigma=${self.sigma}, $\rho=${self.rho}, b={self.b}'
 
     def get_x_label(self):
+        '''For display on plots'''
         return 'x'
 
     def get_y_label(self):
+        '''For display on plots'''
         return 'y'
 
     def get_z_label(self):
+        '''For display on plots'''
         return 'z'
 
-    def get_start_on_unstable_manifold(self,eq0, eps=1e-6):
-        '''Initial condition as a slight perturbation to the eq0 in v1 direction'''
-        Aeq0            = self.StabilityMatrix(eq0)
-        _, eigenVectors = eig(Aeq0)
-        v1              = real(eigenVectors[:, 0])
+    def get_start_on_unstable_manifold(self,eq0,
+                                       eps = 1e-6):
+        '''Initial condition as a slight perturbation to specified fixed point in the direction of eigenvector with largest eigenvalue'''
+        Aeq0                      = self.StabilityMatrix(eq0)
+        eigenValues, eigenVectors = eig(Aeq0)
+        if eigenValues[0]<0:
+            raise Exception(f'EQ {eq0} is stable {eigenValues}, so there is no unstable manifold')
+        v1 = real(eigenVectors[:, 0])
         return eq0 + eps * v1  / norm(v1)
 
 class Lorentz(Dynamics):
@@ -180,15 +187,20 @@ class PseudoLorentz(Dynamics):
 
         u,v,z = stateVec
         N = sqrt(u**2 + v**2)
-        return array([
-            [-(self.sigma+1) + (1-self.sigma)*u/N,
-             self.sigma -self.rho + (1-self.sigma)*v/N,
-             v],
-            [self.rho-self.sigma + (self.rho+self.sigma)*u/N -z -N - u**2/N,
-             -(self.sigma+1) +  (self.rho+self.sigma)*v/N - u*v/N,
-             -u],
-            [0,           0.5,         -self.b]
-        ])
+        if N>0:
+            return array([
+                [-(self.sigma+1) + (1-self.sigma)*u/N,
+                 self.sigma -self.rho + (1-self.sigma)*v/N,
+                 v],
+                [self.rho-self.sigma + (self.rho+self.sigma)*u/N - z -N - u**2/N,
+                 -(self.sigma+1) +  (self.rho+self.sigma)*v/N - u*v/N,
+                 -u],
+                [0,           0.5,         -self.b]
+            ])
+        else:
+            return ([[-2*self.sigma, 1-self.rho,   0],
+                     [2*self.rho -z, self.rho-1,   0],
+                     [0,             0.5,         -self.b]])
 
     def get_x_label(self):
         return 'u'
@@ -440,6 +452,32 @@ class Recurrences:
         sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
         return  sfixed,self.section.project_to_space(self.fPoincare(sfixed))
 
+    def solve(self, Tnext,  sspfixed,
+              integrator = None,
+              dynamics   = None,
+              tol        = 1e-9,
+              kmax       = 20):
+        period     = Tnext
+        error      = zeros(dynamics.d+1)
+        error[0:dynamics.d] = integrator.integrate(sspfixed,period)[0] - sspfixed
+        Newton     = zeros((dynamics.d+1, dynamics.d+1))
+        print(f'Iteration {0} {error}')
+        for k in range(kmax):
+            Newton[0:dynamics.d, 0:dynamics.d] = identity(dynamics.d) - integrator.Jacobian(sspfixed,period)
+            Newton[0:dynamics.d, dynamics.d]   = - dynamics.Velocity(period,sspfixed)
+            Newton[dynamics.d, 0:dynamics.d]   = section.nTemplate
+            Delta                              = dot(inv(Newton), error)
+            sspfixed                           = sspfixed + Delta[0:dynamics.d]
+            period                             = period + Delta[dynamics.d]
+            error[0:dynamics.d]                = integrator.Flow(period,sspfixed)[0] - sspfixed
+
+            print(f'Iteration {k} {error}')
+            if max(abs(error)) > tol: return period, sspfixed
+        Exception(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
+
+    def getTnext(self,sspfixed):
+        return fsolve(lambda dt: self.section.U(integrator.integrate(sspfixed,dt)[0]),
+                              args.tFinal / size(self.Section, 0),xtol=1e-9)[0]
 
 def plot_poincare(ax,section,ts,orbit,s=1):
     for t,point in section.intersections(ts,orbit):
@@ -464,28 +502,7 @@ def create_dynamics(args):
         return Rossler()
     raise Exception(f'Unknown dynamics: {args.dynamics}')
 
-def solve(Tnext,  sspfixed,
-          integrator = None,
-          dynamics   = None,
-          tol        = 1e-9,
-          kmax       = 20):
-    period     = Tnext
-    error      = zeros(dynamics.d+1)
-    error[0:dynamics.d] = integrator.integrate(sspfixed,period)[0] - sspfixed
-    Newton     = zeros((dynamics.d+1, dynamics.d+1))
-    print(f'Iteration {0} {error}')
-    for k in range(kmax):
-        Newton[0:dynamics.d, 0:dynamics.d] = identity(dynamics.d) - integrator.Jacobian(sspfixed,period)
-        Newton[0:dynamics.d, dynamics.d]   = - dynamics.Velocity(period,sspfixed)
-        Newton[dynamics.d, 0:dynamics.d]   = section.nTemplate
-        Delta                              = dot(inv(Newton), error)
-        sspfixed                           = sspfixed + Delta[0:dynamics.d]
-        period                             = period + Delta[dynamics.d]
-        error[0:dynamics.d]                = integrator.Flow(period,sspfixed)[0] - sspfixed
 
-        print(f'Iteration {k} {error}')
-        if max(abs(error)) > tol: return period, sspfixed
-    Exception(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
 
 def parse_args():
     parser  = ArgumentParser(description = __doc__)
@@ -527,7 +544,7 @@ if __name__ == '__main__':
     nstp                    = int(args.tFinal/args.dt)
     ts,orbit                = integrator.integrate(x0, args.tFinal, nstp)
 
-    recurrences = Recurrences(section,ts,orbit)
+    recurrences             = Recurrences(section,ts,orbit)
 
     if plot_requested('orbit',args.plot):
         fig = figure(figsize=(12,12))
@@ -600,12 +617,10 @@ if __name__ == '__main__':
         savefig(join(args.figs,f'{args.dynamics}-map'))
 
     if plot_requested('cycles',args.plot):
-        fig              = figure(figsize=(12,12))
-        sfixed, sspfixed = recurrences.get_fixed()
-        Tnext            = fsolve(lambda dt: recurrences.section.U(integrator.integrate(sspfixed,dt)[0]),
-                                  args.tFinal / size(recurrences.Section, 0),xtol=1e-9)[0]
+        fig                  = figure(figsize=(12,12))
+        sfixed, sspfixed     = recurrences.get_fixed()
+        Tnext                = recurrences.getTnext(sspfixed)
         ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp)
-
         print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(orbit_guess[0,:], orbit_guess[1,:], orbit_guess[2,:],
@@ -624,9 +639,9 @@ if __name__ == '__main__':
                    label  = f'Return ({orbit_guess[0,-1]}, {orbit_guess[1,-1]}, {orbit_guess[2,-1]})')
         plot_poincare(ax,section,ts,orbit, s=5)
         try:
-            period, sspfixed =  solve(Tnext, sspfixed,
-                                      integrator = integrator,
-                                      dynamics   = dynamics)
+            period, sspfixed =  recurrences.solve(Tnext, sspfixed,
+                                                  integrator = integrator,
+                                                  dynamics   = dynamics)
 
             print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
 
