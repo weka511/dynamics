@@ -352,11 +352,8 @@ class PoincareSection:
                      float)
 
     def __init__(self,dynamics,integrator,
-                 sspTemplate = None,
-                 nTemplate   = None,
-                 theta       = 0.0):
-        # e_z               = array([0, 0, 1], float)
-        # e_x               = array([1, 0, 0], float)
+                 sspTemplate = array([1,1,0]),
+                 nTemplate   = array([1,-1,0])):
         self.sspTemplate  = sspTemplate
         self.nTemplate    = nTemplate
         third_axis        = cross(self.sspTemplate,self.nTemplate)
@@ -532,9 +529,6 @@ def parse_args():
     parser.add_argument('--tFinal',
                         type    = float,
                         default = 100)
-    parser.add_argument('--theta',
-                        type    = float,
-                        default = 0)
     parser.add_argument('--sspTemplate',
                         type = float,
                         nargs = 3,
@@ -564,7 +558,6 @@ if __name__ == '__main__':
     integrator              = Integrator(dynamics)
     EQs                     = dynamics.find_equilibria()
     section                 = PoincareSection(dynamics,integrator,
-                                              theta       = args.theta * pi,
                                               sspTemplate = array(args.sspTemplate),
                                               nTemplate   = array(args.nTemplate))
     x0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
