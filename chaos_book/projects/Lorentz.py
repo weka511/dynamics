@@ -354,12 +354,13 @@ class PoincareSection:
     def __init__(self,dynamics,integrator,
                  sspTemplate = array([1,1,0]),
                  nTemplate   = array([1,-1,0])):
-        self.sspTemplate  = sspTemplate
-        self.nTemplate    = nTemplate
+        self.sspTemplate  = sspTemplate/norm(sspTemplate)
+        self.nTemplate    = nTemplate/norm(nTemplate)
         third_axis        = cross(self.sspTemplate,self.nTemplate)
         self.ProjPoincare = array([self.sspTemplate,
                                    third_axis/norm(third_axis),
-                                   self.nTemplate], float)
+                                   self.nTemplate],
+                                  float)
         self.integrator  = integrator
         self.dynamics    = dynamics
 
@@ -530,13 +531,14 @@ def parse_args():
                         type    = float,
                         default = 100)
     parser.add_argument('--sspTemplate',
-                        type = float,
-                        nargs = 3,
+                        type    = float,
+                        nargs   = 3,
                         default = [1,1,0])
     parser.add_argument('--nTemplate',
-                        type = float,
-                        nargs = 3,
+                        type   = float,
+                        nargs   = 3,
                         default = [1,-1,0])
+
     return parser.parse_args()
 
 def plot_requested(name,arg):
@@ -701,23 +703,23 @@ if __name__ == '__main__':
                    marker = '+',
                    s      = 64,
                    label  = f'Return ({orbit_guess[0,-1]}, {orbit_guess[1,-1]}, {orbit_guess[2,-1]})')
-        plot_poincare(ax,section,ts,orbit, s=5)
-        try:
-            period, sspfixed =  recurrences.solve(Tnext, sspfixed,
-                                                  integrator = integrator,
-                                                  dynamics   = dynamics)
+        # plot_poincare(ax,section,ts,orbit, s=5)
+        # try:
+            # period, sspfixed =  recurrences.solve(Tnext, sspfixed,
+                                                  # integrator = integrator,
+                                                  # dynamics   = dynamics)
 
-            print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
+            # print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
 
-            _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
+            # _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
 
 
-            ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
-                    markersize = 10,
-                    c          = 'xkcd:magenta',
-                    label      = 'periodicOrbit')
-        except:
-            print(exc_info())
+            # ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                    # markersize = 10,
+                    # c          = 'xkcd:magenta',
+                    # label      = 'periodicOrbit')
+        # except:
+            # print(exc_info())
 
         ax.set_xlabel(dynamics.get_x_label())
         ax.set_ylabel(dynamics.get_y_label())
