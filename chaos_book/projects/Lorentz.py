@@ -337,28 +337,13 @@ class Integrator:
 
 class PoincareSection:
     ''' This class represents a Poincare Section'''
-    @staticmethod
-    def zRotation(theta):
-        '''
-        Rotation matrix about z-axis
-        Input:
-        theta: Rotation angle (radians)
-        Output:
-        Rz: Rotation matrix about z-axis
-        '''
-        return array([[cos(theta), -sin(theta), 0],
-                      [sin( theta), cos(theta),  0],
-                      [0,          0,           1]],
-                     float)
-
     def __init__(self,dynamics,integrator,
                  sspTemplate = array([1,1,0]),
                  nTemplate   = array([1,-1,0])):
         self.sspTemplate  = sspTemplate/norm(sspTemplate)
         self.nTemplate    = nTemplate/norm(nTemplate)
-        third_axis        = cross(self.sspTemplate,self.nTemplate)
         self.ProjPoincare = array([self.sspTemplate,
-                                   third_axis/norm(third_axis),
+                                   cross(self.sspTemplate,self.nTemplate),
                                    self.nTemplate],
                                   float)
         self.integrator  = integrator
@@ -400,8 +385,11 @@ class PoincareSection:
         '''Used to iterate through intersections between orbit and section'''
         _,n = orbit.shape
         for i in range(n-1):
-            if self.U(orbit[:,i])<0 and self.U(orbit[:,i+1])>0:
-                yield self.interpolate(0.5*(ts[i+1]-ts[i]), orbit[:,i])
+            u0 = self.U(orbit[:,i])
+            u1 = self.U(orbit[:,i+1])
+            if u0<0 and u1>0:
+                ratio = (-u0)/((-u0)+u1)
+                yield self.interpolate(ts[i] + ratio*(ts[i+1] - ts[i]), orbit[:,i])
 
 
 
