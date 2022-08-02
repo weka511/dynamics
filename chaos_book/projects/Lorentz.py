@@ -26,7 +26,7 @@
 from abc                    import ABC,abstractmethod
 from argparse               import ArgumentParser
 from matplotlib.markers     import MarkerStyle
-from matplotlib.pyplot      import figure, rcParams, savefig, show, suptitle
+from matplotlib.pyplot      import figlegend, figure, rcParams, savefig, show, suptitle, tight_layout
 from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, identity, \
                                    iinfo, int64, linspace, pi, real, reshape, sin, size, sqrt, zeros
 from numpy.linalg           import eig, inv, norm
@@ -102,8 +102,8 @@ class Dynamics(ABC):
         '''Initial condition as a slight perturbation to specified fixed point in the direction of eigenvector with largest eigenvalue'''
         Aeq0                      = self.StabilityMatrix(eq0)
         eigenValues, eigenVectors = eig(Aeq0)
-        if eigenValues[0]<0:
-            raise Exception(f'EQ {eq0} is stable {eigenValues}, so there is no unstable manifold')
+        # if eigenValues[0]<0:
+            # raise Exception(f'EQ {eq0} is stable {eigenValues}, so there is no unstable manifold')
         v1 = real(eigenVectors[:, 0])
         return eq0 + eps * v1  / norm(v1)
 
@@ -352,21 +352,24 @@ class PoincareSection:
                      float)
 
     def __init__(self,dynamics,integrator,
+                 sspTemplate = None,
+                 nTemplate   = None,
                  theta       = 0.0):
-        e_z               = array([0, 0, 1], float)
-        e_x               = array([1, 0, 0], float)
-        self.sspTemplate  = dot(PoincareSection.zRotation(theta), e_x)
-        self.nTemplate    = dot(PoincareSection.zRotation(pi/2), self.sspTemplate)
+        # e_z               = array([0, 0, 1], float)
+        # e_x               = array([1, 0, 0], float)
+        self.sspTemplate  = sspTemplate
+        self.nTemplate    = nTemplate
+        third_axis        = cross(self.sspTemplate,self.nTemplate)
         self.ProjPoincare = array([self.sspTemplate,
-                                   e_z,
+                                   third_axis/norm(third_axis),
                                    self.nTemplate], float)
         self.integrator  = integrator
         self.dynamics    = dynamics
 
     def U(self, ssp):
         '''
-        Plane equation for the Poincare section hyperplane which includes z-axis
-        and makes an angle theta with the x-axis see ChaosBook ver. 14, fig. 3.2
+        Plane equation for the Poincare section: see ChaosBook ver. 14, fig. 3.2.
+
         Inputs:
           ssp: State space point at which the Poincare hyperplane equation will be
                evaluated
@@ -406,10 +409,13 @@ class PoincareSection:
 
 
 class Recurrences:
-    '''This class kwwpa track of the recurrences of the Poincare nap'''
-    def __init__(self,section,ts,orbit):
+    '''This class keeps track of the recurrences of the Poincare nap'''
+    def __init__(self,section,ts,orbit,
+                 filter = lambda point: True):
         self.section               = section
-        self.Section               = section.project_to_section(array([point for _,point in section.intersections(ts,orbit)]))
+        intersections              = [point for _,point in section.intersections(ts,orbit) if filter(point)]
+        if len(intersections)==0: return
+        self.Section               = section.project_to_section(array(intersections))
         Distance                   = squareform(pdist(self.Section))
         self.SortedPoincareSection = self.Section.copy()
         ArcLengths                 = zeros(size(self.SortedPoincareSection, 0))
@@ -496,24 +502,21 @@ class Recurrences:
 def plot_poincare(ax,section,ts,orbit,
                   s = 1):
     '''A function to plot the recurrent points '''
+    first_point = True
     for t,point in section.intersections(ts,orbit):
         ax.scatter(point[0],point[1],point[2],
                    c      = 'xkcd:green',
                    s      = s,
+                   label  = r'Poincar\'e return' if first_point else None,
                    marker = 'o')
-
-    ax.scatter(point[0],point[1],point[2],
-               c      = 'xkcd:green',
-               s      = s,
-               label  = r'Poincar\'e return',
-               marker = 'o')
+        first_point = False
 
 def parse_args():
     '''Parse command line parameters'''
     parser  = ArgumentParser(description = __doc__)
     parser.add_argument('--plot',
                         nargs = '*',
-                        choices = ['all', 'orbit', 'sections', 'map', 'cycles'],
+                        choices = ['all', 'projections', 'orbit', 'sections', 'map', 'cycles'],
                         default = ['orbit'])
     parser.add_argument('--dynamics',
                         choices = DynamicsFactory.products,
@@ -532,6 +535,14 @@ def parse_args():
     parser.add_argument('--theta',
                         type    = float,
                         default = 0)
+    parser.add_argument('--sspTemplate',
+                        type = float,
+                        nargs = 3,
+                        default = [1,1,0])
+    parser.add_argument('--nTemplate',
+                        type = float,
+                        nargs = 3,
+                        default = [1,-1,0])
     return parser.parse_args()
 
 def plot_requested(name,arg):
@@ -553,35 +564,81 @@ if __name__ == '__main__':
     integrator              = Integrator(dynamics)
     EQs                     = dynamics.find_equilibria()
     section                 = PoincareSection(dynamics,integrator,
-                                              theta = args.theta * pi)
+                                              theta       = args.theta * pi,
+                                              sspTemplate = array(args.sspTemplate),
+                                              nTemplate   = array(args.nTemplate))
     x0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
     nstp                    = int(args.tFinal/args.dt)
     ts,orbit                = integrator.integrate(x0, args.tFinal, nstp)
-
-    recurrences             = Recurrences(section,ts,orbit)
+    recurrences             = Recurrences(section,ts,orbit,
+                                          filter = lambda point:point[0]>0)    #FIXME
 
     if plot_requested('orbit',args.plot):
         fig = figure(figsize=(12,12))
-        ax  = fig.add_subplot(111, projection='3d')
-        ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+        ax1  = fig.add_subplot(111, projection='3d')
+        ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                 c          = 'xkcd:blue',
                 label      = 'Orbit',
                 markersize = 1)
         m,_ = EQs.shape
         for i in range(m):
-            ax.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
+            ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
                        marker = MarkerStyle.filled_markers[i],
                        c      = 'xkcd:red',
                        label  = f'EQ{i}')
 
-        plot_poincare(ax,section,ts,orbit, s=5)
+        plot_poincare(ax1,section,ts,orbit, s=5)
 
-        ax.set_title(dynamics.get_title())
-        ax.set_xlabel(dynamics.get_x_label())
-        ax.set_ylabel(dynamics.get_y_label())
-        ax.set_zlabel(dynamics.get_z_label())
-        ax.legend()
+        suptitle(dynamics.get_title())
+        ax1.set_xlabel(dynamics.get_x_label())
+        ax1.set_ylabel(dynamics.get_y_label())
+        ax1.set_zlabel(dynamics.get_z_label())
+        figlegend()
         savefig(join(args.figs,f'{args.dynamics}-orbit'))
+
+    if plot_requested('projections',args.plot):
+        fig = figure(figsize=(12,12))
+        ax1  = fig.add_subplot(221, projection='3d')
+        ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+                c          = 'xkcd:blue',
+                label      = 'Orbit',
+                markersize = 1)
+        m,_ = EQs.shape
+        for i in range(m):
+            ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
+                       marker = MarkerStyle.filled_markers[i],
+                       c      = 'xkcd:red',
+                       label  = f'EQ{i}')
+
+        suptitle(dynamics.get_title())
+        ax1.set_xlabel(dynamics.get_x_label())
+        ax1.set_ylabel(dynamics.get_y_label())
+        ax1.set_zlabel(dynamics.get_z_label())
+
+        ax2  = fig.add_subplot(222)
+        ax2.plot(orbit[1,:], orbit[2,:],
+                c          = 'xkcd:blue',
+                markersize = 1)
+        ax2.set_xlabel(dynamics.get_y_label())
+        ax2.set_ylabel(dynamics.get_z_label())
+
+        ax3  = fig.add_subplot(223)
+        ax3.plot(orbit[0,:], orbit[2,:],
+                c          = 'xkcd:blue',
+                markersize = 1)
+        ax3.set_xlabel(dynamics.get_x_label())
+        ax3.set_ylabel(dynamics.get_z_label())
+
+        ax4  = fig.add_subplot(224)
+        ax4.plot(orbit[0,:], orbit[1,:],
+                c          = 'xkcd:blue',
+                markersize = 1)
+        ax4.set_xlabel(dynamics.get_x_label())
+        ax4.set_ylabel(dynamics.get_y_label())
+
+        figlegend()
+        tight_layout()
+        savefig(join(args.figs,f'{args.dynamics}-projections'))
 
     if plot_requested('sections', args.plot):
         fig = figure(figsize=(12,12))
