@@ -106,7 +106,7 @@ ENV/
 *.blg
 *.synctex.gz
 *.toc
-
+dynamics.bib.sav.tmp
 *.npz
 *.ini
 *.bak
@@ -122,5 +122,20 @@ chaos_book/projects/periodicorbits.png
 chaos_book/projects/recurrences.png
 chaos_book/projects/return.png
 chaos_book/projects/sections.png
+
+chaos_book/projects/Lorentz.pdf
+chaos_book/projects/MyNamePHYS7123.tex
+chaos_book/projects/defs.tex
+chaos_book/projects/figs/
+chaos_book/projects/refs.tex
+chaos_book/wk10/Henon1.png
+chaos_book/wk10/Henon2.png
+chaos_book/wk10/Logistic.png
+chaos_book/wk10/Q10-3.png
+chaos_book/wk7/case1.png
+chaos_book/wk7/case2.png
+chaos_book/wk7/case3.png
+chaos_book/wk8/case1.png
+
 
 
