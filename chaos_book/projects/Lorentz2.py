@@ -430,9 +430,22 @@ def plot_requested(name,arg):
     '''
     return len(set(arg).intersection([name,'all']))>0
 
-def save(dynamics,name):
-    '''Save current figure in file named for this program, the type of dynamics, and the name of the plot'''
-    savefig(join(args.figs,f'{splitext(basename(__file__))[0]}-{dynamics}-{name}'))
+class Figure(object):
+    def __init__(self,
+                 figs     = './',
+                 name     = '',
+                 dynamics = 'Lorentz'):
+        self.figs     = figs
+        self.name     = name
+        self.dynamics = dynamics
+
+    def __enter__(self):
+        self.fig = figure(figsize=(12,12))
+        return self.fig
+
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        savefig(join(self.figs,f'{splitext(basename(__file__))[0]}-{self.dynamics}-{self.name}'))
+
 
 if __name__ == '__main__':
     rcParams['text.usetex'] = True
@@ -444,43 +457,59 @@ if __name__ == '__main__':
                                               sspTemplate = array(args.sspTemplate),
                                               nTemplate   = array(args.nTemplate))
     y0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
-    ts,orbit                 = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
-
+    ts,orbit                = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
+    intersections           = [point for _,point in section.intersections(ts,orbit)]
 
     if plot_requested('orbit',args.plot):
-        fig = figure(figsize=(12,12))
-        ax1 = fig.add_subplot(111, projection='3d')
-        ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
-                c          = 'xkcd:blue',
-                label      = 'Orbit',
-                markersize = 1)
-        m,_ = EQs.shape
-        for i in range(m):
-            ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
-                       marker = MarkerStyle.filled_markers[i],
-                       c      = 'xkcd:red',
-                       label  = f'EQ{i}')
-        ax1.scatter(orbit[0,-1], orbit[1,-1], orbit[2,-1],
-                       marker = MarkerStyle.filled_markers[-1],
-                       c      = 'xkcd:red',
-                       label  = f'T={ts[-1]:.3f}')
-        suptitle(dynamics.get_title())
-        ax1.set_xlabel(dynamics.get_x_label())
-        ax1.set_ylabel(dynamics.get_y_label())
-        ax1.set_zlabel(dynamics.get_z_label())
-        figlegend()
-        save(args.dynamics,'orbit')
+        with Figure(figs     = args.figs,
+                    dynamics = dynamics.name,
+                    name     = 'orbit') as fig:
+            ax1 = fig.add_subplot(111, projection='3d')
+            ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+                    c          = 'xkcd:blue',
+                    label      = 'Orbit',
+                    markersize = 1)
+            m,_ = EQs.shape
+            for i in range(m):
+                ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
+                           marker = MarkerStyle.filled_markers[i],
+                           c      = 'xkcd:red',
+                           label  = f'EQ{i}')
+            ax1.scatter(orbit[0,-1], orbit[1,-1], orbit[2,-1],
+                           marker = MarkerStyle.filled_markers[-1],
+                           c      = 'xkcd:red',
+                           label  = f'T={ts[-1]:.3f}')
+            for index,point in enumerate(intersections):
+                ax1.scatter(point[0],point[1],point[2],
+                           c      = 'xkcd:green',
+                           s      = 5,
+                           label  = r'Poincar\'e return' if index==0 else None,
+                           marker = 'o')
+            suptitle(dynamics.get_title())
+            ax1.set_xlabel(dynamics.get_x_label())
+            ax1.set_ylabel(dynamics.get_y_label())
+            ax1.set_zlabel(dynamics.get_z_label())
+            figlegend()
 
     if plot_requested('sections',args.plot):
-        fig = figure(figsize=(12,12))
-        save(args.dynamics,'sections')
+        with Figure(figs     = args.figs,
+                    dynamics = dynamics.name,
+                    name     = 'sections') as fig:
+            pass
 
     if plot_requested('map',args.plot):
-        fig = figure(figsize=(12,12))
-        save(args.dynamics,'map')
+        with Figure(figs     = args.figs,
+                    dynamics = dynamics.name,
+                    name     = 'map') as fig:
+            pass
+
 
     if plot_requested('cycles',args.plot):
-        fig = figure(figsize=(12,12))
-        save(args.dynamics,'cycles')
+        with Figure(figs     = args.figs,
+                    dynamics = dynamics.name,
+                    name     = 'cycles') as fig:
+            pass
+
+
 
     show()
