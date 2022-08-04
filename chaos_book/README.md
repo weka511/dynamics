@@ -42,6 +42,7 @@
 16|ksSub.py||Turbulence
 projects|hypersphere.py||Plot areas and volumes of hyperspheres
 -|Lorentz.py|This program is intended to support my project from [Chaos: Classical and Quantum - open projects](https://chaosbook.org/) Periodic orbits and desymmetrization of the Lorenz flow
+-|Lorentz2.py|Rewriting Lorentz.py (WIP)
 -|Lorentz.tex|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
 -|recurrences.py|-|Plot Poincare sections
 -|rgb.txt|-|RGB values for xkcd colours
