@@ -30,7 +30,7 @@ from matplotlib.pyplot      import figlegend, figure, rcParams, savefig, show, s
 from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, identity, \
                                    iinfo, int64, linspace, pi, real, reshape, sin, size, sqrt, zeros
 from numpy.linalg           import eig, inv, norm
-from os.path                import join, basename, split
+from os.path                import join, basename, split, splitext
 from pathlib                import Path
 from scipy.integrate        import solve_ivp
 from scipy.interpolate      import splev, splprep, splrep
@@ -102,8 +102,6 @@ class Dynamics(ABC):
         '''Initial condition as a slight perturbation to specified fixed point in the direction of eigenvector with largest eigenvalue'''
         Aeq0                      = self.StabilityMatrix(eq0)
         eigenValues, eigenVectors = eig(Aeq0)
-        # if eigenValues[0]<0:
-            # raise Exception(f'EQ {eq0} is stable {eigenValues}, so there is no unstable manifold')
         v1 = real(eigenVectors[:, 0])
         return eq0 + eps * v1  / norm(v1)
 
@@ -263,6 +261,20 @@ class Rossler(Dynamics):
     def get_title(self):
         return 'Rossler'
 
+class DynamicsFactory:
+    '''Factory class for instantiating Dynamics '''
+    products = ['Lorentz', 'ProtoLorentz', 'Rossler']
+
+    @classmethod
+    def create(cls,args):
+        if args.dynamics == 'Lorentz':
+            return Lorentz()
+        if args.dynamics == 'ProtoLorentz':
+            return ProtoLorentz()
+        if args.dynamics == 'Rossler':
+            return Rossler()
+        raise Exception(f'Unknown dynamics: {args.dynamics}')
+
 class Integrator:
     '''This class is used to integrate  the ODEs for a specified Dynamics'''
     def __init__(self,dynamics,
@@ -270,7 +282,7 @@ class Integrator:
         self.dynamics = dynamics
         self.method   = method
 
-    def integrate(self,init_x, dt, nstp=1):
+    def integrate(self,y0, dt, nstp=1):
         '''
         The integrator of the Lorentz system.
         init_x: the intial condition
@@ -279,9 +291,8 @@ class Integrator:
 
         return : a [ nstp x 3 ] vector
         '''
-        # t_span = (0.0, dt)
-        # t      = arange(0.0, dt, dt/nstp)
-        solution = solve_ivp(lorenz.Velocity,  (0.0, dt), y0,
+
+        solution = solve_ivp(dynamics.Velocity,  (0.0, dt), y0,
                              method = self.method,
                              t_eval = arange(0.0, dt, dt/nstp))
 
@@ -290,14 +301,12 @@ class Integrator:
         else:
             raise(Exception(f'Integration error: {solution.status} {solution.message}'))
 
-
-
-    def Flow(self,deltat,y):
+    def Flow(self,deltat,y):                         #FIXME (may need work, as untested with LSODA)
         '''Used to integrate for a single step'''
         solution = solve_ivp(dynamics.Velocity, (0, deltat), y,method=self.method)
         return solution.t[1],solution.y[:,1]
 
-    def Jacobian(self,ssp, t):
+    def Jacobian(self,ssp, t):      #FIXME (may need work, as untested with LSODA)
         '''
         Jacobian function for the trajectory started on ssp, evolved for time t
 
@@ -321,20 +330,157 @@ class Integrator:
         else:
             raise(Exception(f'Integration error: {solution.status} {solution.message}'))
 
+class PoincareSection:
+    ''' This class represents a Poincare Section'''
+    def __init__(self,dynamics,integrator,
+                 sspTemplate = array([1,1,0]),
+                 nTemplate   = array([1,-1,0])):
+        self.sspTemplate  = sspTemplate/norm(sspTemplate)
+        self.nTemplate    = nTemplate/norm(nTemplate)
+        self.ProjPoincare = array([self.sspTemplate,
+                                   cross(self.sspTemplate,self.nTemplate),
+                                   self.nTemplate],
+                                  float)
+        self.integrator  = integrator
+        self.dynamics    = dynamics
+
+    def U(self, ssp):
+        '''
+        Plane equation for the Poincare section: see ChaosBook ver. 14, fig. 3.2.
+
+        Inputs:
+          ssp: State space point at which the Poincare hyperplane equation will be
+               evaluated
+        Outputs:
+          U: Hyperplane equation which should be satisfied on the Poincare section
+           U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
+        '''
+        return dot((ssp - self.sspTemplate),self.nTemplate)
+
+    def project_to_section(self,points):
+        '''Transform points on the section from (x,y,z) to coordinates embedded in surface'''
+        Transformed = dot(self.ProjPoincare, points.transpose())
+        Transformed =  Transformed.transpose()
+        return  Transformed[:, 0:2]
+
+    def project_to_space(self,point):
+        '''Transform a point embedded in surface back to (x,y,z) coordinates '''
+        return dot(append(point, 0.0), self.ProjPoincare)
+
+    def Flow(self,y0,dt):
+        _,y = self.integrator.integrate(y0,dt)
+        _,n = y.shape
+        assert n==1
+        return y[0]
+
+    def interpolate(self,dt0, y0):
+        return self.integrator.Flow(fsolve(lambda t: self.U(self.Flow(y0, t)), dt0)[0], y0)
+
+    def intersections(self,ts, orbit):
+        '''Used to iterate through intersections between orbit and section'''
+        _,n = orbit.shape
+        for i in range(n-1):
+            u0 = self.U(orbit[:,i])
+            u1 = self.U(orbit[:,i+1])
+            if u0<0 and u1>0:
+                ratio = (-u0)/((-u0)+u1)
+                yield self.interpolate(ts[i] + ratio*(ts[i+1] - ts[i]), orbit[:,i])
+
+def parse_args():
+    '''Parse command line parameters'''
+    parser  = ArgumentParser(description = __doc__)
+    parser.add_argument('--plot',
+                        nargs = '*',
+                        choices = ['all',  'orbit', 'sections', 'map', 'cycles'],
+                        default = ['orbit'])
+    parser.add_argument('--dynamics',
+                        choices = DynamicsFactory.products,
+                        default = DynamicsFactory.products[0])
+    parser.add_argument('--fp',
+                        type    = int,
+                        default = 1)
+    parser.add_argument('--figs',
+                        default = './figs')
+    parser.add_argument('--dt',
+                        type = float,
+                        default = 0.005)
+    parser.add_argument('--tFinal',
+                        type    = float,
+                        default = 100.0)
+    parser.add_argument('--sspTemplate',
+                        type    = float,
+                        nargs   = 3,
+                        default = [1,1,0])
+    parser.add_argument('--nTemplate',
+                        type   = float,
+                        nargs   = 3,
+                        default = [1,-1,0])
+
+    return parser.parse_args()
+
+def plot_requested(name,arg):
+    '''
+    Verify that user has requested a specific plot
+
+    Parameters:
+        name                Name of plot
+        arg                 List of all plots that user has requested
+
+    Returns True if name appears in arg, or 'all' plots have been specified
+    '''
+    return len(set(arg).intersection([name,'all']))>0
+
+def save(dynamics,name):
+    '''Save current figure in file named for this program, the type of dynamics, and the name of the plot'''
+    savefig(join(args.figs,f'{splitext(basename(__file__))[0]}-{dynamics}-{name}'))
+
 if __name__ == '__main__':
     rcParams['text.usetex'] = True
+    args                    = parse_args()
+    dynamics                = DynamicsFactory.create(args)
+    integrator              = Integrator(dynamics,method='RK45')
+    EQs                     = dynamics.find_equilibria()
+    section                 = PoincareSection(dynamics,integrator,
+                                              sspTemplate = array(args.sspTemplate),
+                                              nTemplate   = array(args.nTemplate))
+    y0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
+    ts,orbit                 = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
 
-    y0         = array([1.0, 1.0, 1.0])
-    lorenz     = Lorentz()
-    integrator = Integrator(lorenz)
-    _,orbit    = integrator.integrate(y0, 100.0,int(100.0/0.01))
 
-    fig = figure()
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
+    if plot_requested('orbit',args.plot):
+        fig = figure(figsize=(12,12))
+        ax1 = fig.add_subplot(111, projection='3d')
+        ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+                c          = 'xkcd:blue',
+                label      = 'Orbit',
+                markersize = 1)
+        m,_ = EQs.shape
+        for i in range(m):
+            ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
+                       marker = MarkerStyle.filled_markers[i],
+                       c      = 'xkcd:red',
+                       label  = f'EQ{i}')
+        ax1.scatter(orbit[0,-1], orbit[1,-1], orbit[2,-1],
+                       marker = MarkerStyle.filled_markers[-1],
+                       c      = 'xkcd:red',
+                       label  = f'T={ts[-1]:.3f}')
+        suptitle(dynamics.get_title())
+        ax1.set_xlabel(dynamics.get_x_label())
+        ax1.set_ylabel(dynamics.get_y_label())
+        ax1.set_zlabel(dynamics.get_z_label())
+        figlegend()
+        save(args.dynamics,'orbit')
 
+    if plot_requested('sections',args.plot):
+        fig = figure(figsize=(12,12))
+        save(args.dynamics,'sections')
 
-    ax.plot(orbit[0, :],
-            orbit[1, :],
-            orbit[2, :])
-    ax.set_title("LSODA")
+    if plot_requested('map',args.plot):
+        fig = figure(figsize=(12,12))
+        save(args.dynamics,'map')
+
+    if plot_requested('cycles',args.plot):
+        fig = figure(figsize=(12,12))
+        save(args.dynamics,'cycles')
+
     show()
