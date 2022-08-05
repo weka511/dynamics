@@ -38,11 +38,11 @@
 10|henonMap.py|Q10.1/Q10.2|Natural Measure
 -|Q10-3.py|Q10.3|Monet-Carlo simulation of map applied to densities
 -|logisticMap.py|Q10.4|Escape rate in Logistic map (Exercise 20.2)
-12|wk12.py||Cycle Expansion
-16|ksSub.py||Turbulence
-projects|hypersphere.py||Plot areas and volumes of hyperspheres
--|Lorentz.py|Deprecated
--|Lorentz2.py|This program is intended to support my project from [Chaos: Classical and Quantum - open projects](https://chaosbook.org/) Periodic orbits and desymmetrization of the Lorenz flow
--|Lorentz.tex|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
+12|wk12.py|-|Cycle Expansion
+16|ksSub.py|-|Turbulence
+projects|hypersphere.py|-|Plot areas and volumes of hyperspheres
+-|Lorentz.py|-|Deprecated
+-|Lorentz2.py|-|This program is intended to support my project from [Chaos: Classical and Quantum - open projects](https://chaosbook.org/) Periodic orbits and desymmetrization of the Lorenz flow
+-|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
 -|recurrences.py|-|Plot Poincare sections
 -|rgb.txt|-|RGB values for xkcd colours
