@@ -38,6 +38,7 @@ from scipy.linalg           import eig, norm
 from scipy.optimize         import fsolve
 from scipy.spatial.distance import pdist, squareform
 from sys                    import exc_info
+from time                   import time
 
 class Dynamics(ABC):
     '''This abstract class represents the dynamics, i.e. the differential equation.'''
@@ -373,8 +374,10 @@ class PoincareSection:
         assert n==1
         return y[0]
 
-    def interpolate(self,dt0, y0):
-        return self.integrator.Flow(fsolve(lambda t: self.U(self.Flow(y0, t)), dt0)[0], y0)
+    def find_intersection(self,dt, y):
+        '''Refine an estimated intersection point '''
+        dt_intersection = fsolve(lambda t: self.U(self.Flow(y, t)), dt)[0]
+        return self.integrator.Flow(dt_intersection, y)
 
     def intersections(self,ts, orbit):
         '''Used to iterate through intersections between orbit and section'''
@@ -384,7 +387,7 @@ class PoincareSection:
             u1 = self.U(orbit[:,i+1])
             if u0<0 and u1>0:
                 ratio = (-u0)/((-u0)+u1)
-                yield self.interpolate(ts[i] + ratio*(ts[i+1] - ts[i]), orbit[:,i])
+                yield self.find_intersection(ratio*(ts[i+1] - ts[i]), orbit[:,i])
 
 def parse_args():
     '''Parse command line parameters'''
@@ -431,6 +434,7 @@ def plot_requested(name,arg):
     return len(set(arg).intersection([name,'all']))>0
 
 class Figure(object):
+    '''Context manager for plotting a figure'''
     def __init__(self,
                  figs     = './',
                  name     = '',
@@ -446,70 +450,84 @@ class Figure(object):
     def __exit__(self, ex_type, ex_value, ex_traceback):
         savefig(join(self.figs,f'{splitext(basename(__file__))[0]}-{self.dynamics}-{self.name}'))
 
+class Timer(object):
+    '''
+    Context Manager for estimating time
+    Prints the elapsed time from __enter__(...) to __exit__(...)
+    '''
+    def __init__(self,name='Timer'):
+        self.name = name
+
+    def __enter__(self):
+        self.start = time()
+        return self.start
+
+    def __exit__(self,type,value,traceback):
+        print (f'{self.name}: Elapsed time = {time()-self.start:.0f} seconds')
+        return type==None and value==None and traceback==None
 
 if __name__ == '__main__':
-    rcParams['text.usetex'] = True
-    args                    = parse_args()
-    dynamics                = DynamicsFactory.create(args)
-    integrator              = Integrator(dynamics,method='RK45')
-    EQs                     = dynamics.find_equilibria()
-    section                 = PoincareSection(dynamics,integrator,
-                                              sspTemplate = array(args.sspTemplate),
-                                              nTemplate   = array(args.nTemplate))
-    y0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
-    ts,orbit                = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
-    intersections           = [point for _,point in section.intersections(ts,orbit)]
+    with Timer():
+        rcParams['text.usetex'] = True
+        args                    = parse_args()
+        dynamics                = DynamicsFactory.create(args)
+        integrator              = Integrator(dynamics,method='RK45')
+        EQs                     = dynamics.find_equilibria()
+        section                 = PoincareSection(dynamics,integrator,
+                                                  sspTemplate = array(args.sspTemplate),
+                                                  nTemplate   = array(args.nTemplate))
+        y0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
+        ts,orbit                = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
+        intersections           = [point for _,point in section.intersections(ts,orbit)]
 
-    if plot_requested('orbit',args.plot):
-        with Figure(figs     = args.figs,
-                    dynamics = dynamics.name,
-                    name     = 'orbit') as fig:
-            ax1 = fig.add_subplot(111, projection='3d')
-            ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
-                    c          = 'xkcd:blue',
-                    label      = 'Orbit',
-                    markersize = 1)
-            m,_ = EQs.shape
-            for i in range(m):
-                ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
-                           marker = MarkerStyle.filled_markers[i],
-                           c      = 'xkcd:red',
-                           label  = f'EQ{i}')
-            ax1.scatter(orbit[0,-1], orbit[1,-1], orbit[2,-1],
-                           marker = MarkerStyle.filled_markers[-1],
-                           c      = 'xkcd:red',
-                           label  = f'T={ts[-1]:.3f}')
-            for index,point in enumerate(intersections):
-                ax1.scatter(point[0],point[1],point[2],
-                           c      = 'xkcd:green',
-                           s      = 5,
-                           label  = r'Poincar\'e return' if index==0 else None,
-                           marker = 'o')
-            suptitle(dynamics.get_title())
-            ax1.set_xlabel(dynamics.get_x_label())
-            ax1.set_ylabel(dynamics.get_y_label())
-            ax1.set_zlabel(dynamics.get_z_label())
-            figlegend()
+        if plot_requested('orbit',args.plot):
+            with Figure(figs     = args.figs,
+                        dynamics = dynamics.name,
+                        name     = 'orbit') as fig:
+                ax1 = fig.add_subplot(111, projection='3d')
+                ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+                        c          = 'xkcd:blue',
+                        label      = 'Orbit',
+                        markersize = 1)
+                m,_ = EQs.shape
+                for i in range(m):
+                    ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
+                               marker = MarkerStyle.filled_markers[i],
+                               c      = 'xkcd:red',
+                               label  = f'EQ{i}')
+                ax1.scatter(orbit[0,-1], orbit[1,-1], orbit[2,-1],
+                               marker = MarkerStyle.filled_markers[-1],
+                               c      = 'xkcd:red',
+                               label  = f'T={ts[-1]:.3f}')
+                for index,point in enumerate(intersections):
+                    ax1.scatter(point[0],point[1],point[2],
+                               c      = 'xkcd:green',
+                               s      = 5,
+                               label  = r'Poincar\'e return' if index==0 else None,
+                               marker = 'o')
+                suptitle(dynamics.get_title())
+                ax1.set_xlabel(dynamics.get_x_label())
+                ax1.set_ylabel(dynamics.get_y_label())
+                ax1.set_zlabel(dynamics.get_z_label())
+                figlegend()
 
-    if plot_requested('sections',args.plot):
-        with Figure(figs     = args.figs,
-                    dynamics = dynamics.name,
-                    name     = 'sections') as fig:
-            pass
+        if plot_requested('sections',args.plot):
+            with Figure(figs     = args.figs,
+                        dynamics = dynamics.name,
+                        name     = 'sections') as fig:
+                pass
 
-    if plot_requested('map',args.plot):
-        with Figure(figs     = args.figs,
-                    dynamics = dynamics.name,
-                    name     = 'map') as fig:
-            pass
-
-
-    if plot_requested('cycles',args.plot):
-        with Figure(figs     = args.figs,
-                    dynamics = dynamics.name,
-                    name     = 'cycles') as fig:
-            pass
+        if plot_requested('map',args.plot):
+            with Figure(figs     = args.figs,
+                        dynamics = dynamics.name,
+                        name     = 'map') as fig:
+                pass
 
 
+        if plot_requested('cycles',args.plot):
+            with Figure(figs     = args.figs,
+                        dynamics = dynamics.name,
+                        name     = 'cycles') as fig:
+                pass
 
     show()
