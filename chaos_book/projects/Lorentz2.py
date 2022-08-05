@@ -389,6 +389,98 @@ class PoincareSection:
                 ratio = (-u0)/((-u0)+u1)
                 yield self.find_intersection(ratio*(ts[i+1] - ts[i]), orbit[:,i])
 
+class Recurrences:
+    '''This class keeps track of the recurrences of the Poincare nap'''
+    def __init__(self,section,ts,orbit,
+                 filter = lambda point: True):
+        self.section               = section
+        intersections              = [point for _,point in section.intersections(ts,orbit) if filter(point)]
+        if len(intersections)==0: return
+        self.Section               = section.project_to_section(array(intersections))
+        Distance                   = squareform(pdist(self.Section))
+        self.SortedPoincareSection = self.Section.copy()
+        ArcLengths                 = zeros(size(self.SortedPoincareSection, 0))
+        sn                         = zeros(size(self.Section, 0))
+        for k in range(size(self.SortedPoincareSection, 0) - 1):
+            index_closest_point_to_k        = argmin(Distance[k, k + 1:]) + k + 1
+
+            saved_poincare_row                                      = self.SortedPoincareSection[k + 1, :].copy()
+            self.SortedPoincareSection[k + 1, :]                    = self.SortedPoincareSection[index_closest_point_to_k, :]
+            self.SortedPoincareSection[index_closest_point_to_k, :] = saved_poincare_row
+
+            #Rearrange the distance matrix according to the new form of the SortedPoincareSection array:
+            saved_column                          = Distance[:, k + 1].copy()
+            Distance[:, k + 1]                    = Distance[:, index_closest_point_to_k]
+            Distance[:, index_closest_point_to_k] = saved_column
+
+            saved_row                              = Distance[k + 1, :].copy()
+            Distance[k + 1, :]                     = Distance[index_closest_point_to_k, :]
+            Distance[index_closest_point_to_k, :]  = saved_row
+
+            ArcLengths[k + 1]                      = ArcLengths[k] + Distance[k, k + 1]
+            index_in_arc_lengths                   = argwhere(self.Section[:, 0] == self.SortedPoincareSection[k + 1, 0])
+            sn[index_in_arc_lengths]               = ArcLengths[k + 1]
+
+        #Parametric spline interpolation to the Poincare section:
+        self.tckPoincare, u              = splprep([self.SortedPoincareSection[:, 0], self.SortedPoincareSection[:, 1]],
+                                                   u = ArcLengths,
+                                                   s = 0)
+        self.sArray                      = linspace(min(ArcLengths), max(ArcLengths), 1000)
+        self.InterpolatedPoincareSection = self.fPoincare(self.sArray)
+
+        sn1            = sn[0:-1]
+        sn2            = sn[1:]
+        isort          = argsort(sn1)
+        self.sn1       = sn1[isort]
+        self.sn2       = sn2[isort]
+        self.tckReturn = splrep(self.sn1,self.sn2)
+        self.snPlus1   = splev(self.sArray, self.tckReturn)
+
+    def fPoincare(self,s):
+        '''
+        Parametric interpolation to the Poincare section
+        Inputs:
+        s: Arc length which parametrizes the curve, a float or dx1-dim numpy
+           array
+        Outputs:
+        xy = x and y coordinates on the Poincare section, 2-dim numpy array
+           or (dx2)-dim numpy array
+        '''
+        interpolation = splev(s, self.tckPoincare)
+        return array([interpolation[0], interpolation[1]], float).transpose()
+
+    def get_fixed(self, s0=10.0):
+        sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
+        return  sfixed,self.section.project_to_space(self.fPoincare(sfixed))
+
+    def solve(self, Tnext,  sspfixed,
+              integrator = None,
+              dynamics   = None,
+              tol        = 1e-9,
+              kmax       = 20):
+        period              = Tnext
+        error               = zeros(dynamics.d+1)
+        error[0:dynamics.d] = integrator.integrate(sspfixed,period)[0] - sspfixed
+        Newton              = zeros((dynamics.d+1, dynamics.d+1))
+        print(f'Iteration {0} {error}')
+        for k in range(kmax):
+            Newton[0:dynamics.d, 0:dynamics.d] = identity(dynamics.d) - integrator.Jacobian(sspfixed,period)
+            Newton[0:dynamics.d, dynamics.d]   = - dynamics.Velocity(period,sspfixed)
+            Newton[dynamics.d, 0:dynamics.d]   = self.section.nTemplate
+            Delta                              = dot(inv(Newton), error)
+            sspfixed                           = sspfixed + Delta[0:dynamics.d]
+            period                             = period + Delta[dynamics.d]
+            error[0:dynamics.d]                = integrator.Flow(period,sspfixed)[0] - sspfixed
+
+            print(f'Iteration {k} {error}')
+            if max(abs(error)) > tol: return period, sspfixed
+        Exception(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
+
+    def getTnext(self,sspfixed):
+        return fsolve(lambda dt: self.section.U(integrator.integrate(sspfixed,dt)[0]),
+                              args.tFinal / size(self.Section, 0),xtol=1e-9)[0]
+
+
 def parse_args():
     '''Parse command line parameters'''
     parser  = ArgumentParser(description = __doc__)
@@ -479,6 +571,8 @@ if __name__ == '__main__':
         y0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
         ts,orbit                = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
         intersections           = [point for _,point in section.intersections(ts,orbit)]
+        recurrences             = Recurrences(section,ts,orbit,
+                                          filter = lambda point:point[0]>0)
 
         if plot_requested('orbit',args.plot):
             with Figure(figs     = args.figs,
@@ -515,19 +609,95 @@ if __name__ == '__main__':
             with Figure(figs     = args.figs,
                         dynamics = dynamics.name,
                         name     = 'sections') as fig:
-                pass
+                ax  = fig.gca()
+                ax.scatter(recurrences.Section[:, 0], recurrences.Section[:, 1],
+                        c      = 'xkcd:red',
+                        marker = 'x',
+                        s      = 25,
+                        label  = 'Poincare Section')
+
+                ax.scatter(recurrences.SortedPoincareSection[:, 0], recurrences.SortedPoincareSection[:, 1],
+                        c      = 'xkcd:blue',
+                        marker = '+',
+                        s      = 25,
+                        label  = 'Sorted Poincare Section')
+
+                ax.scatter(recurrences.InterpolatedPoincareSection[:, 0], recurrences.InterpolatedPoincareSection[:, 1],
+                        c      = 'xkcd:green',
+                        marker = 'o',
+                        s      = 1,
+                        label  = 'Interpolated Poincare Section')
+
+                ax.set_title('Poincare Section, showing Interpolation')
+                ax.set_xlabel('$\\hat{x}\'$')
+                ax.set_ylabel('$z$')
+                ax.legend()
 
         if plot_requested('map',args.plot):
             with Figure(figs     = args.figs,
                         dynamics = dynamics.name,
                         name     = 'map') as fig:
-                pass
+                ax = fig.add_subplot(111)
+                ax.scatter(recurrences.sn1, recurrences.sn2,
+                           color  = 'xkcd:red',
+                           marker = 'x',
+                           s      = 64,
+                           label  = 'Sorted')
+                ax.scatter(recurrences.sArray, recurrences.snPlus1,
+                           color  = 'xkcd:blue',
+                           marker = 'o',
+                           s      = 1,
+                           label = 'Interpolated')
+                ax.plot(recurrences.sArray, recurrences.sArray,
+                        color = 'xkcd:black',
+                        linestyle = 'dotted',
+                        label     = '$y=x$')
+                ax.legend()
 
 
         if plot_requested('cycles',args.plot):
             with Figure(figs     = args.figs,
                         dynamics = dynamics.name,
                         name     = 'cycles') as fig:
-                pass
+                nstp                    = int(args.tFinal/args.dt)
+                sfixed, sspfixed     = recurrences.get_fixed()
+                Tnext                = recurrences.getTnext(sspfixed)
+                ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp)
+                print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
+                ax = fig.add_subplot(111, projection='3d')
+                ax.plot(orbit_guess[0,:], orbit_guess[1,:], orbit_guess[2,:],
+                        markersize = 1,
+                        c          = 'xkcd:blue',
+                        label      = 'Orbit')
+                ax.scatter(orbit_guess[0,0], orbit_guess[1,0], orbit_guess[2,0],
+                           color  = 'xkcd:red',
+                           marker = 'x',
+                           s      = 64,
+                           label  = f'Start ({orbit_guess[0,0]}, {orbit_guess[1,0]}, {orbit_guess[2,0]})')
+                ax.scatter(orbit_guess[0,-1], orbit_guess[1,-1], orbit_guess[2,-1],
+                           color  = 'xkcd:red',
+                           marker = '+',
+                           s      = 64,
+                           label  = f'Return ({orbit_guess[0,-1]}, {orbit_guess[1,-1]}, {orbit_guess[2,-1]})')
+                # try:
+                    # period, sspfixed =  recurrences.solve(Tnext, sspfixed,
+                                                          # integrator = integrator,
+                                                          # dynamics   = dynamics)
 
+                    # print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
+
+                    # _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
+
+
+                    # ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                            # markersize = 10,
+                            # c          = 'xkcd:magenta',
+                            # label      = 'periodicOrbit')
+                # except:
+                    # print(exc_info())
+
+                ax.set_xlabel(dynamics.get_x_label())
+                ax.set_ylabel(dynamics.get_y_label())
+                ax.set_zlabel(dynamics.get_z_label())
+                ax.legend()
     show()
