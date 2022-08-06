@@ -25,6 +25,7 @@
 
 from abc                    import ABC,abstractmethod
 from argparse               import ArgumentParser
+from contextlib             import AbstractContextManager
 from matplotlib.markers     import MarkerStyle
 from matplotlib.pyplot      import figlegend, figure, rcParams, savefig, show, suptitle, tight_layout
 from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, identity, \
@@ -392,49 +393,48 @@ class PoincareSection:
 class Recurrences:
     '''This class keeps track of the recurrences of the Poincare nap'''
     def __init__(self,section,ts,orbit,
-                 filter = lambda point: True):
+                 filter = lambda point: True,
+                 degree = 5):
         self.section               = section
         intersections              = [point for _,point in section.intersections(ts,orbit) if filter(point)]
         if len(intersections)==0: return
         self.Section               = section.project_to_section(array(intersections))
         Distance                   = squareform(pdist(self.Section))
         self.SortedPoincareSection = self.Section.copy()
-        ArcLengths                 = zeros(size(self.SortedPoincareSection, 0))
-        sn                         = zeros(size(self.Section, 0))
+        ArcLengthsAfterSorting     = zeros(size(self.SortedPoincareSection, 0))
+        sn                         = zeros(size(self.Section, 0))  # arclengths of the Poincare section points in dynamical order
         for k in range(size(self.SortedPoincareSection, 0) - 1):
-            index_closest_point_to_k        = argmin(Distance[k, k + 1:]) + k + 1
+            m                                      = argmin(Distance[k, k + 1:]) + k + 1
+            saved_poincare_row                     = self.SortedPoincareSection[k + 1, :].copy()
+            self.SortedPoincareSection[k + 1, :]   = self.SortedPoincareSection[m, :]
+            self.SortedPoincareSection[m, :]       = saved_poincare_row
 
-            saved_poincare_row                                      = self.SortedPoincareSection[k + 1, :].copy()
-            self.SortedPoincareSection[k + 1, :]                    = self.SortedPoincareSection[index_closest_point_to_k, :]
-            self.SortedPoincareSection[index_closest_point_to_k, :] = saved_poincare_row
-
-            #Rearrange the distance matrix according to the new form of the SortedPoincareSection array:
-            saved_column                          = Distance[:, k + 1].copy()
-            Distance[:, k + 1]                    = Distance[:, index_closest_point_to_k]
-            Distance[:, index_closest_point_to_k] = saved_column
+            saved_column                           = Distance[:, k + 1].copy()
+            Distance[:, k + 1]                     = Distance[:, m]
+            Distance[:, m]                         = saved_column
 
             saved_row                              = Distance[k + 1, :].copy()
-            Distance[k + 1, :]                     = Distance[index_closest_point_to_k, :]
-            Distance[index_closest_point_to_k, :]  = saved_row
+            Distance[k + 1, :]                     = Distance[m, :]
+            Distance[m, :]                         = saved_row
 
-            ArcLengths[k + 1]                      = ArcLengths[k] + Distance[k, k + 1]
-            index_in_arc_lengths                   = argwhere(self.Section[:, 0] == self.SortedPoincareSection[k + 1, 0])
-            sn[index_in_arc_lengths]               = ArcLengths[k + 1]
+            ArcLengthsAfterSorting[k + 1]          = ArcLengthsAfterSorting[k] + Distance[k, k + 1]
+            index_in_original_poincare_section     = argwhere(self.Section[:, 0] == self.SortedPoincareSection[k + 1, 0])
+            sn[index_in_original_poincare_section] = ArcLengthsAfterSorting[k + 1]
 
         #Parametric spline interpolation to the Poincare section:
         self.tckPoincare, u              = splprep([self.SortedPoincareSection[:, 0], self.SortedPoincareSection[:, 1]],
-                                                   u = ArcLengths,
+                                                   u = ArcLengthsAfterSorting,
                                                    s = 0)
-        self.sArray                      = linspace(min(ArcLengths), max(ArcLengths), 1000)
+        self.sArray                      = linspace(min(ArcLengthsAfterSorting), max(ArcLengthsAfterSorting), 1000)
         self.InterpolatedPoincareSection = self.fPoincare(self.sArray)
-
-        sn1            = sn[0:-1]
-        sn2            = sn[1:]
-        isort          = argsort(sn1)
-        self.sn1       = sn1[isort]
-        self.sn2       = sn2[isort]
-        self.tckReturn = splrep(self.sn1,self.sn2)
-        self.snPlus1   = splev(self.sArray, self.tckReturn)
+        sn1                              = sn[0:-1]
+        sn2                              = sn[1:]
+        isort                            = argsort(sn1)
+        self.sn1                         = sn1[isort]
+        self.sn2                         = sn2[isort]
+        self.tckReturn                   = splrep(self.sn1,self.sn2,
+                                                  k=degree)
+        self.snPlus1                     = splev(self.sArray, self.tckReturn)
 
     def fPoincare(self,s):
         '''
@@ -449,9 +449,15 @@ class Recurrences:
         interpolation = splev(s, self.tckPoincare)
         return array([interpolation[0], interpolation[1]], float).transpose()
 
-    def get_fixed(self, s0=10.0):
-        sfixed = fsolve(lambda r: splev(r, self.tckReturn) - r, s0)[0]
-        return  sfixed,self.section.project_to_space(self.fPoincare(sfixed))
+    def ReturnMap(self,r):
+        '''This function is zero when r is a fixed point of the interpolated return map'''
+        return splev(r, self.tckReturn) - r
+
+    def get_fixed(self, s0=5):
+        '''Find fixed points of return map'''
+        sfixed  = fsolve(self.ReturnMap, s0)[0]
+        psFixed = self.fPoincare(sfixed)
+        return  sfixed,psFixed,self.section.project_to_space(psFixed)
 
     def solve(self, Tnext,  sspfixed,
               integrator = None,
@@ -478,7 +484,7 @@ class Recurrences:
 
     def getTnext(self,sspfixed):
         return fsolve(lambda dt: self.section.U(integrator.integrate(sspfixed,dt)[0]),
-                              args.tFinal / size(self.Section, 0),xtol=1e-9)[0]
+                     args.tFinal / size(self.Section, 0))[0]
 
 
 def parse_args():
@@ -525,7 +531,7 @@ def plot_requested(name,arg):
     '''
     return len(set(arg).intersection([name,'all']))>0
 
-class Figure(object):
+class Figure(AbstractContextManager):
     '''Context manager for plotting a figure'''
     def __init__(self,
                  figs     = './',
@@ -539,10 +545,14 @@ class Figure(object):
         self.fig = figure(figsize=(12,12))
         return self.fig
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
-        savefig(join(self.figs,f'{splitext(basename(__file__))[0]}-{self.dynamics}-{self.name}'))
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type==None and exc_val==None and exc_tb==None:
+            savefig(join(self.figs,f'{splitext(basename(__file__))[0]}-{self.dynamics}-{self.name}'))
+            return True
+        else:
+            return False
 
-class Timer(object):
+class Timer(AbstractContextManager):
     '''
     Context Manager for estimating time
     Prints the elapsed time from __enter__(...) to __exit__(...)
@@ -554,9 +564,9 @@ class Timer(object):
         self.start = time()
         return self.start
 
-    def __exit__(self,type,value,traceback):
+    def __exit__(self,exc_type, exc_val, exc_tb):
         print (f'{self.name}: Elapsed time = {time()-self.start:.0f} seconds')
-        return type==None and value==None and traceback==None
+        return exc_type==None and exc_val==None and exc_tb==None
 
 if __name__ == '__main__':
     with Timer():
@@ -572,38 +582,40 @@ if __name__ == '__main__':
         ts,orbit                = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
         intersections           = [point for _,point in section.intersections(ts,orbit)]
         recurrences             = Recurrences(section,ts,orbit,
-                                          filter = lambda point:point[0]>0)
+                                              filter = lambda point:point[0]>0)
+        sfixed,psfixed,sspfixed = recurrences.get_fixed(s0=15)
+        Tnext                   = recurrences.getTnext(sspfixed)
 
         if plot_requested('orbit',args.plot):
             with Figure(figs     = args.figs,
                         dynamics = dynamics.name,
                         name     = 'orbit') as fig:
-                ax1 = fig.add_subplot(111, projection='3d')
-                ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:],
+                ax = fig.add_subplot(111, projection='3d')
+                ax.plot(orbit[0,:], orbit[1,:], orbit[2,:],
                         c          = 'xkcd:blue',
                         label      = 'Orbit',
                         markersize = 1)
                 m,_ = EQs.shape
                 for i in range(m):
-                    ax1.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
+                    ax.scatter(EQs[i,0], EQs[i,1], EQs[i,2],
                                marker = MarkerStyle.filled_markers[i],
                                c      = 'xkcd:red',
                                label  = f'EQ{i}')
-                ax1.scatter(orbit[0,-1], orbit[1,-1], orbit[2,-1],
+                ax.scatter(orbit[0,-1], orbit[1,-1], orbit[2,-1],
                                marker = MarkerStyle.filled_markers[-1],
                                c      = 'xkcd:red',
                                label  = f'T={ts[-1]:.3f}')
                 for index,point in enumerate(intersections):
-                    ax1.scatter(point[0],point[1],point[2],
+                    ax.scatter(point[0],point[1],point[2],
                                c      = 'xkcd:green',
                                s      = 5,
                                label  = r'Poincar\'e return' if index==0 else None,
                                marker = 'o')
                 suptitle(dynamics.get_title())
-                ax1.set_xlabel(dynamics.get_x_label())
-                ax1.set_ylabel(dynamics.get_y_label())
-                ax1.set_zlabel(dynamics.get_z_label())
-                figlegend()
+                ax.set_xlabel(dynamics.get_x_label())
+                ax.set_ylabel(dynamics.get_y_label())
+                ax.set_zlabel(dynamics.get_z_label())
+                ax.legend()
 
         if plot_requested('sections',args.plot):
             with Figure(figs     = args.figs,
@@ -627,7 +639,11 @@ if __name__ == '__main__':
                         marker = 'o',
                         s      = 1,
                         label  = 'Interpolated Poincare Section')
-
+                ax.scatter(psfixed[0], psfixed[1],
+                           c      = 'xkcd:magenta',
+                           marker = 'D',
+                           s      = 25,
+                           label  = 'psfixed')
                 ax.set_title('Poincare Section, showing Interpolation')
                 ax.set_xlabel('$\\hat{x}\'$')
                 ax.set_ylabel('$z$')
@@ -649,20 +665,24 @@ if __name__ == '__main__':
                            s      = 1,
                            label = 'Interpolated')
                 ax.plot(recurrences.sArray, recurrences.sArray,
-                        color = 'xkcd:black',
+                        color     = 'xkcd:black',
                         linestyle = 'dotted',
                         label     = '$y=x$')
+                ax.axvline(x = sfixed,
+                           c     = 'xkcd:purple',
+                           lw    = 1.0,
+                           ls    = '--',
+                           label = f'sfixed={sfixed:.4f}')
                 ax.legend()
+                ax.set_title('Arc Lengths')
 
 
         if plot_requested('cycles',args.plot):
             with Figure(figs     = args.figs,
                         dynamics = dynamics.name,
                         name     = 'cycles') as fig:
-                nstp                    = int(args.tFinal/args.dt)
-                sfixed, sspfixed     = recurrences.get_fixed()
-                Tnext                = recurrences.getTnext(sspfixed)
-                ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp)
+
+                ts_guess,orbit_guess = integrator.integrate(sspfixed, Tnext, nstp=100)
                 print(f'Shortest periodic orbit guessed at: {sspfixed}, Period: {Tnext}')
                 ax = fig.add_subplot(111, projection='3d')
                 ax.plot(orbit_guess[0,:], orbit_guess[1,:], orbit_guess[2,:],
