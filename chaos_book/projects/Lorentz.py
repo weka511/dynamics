@@ -396,6 +396,7 @@ class Recurrences:
                  filter = lambda point: True,
                  degree = 5):
         self.section               = section
+        self.filter                = filter
         intersections              = [point for _,point in section.intersections(ts,orbit) if filter(point)]
         if len(intersections)==0: return
         self.Section               = section.project_to_section(array(intersections))
@@ -483,8 +484,21 @@ class Recurrences:
         Exception(f'Failed to converge within {tol} after {kmax} iterations: final error={max(abs(error))}')
 
     def getTnext(self,sspfixed):
-        return fsolve(lambda dt: self.section.U(integrator.integrate(sspfixed,dt)[0]),
-                     args.tFinal / size(self.Section, 0))[0]
+        '''Determine time when orbit returns
+           This is a hack!!!
+        '''
+        ssp = sspfixed.copy()
+        expectation = self.filter(ssp)
+        t   = 0
+        for i in range(100):
+            print (f'getTnext iteration {i+1}')
+            dt = fsolve(lambda dt: self.section.U(integrator.integrate(ssp,dt)[0]),
+                       args.tFinal / size(self.Section, 0))[0]
+            _,ssp0 = integrator.integrate(ssp,dt,nstp=10)
+            ssp = ssp0[:,-1]
+            t += dt
+            if expectation==self.filter(ssp):
+                return t
 
 
 def parse_args():
@@ -503,8 +517,11 @@ def parse_args():
     parser.add_argument('--figs',
                         default = './figs')
     parser.add_argument('--dt',
-                        type = float,
+                        type    = float,
                         default = 0.005)
+    parser.add_argument('--s0',
+                        type    = float,
+                        default = 15.0)
     parser.add_argument('--tFinal',
                         type    = float,
                         default = 100.0)
@@ -516,7 +533,9 @@ def parse_args():
                         type   = float,
                         nargs   = 3,
                         default = [1,-1,0])
-
+    parser.add_argument('--refine',
+                         default = False,
+                         action = 'store_true')
     return parser.parse_args()
 
 def plot_requested(name,arg):
@@ -583,7 +602,7 @@ if __name__ == '__main__':
         intersections           = [point for _,point in section.intersections(ts,orbit)]
         recurrences             = Recurrences(section,ts,orbit,
                                               filter = lambda point:point[0]>0)
-        sfixed,psfixed,sspfixed = recurrences.get_fixed(s0=15)
+        sfixed,psfixed,sspfixed = recurrences.get_fixed(s0 = args.s0)
         Tnext                   = recurrences.getTnext(sspfixed)
 
         if plot_requested('orbit',args.plot):
@@ -699,22 +718,27 @@ if __name__ == '__main__':
                            marker = '+',
                            s      = 64,
                            label  = f'Return ({orbit_guess[0,-1]}, {orbit_guess[1,-1]}, {orbit_guess[2,-1]})')
-                # try:
-                    # period, sspfixed =  recurrences.solve(Tnext, sspfixed,
-                                                          # integrator = integrator,
-                                                          # dynamics   = dynamics)
+                # for index,point in enumerate(intersections):
+                    # ax.scatter(point[0],point[1],point[2],
+                               # c      = 'xkcd:green',
+                               # s      = 5,
+                               # label  = r'Poincar\'e return' if index==0 else None,
+                               # marker = 'o')
+                if args.refine:
+                    period, sspfixed =  recurrences.solve(Tnext, sspfixed,
+                                                          integrator = integrator,
+                                                          dynamics   = dynamics)
 
-                    # print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
+                    print(f'Shortest periodic orbit is at: {sspfixed}, Period: {period}')
 
-                    # _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp)
+                    _,periodicOrbit        = integrator.integrate(sspfixed, period, nstp=100)
 
 
-                    # ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
-                            # markersize = 10,
-                            # c          = 'xkcd:magenta',
-                            # label      = 'periodicOrbit')
-                # except:
-                    # print(exc_info())
+                    ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                            markersize = 10,
+                            c          = 'xkcd:magenta',
+                            label      = 'periodicOrbit')
+
 
                 ax.set_xlabel(dynamics.get_x_label())
                 ax.set_ylabel(dynamics.get_y_label())
