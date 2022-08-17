@@ -219,11 +219,12 @@ class Rossler(Dynamics):
         self.c = c
 
     def find_equilibria(self):
-        term1 = 0.5*self.c/self.a
-        term2 = sqrt(term1**2-self.b/self.a)
-        y1    = term1 + term2
-        y2    = term1 - term2
-        return  array([[-self.a*y1,y1,-y1],[-self.a*y2,y2,-y2]])
+        # term1 = 0.5*self.c/self.a
+        term2 = 0.5*sqrt(1-4*self.b*self.a/self.c**2)
+        y1    = 0.5 + term2
+        y2    = 0.5 - term2
+        return  array([[self.c*y1,-self.c*y1/self.a,self.c*y1/self.a],
+                       [self.c*y2,-self.c*y2/self.a,self.c*y2/self.a]])
 
     def Velocity(self, t,stateVec):
         '''
@@ -393,31 +394,47 @@ class PoincareSection:
 class Recurrences:
     '''This class keeps track of the recurrences of the Poincare nap'''
     def __init__(self,section,ts,orbit,
-                 filter = lambda point: True,
-                 degree = 5):
-        self.section               = section
-        self.filter                = filter
-        intersections              = [point for _,point in section.intersections(ts,orbit) if filter(point)]
-        if len(intersections)==0: return
-        self.Section               = section.project_to_section(array(intersections))
-        Distance                   = squareform(pdist(self.Section))
+                 filter        = lambda point: True,
+                 spline_degree = 5):   # Final plot looks wonky with default in splrep
+        self.section       = section
+        self.filter        = filter
+        self.spline_degree = spline_degree
+        self.intersections = [point for _,point in section.intersections(ts,orbit) if filter(point)]
+        self.build2D()
+
+    def build2D(self,num  = 1000):
+        '''
+        Build a 2D view of intersections with Poincare Section
+        '''
+        n = len(self.intersections)
+
+        if n==0: raise Exception('Orbit does not intersect Poincare Section')
+
+        self.Section = section.project_to_section(array(self.intersections))
+        Distance     = squareform(pdist(self.Section))
+
+        # Sort Poincare Section by distance from centre
+
         self.SortedPoincareSection = self.Section.copy()
-        ArcLengthsAfterSorting     = zeros(size(self.SortedPoincareSection, 0))
-        sn                         = zeros(size(self.Section, 0))  # arclengths of the Poincare section points in dynamical order
-        for k in range(size(self.SortedPoincareSection, 0) - 1):
-            m                                      = argmin(Distance[k, k + 1:]) + k + 1
-            saved_poincare_row                     = self.SortedPoincareSection[k + 1, :].copy()
-            self.SortedPoincareSection[k + 1, :]   = self.SortedPoincareSection[m, :]
-            self.SortedPoincareSection[m, :]       = saved_poincare_row
 
-            saved_column                           = Distance[:, k + 1].copy()
-            Distance[:, k + 1]                     = Distance[:, m]
-            Distance[:, m]                         = saved_column
+        for k in range(n - 1):
+            m                                    = argmin(Distance[k, k + 1:]) + k + 1
+            saved_poincare_row                   = self.SortedPoincareSection[k + 1, :].copy()
+            self.SortedPoincareSection[k + 1, :] = self.SortedPoincareSection[m, :]
+            self.SortedPoincareSection[m, :]     = saved_poincare_row
 
-            saved_row                              = Distance[k + 1, :].copy()
-            Distance[k + 1, :]                     = Distance[m, :]
-            Distance[m, :]                         = saved_row
+            saved_column                         = Distance[:, k + 1].copy()
+            Distance[:, k + 1]                   = Distance[:, m]
+            Distance[:, m]                       = saved_column
 
+            saved_row                            = Distance[k + 1, :].copy()
+            Distance[k + 1, :]                   = Distance[m, :]
+            Distance[m, :]                       = saved_row
+
+        ArcLengthsAfterSorting = zeros(n)  # arclengths of the Poincare section points ordered by distance from centre
+        sn                     = zeros(n)  # arclengths of the Poincare section points in dynamical order
+
+        for k in range(n - 1):
             ArcLengthsAfterSorting[k + 1]          = ArcLengthsAfterSorting[k] + Distance[k, k + 1]
             index_in_original_poincare_section     = argwhere(self.Section[:, 0] == self.SortedPoincareSection[k + 1, 0])
             sn[index_in_original_poincare_section] = ArcLengthsAfterSorting[k + 1]
@@ -426,7 +443,8 @@ class Recurrences:
         self.tckPoincare, u              = splprep([self.SortedPoincareSection[:, 0], self.SortedPoincareSection[:, 1]],
                                                    u = ArcLengthsAfterSorting,
                                                    s = 0)
-        self.sArray                      = linspace(min(ArcLengthsAfterSorting), max(ArcLengthsAfterSorting), 1000)
+        self.sArray                      = linspace(min(ArcLengthsAfterSorting), max(ArcLengthsAfterSorting),
+                                                    num = num)
         self.InterpolatedPoincareSection = self.fPoincare(self.sArray)
         sn1                              = sn[0:-1]
         sn2                              = sn[1:]
@@ -434,18 +452,16 @@ class Recurrences:
         self.sn1                         = sn1[isort]
         self.sn2                         = sn2[isort]
         self.tckReturn                   = splrep(self.sn1,self.sn2,
-                                                  k=degree)
+                                                  k = self.spline_degree)
         self.snPlus1                     = splev(self.sArray, self.tckReturn)
 
     def fPoincare(self,s):
         '''
         Parametric interpolation to the Poincare section
         Inputs:
-        s: Arc length which parametrizes the curve, a float or dx1-dim numpy
-           array
+        s: Arc length which parametrizes the curve, a float or dx1-dim numpy rray
         Outputs:
-        xy = x and y coordinates on the Poincare section, 2-dim numpy array
-           or (dx2)-dim numpy array
+        xy = x and y coordinates on the Poincare section, 2-dim numpy array or (dx2)-dim numpy array
         '''
         interpolation = splev(s, self.tckPoincare)
         return array([interpolation[0], interpolation[1]], float).transpose()
@@ -534,8 +550,8 @@ def parse_args():
                         nargs   = 3,
                         default = [1,-1,0])
     parser.add_argument('--refine',
-                         default = False,
-                         action = 'store_true')
+                        default = False,
+                        action = 'store_true')
     return parser.parse_args()
 
 def plot_requested(name,arg):
@@ -599,7 +615,6 @@ if __name__ == '__main__':
                                                   nTemplate   = array(args.nTemplate))
         y0                      = dynamics.get_start_on_unstable_manifold(EQs[args.fp])
         ts,orbit                = integrator.integrate(y0, args.tFinal,int(args.tFinal/args.dt))
-        intersections           = [point for _,point in section.intersections(ts,orbit)]
         recurrences             = Recurrences(section,ts,orbit,
                                               filter = lambda point:point[0]>0)
         sfixed,psfixed,sspfixed = recurrences.get_fixed(s0 = args.s0)
@@ -624,7 +639,7 @@ if __name__ == '__main__':
                                marker = MarkerStyle.filled_markers[-1],
                                c      = 'xkcd:red',
                                label  = f'T={ts[-1]:.3f}')
-                for index,point in enumerate(intersections):
+                for index,point in enumerate(recurrences.intersections):
                     ax.scatter(point[0],point[1],point[2],
                                c      = 'xkcd:green',
                                s      = 5,
