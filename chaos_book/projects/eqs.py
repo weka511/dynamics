@@ -29,31 +29,31 @@ def get_orbit(eqs,
               epsilon = 0.0001,
               sign     = +1):
 
-    solution = solve_ivp(dynamics.Velocity,  (0.0, dt), eqs[0] + sign*epsilon*(eqs[0] - eqs[1]),
+    return solve_ivp(dynamics.Velocity,  (0.0, dt), eqs[0] + sign*epsilon*(eqs[0] - eqs[1]),
                          method = 'RK45',
-                         t_eval = arange(0.0, dt, dt/nstp))
-    return solution.y
+                         t_eval = arange(0.0, dt, dt/nstp)).y
+
 
 if __name__=='__main__':
-    dynamics = Rossler()
-    eqs = dynamics.find_equilibria()
-
-
+    dynamics    = Rossler()
+    eqs         = dynamics.find_equilibria()
+    orbit_plus  = get_orbit(eqs, dt=50)
+    orbit_minus = get_orbit(eqs,
+                            sign = -1)
     fig = figure(figsize=(12,12))
-    ax = fig.add_subplot(111, projection='3d')
-    orbit_plus = get_orbit(eqs, dt=50,nstp=1000)
-    ax.plot(orbit_plus[0,:],orbit_plus[1,:],orbit_plus[2,:],
+    ax1 = fig.add_subplot(121, projection='3d')
+
+    ax1.plot(orbit_plus[0,:],orbit_plus[1,:],orbit_plus[2,:],
             c          = 'xkcd:blue',
             markersize = 1)
-    orbit_minus = get_orbit(eqs,
-                            sign = -1,
-                            dt   = 1000.0,
-                            nstp = 50000,)
-    ax.plot(orbit_minus[0,:],orbit_minus[1,:],orbit_minus[2,:],
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.plot(orbit_minus[0,:],orbit_minus[1,:],orbit_minus[2,:],
             c          = 'xkcd:red',
             markersize = 1)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_zlabel('z')
+    ax2.set_xlabel('x')
+    ax2.set_ylabel('y')
+    ax2.set_zlabel('z')
     show()
-
