@@ -18,18 +18,19 @@
 '''Replicate Figure 4.5'''
 
 from Lorentz           import Rossler
-from matplotlib.pyplot import figure, plot, show
+from matplotlib.pyplot import figure, plot, show, tight_layout
 from numpy             import arange
 from scipy.integrate   import solve_ivp
 from scipy.linalg      import eig
 
 def get_orbit(eqs,
-              dt      = 100.0,
-              nstp    = 10000,
-              epsilon = 0.0001,
-              sign     = +1):
+              dt       = 100.0,
+              nstp     = 10000,
+              epsilon  = 0.0001,
+              sign     = +1,
+              origin   = 0):
 
-    return solve_ivp(dynamics.Velocity,  (0.0, dt), eqs[0] + sign*epsilon*(eqs[0] - eqs[1]),
+    return solve_ivp(dynamics.Velocity,  (0.0, dt), eqs[origin] + sign*epsilon*(eqs[origin] - eqs[1-origin]),
                          method = 'RK45',
                          t_eval = arange(0.0, dt, dt/nstp)).y
 
@@ -38,22 +39,67 @@ if __name__=='__main__':
     dynamics    = Rossler()
     eqs         = dynamics.find_equilibria()
     orbit_plus  = get_orbit(eqs, dt=50)
-    orbit_minus = get_orbit(eqs,
-                            sign = -1)
-    fig = figure(figsize=(12,12))
-    ax1 = fig.add_subplot(121, projection='3d')
+    orbit_minus = get_orbit(eqs, sign = -1)
 
-    ax1.plot(orbit_plus[0,:],orbit_plus[1,:],orbit_plus[2,:],
+    fig = figure(figsize=(12,12))
+    ax  = fig.add_subplot(221, projection='3d')
+
+    ax.plot(orbit_plus[0,:],orbit_plus[1,:],orbit_plus[2,:],
             c          = 'xkcd:blue',
-            markersize = 1)
-    ax2 = fig.add_subplot(122, projection='3d')
-    ax2.plot(orbit_minus[0,:],orbit_minus[1,:],orbit_minus[2,:],
+            markersize = 1,
+            label      = 'Orbit')
+    s1 =ax.scatter(eqs[0,0], eqs[0,1], eqs[0,2],
+               c      = 'xkcd:green',
+               s      = 25,
+               marker = 'X',
+               label  = f'({eqs[0,0]:.4f},{eqs[0,1]:.4f},{eqs[0,2]:.4f})')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+
+    ax = fig.add_subplot(222, projection='3d')
+    ax.plot(orbit_minus[0,:],orbit_minus[1,:],orbit_minus[2,:],
             c          = 'xkcd:red',
             markersize = 1)
-    ax1.set_xlabel('x')
-    ax1.set_ylabel('y')
-    ax1.set_zlabel('z')
-    ax2.set_xlabel('x')
-    ax2.set_ylabel('y')
-    ax2.set_zlabel('z')
+    ax.scatter(eqs[0,0], eqs[0,1], eqs[0,2],
+               c      = 'xkcd:green',
+               s      = 25,
+               marker = 'X')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+
+    orbit_plus  = get_orbit(eqs,
+                            origin= 1)
+    orbit_minus = get_orbit(eqs,
+                            sign = -1,
+                            origin= 1)
+
+    ax = fig.add_subplot(223, projection='3d')
+
+    ax.plot(orbit_plus[0,:],orbit_plus[1,:],orbit_plus[2,:],
+            c          = 'xkcd:blue',
+            markersize = 1)
+    s2=ax.scatter(eqs[1,0], eqs[1,1], eqs[1,2],
+               c      = 'xkcd:black',
+               s      = 25,
+               marker = '+',
+               label  = f'({eqs[1,0]:.4f},{eqs[1,1]:.4f},{eqs[1,2]:.4f})')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+
+    ax = fig.add_subplot(224, projection='3d')
+    ax.plot(orbit_minus[0,:],orbit_minus[1,:],orbit_minus[2,:],
+            c          = 'xkcd:red',
+            markersize = 1)
+    ax.scatter(eqs[1,0], eqs[1,1], eqs[1,2],
+               c      = 'xkcd:black',
+               s      = 25,
+               marker = '+')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    fig.legend(handles=[s1,s2],title='Equilibria')
+    tight_layout()
     show()
