@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''Poincare Sections'''
 
 from math                   import isqrt

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''Plot areas and volumes of hyperspheres'''
 
 from matplotlib.pyplot import legend, plot, savefig, show, title

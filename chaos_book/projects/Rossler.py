@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from numpy             import array, dot, identity, linspace, reshape, size, zeros
 from scipy.integrate   import odeint
 from matplotlib.pyplot import figure, show
