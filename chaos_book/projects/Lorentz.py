@@ -101,10 +101,13 @@ class Dynamics(ABC):
 
     def get_start_on_unstable_manifold(self,eq0,
                                        eps = 1e-6):
-        '''Initial condition as a slight perturbation to specified fixed point in the direction of eigenvector with largest eigenvalue'''
-        Aeq0                      = self.StabilityMatrix(eq0)
-        eigenValues, eigenVectors = eig(Aeq0)
-        v1 = real(eigenVectors[:, 0])
+        '''
+        Initial condition as a slight perturbation to specified fixed point
+        in the direction of eigenvector with largest eigenvalue
+        '''
+        Aeq0 = self.StabilityMatrix(eq0)
+        _,v  = eig(Aeq0)
+        v1   = real(v[:, 0])
         return eq0 + eps * v1  / norm(v1)
 
 class Lorentz(Dynamics):
