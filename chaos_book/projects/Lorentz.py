@@ -29,7 +29,7 @@ from contextlib             import AbstractContextManager
 from matplotlib.markers     import MarkerStyle
 from matplotlib.pyplot      import figlegend, figure, rcParams, savefig, show, suptitle, tight_layout
 from numpy                  import append, arange, argmin, argsort, argwhere, array, cos, cross, dot, identity, \
-                                   iinfo, int64, linspace, pi, real, reshape, sin, size, sqrt, zeros
+                                   iinfo, int64, linspace, pi, real, reshape, sin, size, sqrt, stack, zeros
 from numpy.linalg           import eig, inv, norm
 from os.path                import join, basename, split, splitext
 from pathlib                import Path
@@ -221,13 +221,15 @@ class Rossler(Dynamics):
         self.b = b
         self.c = c
 
-    def find_equilibria(self):
-        # term1 = 0.5*self.c/self.a
-        term2 = 0.5*sqrt(1-4*self.b*self.a/self.c**2)
-        y1    = 0.5 + term2
-        y2    = 0.5 - term2
-        return  array([[self.c*y1,-self.c*y1/self.a,self.c*y1/self.a],
-                       [self.c*y2,-self.c*y2/self.a,self.c*y2/self.a]])
+    def find_equilibria(self,epsilon=0.002):
+        '''See Chaosbook version 15.2, Jan 26 2017, equation (2.28)'''
+        vector = array([self.c, -self.c/self.a, self.c/self.a])
+        term2  = 0.5*sqrt(1-4*self.b*self.a/self.c**2)
+        if self.a*self.b/self.c**2<epsilon:
+            return stack([( 0.5 + term2)*vector,
+                          array([self.a*self.b/self.c, -self.b/self.c, self.b/self.c])])
+        else:
+            return stack([( 0.5 + term2)*vector,(0.5 - term2)*vector])
 
     def Velocity(self, t,stateVec):
         '''
