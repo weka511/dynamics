@@ -75,11 +75,11 @@ if __name__=='__main__':
             c          = 'xkcd:blue',
             markersize = 1,
             label      = 'Orbit')
-    s1 =ax.scatter(orbit_plus[0,0],orbit_plus[1,0],orbit_plus[2,0],
+    s1 =ax.scatter(eqs[0].eq[0], eqs[0].eq[1], eqs[0].eq[2],
                c      = 'xkcd:green',
                s      = 25,
                marker = 'X',
-               label  = f'({orbit_plus[0,0]:.4f},{orbit_plus[0,1]:.4f},{orbit_plus[0,2]:.4f})')
+               label  = f'({eqs[0].eq[0]:.4f},{eqs[0].eq[1]:.4f},{eqs[0].eq[2]:.4f})')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
@@ -88,7 +88,7 @@ if __name__=='__main__':
     ax.plot(orbit_minus[0,:],orbit_minus[1,:],orbit_minus[2,:],
             c          = 'xkcd:red',
             markersize = 1)
-    ax.scatter(orbit_minus[0,0], orbit_minus[1,0], orbit_minus[2,0],
+    ax.scatter(eqs[0].eq[0], eqs[0].eq[1], eqs[0].eq[2],
                c      = 'xkcd:green',
                s      = 25,
                marker = 'X')
@@ -104,20 +104,20 @@ if __name__=='__main__':
     ax.plot(orbit_plus[0,:],orbit_plus[1,:],orbit_plus[2,:],
             c          = 'xkcd:blue',
             markersize = 1)
-    s2=ax.scatter(orbit_plus[0,0], orbit_plus[1,0], orbit_plus[2,0],
+    s2=ax.scatter(eqs[1].eq[0], eqs[1].eq[1], eqs[1].eq[2],
                c      = 'xkcd:black',
                s      = 25,
                marker = '+',
-               label  = f'({orbit_plus[0,0]:.4f},{orbit_plus[1,0]:.4f},{orbit_plus[2,0]:.4f})')
+               label  = f'({eqs[1].eq[0]:.4f},{eqs[1].eq[1]:.4f},{eqs[1].eq[2]:.4f})')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
     ax = fig.add_subplot(224, projection='3d')
-    ax.plot(orbit_minus[0,:],orbit_minus[1,:],orbit_minus[2,:],
+    ax.plot(orbit_minus[0,:], orbit_minus[1,:], orbit_minus[2,:],
             c          = 'xkcd:red',
             markersize = 1)
-    ax.scatter(orbit_minus[0,0], orbit_minus[1,0], orbit_minus[2,0],
+    ax.scatter(eqs[1].eq[0], eqs[1].eq[1], eqs[1].eq[2],
                c      = 'xkcd:black',
                s      = 25,
                marker = '+')
