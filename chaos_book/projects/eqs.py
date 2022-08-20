@@ -35,17 +35,23 @@ class Equilibrium:
     def __init__(self,dynamics,eq):
         self.dynamics = dynamics
         self.eq       = eq.copy()
+        self.w,self.v = eig(self.dynamics.StabilityMatrix(self.eq))
 
-    def describe(self):
-        print (f'{self.eq}')
-        w,v = eig(self.dynamics.StabilityMatrix(self.eq))
-        for i in range(len(w)):
-            if isreal(w[i]):
-                print (f'{real(w[i])} {exp( real(w[i]))}')
-            elif imag(w[i])>0:
-                T = 2*pi/imag(w[i])
-                Lambda = exp(real(w[i])*T)
-                print (f'Period={T}, Lambda={Lambda}')
+    def get_eigendirections(self):
+        for i in range(len(self.w)):
+            if isreal(self.w[i]):
+                yield self.w[i], self.v[:,i]
+
+    def description(self):
+        yield f'Eq: ({self.eq[0]:.4},{self.eq[1]:.4},{self.eq[2]:.4})'
+        for i in range(len(self.w)):
+            if isreal(self.w[i]):
+                yield f'{real(self.w[i]):.4f}'
+            elif imag(self.w[i])>0:
+                T      = 2*pi/imag(self.w[i])
+                Lambda = exp(real(self.w[i])*T)
+                yield f'Period={T:.4f}, Lambda={Lambda:.4f}'
+
 
 def get_orbit(eqs,
               dt       = 100.0,
@@ -62,8 +68,6 @@ def get_orbit(eqs,
 if __name__=='__main__':
     dynamics    = Rossler()
     eqs         = Equilibrium.create(dynamics)
-    for eq in eqs:
-        eq.describe()
 
     orbit_plus  = get_orbit(eqs, dt=50)
     orbit_minus = get_orbit(eqs, sign = -1)
@@ -79,7 +83,7 @@ if __name__=='__main__':
                c      = 'xkcd:green',
                s      = 25,
                marker = 'X',
-               label  = f'({eqs[0].eq[0]:.4f},{eqs[0].eq[1]:.4f},{eqs[0].eq[2]:.4f})')
+               label  = '\n'.join(entry for entry in eqs[0].description()))
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
@@ -104,11 +108,12 @@ if __name__=='__main__':
     ax.plot(orbit_plus[0,:],orbit_plus[1,:],orbit_plus[2,:],
             c          = 'xkcd:blue',
             markersize = 1)
+
     s2=ax.scatter(eqs[1].eq[0], eqs[1].eq[1], eqs[1].eq[2],
                c      = 'xkcd:black',
                s      = 25,
                marker = '+',
-               label  = f'({eqs[1].eq[0]:.4f},{eqs[1].eq[1]:.4f},{eqs[1].eq[2]:.4f})')
+               label  = '\n'.join(entry for entry in eqs[1].description()))
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
@@ -124,6 +129,7 @@ if __name__=='__main__':
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
-    fig.legend(handles = [s1,s2], title   = 'Equilibria')
+    fig.legend(handles = [s1,s2],
+               title   = 'Equilibria')
     tight_layout()
     show()
