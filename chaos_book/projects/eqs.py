@@ -39,8 +39,7 @@ class Equilibrium:
 
     def get_eigendirections(self):
         for i in range(len(self.w)):
-            if isreal(self.w[i]):
-                yield self.w[i], self.v[:,i]
+            yield self.w[i], self.v[:,i]
 
     def description(self):
         yield f'Eq: ({self.eq[0]:.4},{self.eq[1]:.4},{self.eq[2]:.4})'
