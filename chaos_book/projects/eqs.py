@@ -17,39 +17,10 @@
 
 '''Replicate Figure 4.5'''
 
-from Lorentz           import Rossler
+from dynamics          import Equilibrium, Rossler
 from matplotlib.pyplot import figure, plot, show, tight_layout
-from numpy             import arange, exp, imag, isreal, pi, real
-from numpy.linalg      import eig
+from numpy             import arange
 from scipy.integrate   import solve_ivp
-
-class Equilibrium:
-    '''This class represents one equilibrium point'''
-    @classmethod
-    def create(self,dynamics):
-        '''Create set of equilibria for specified Dynamics'''
-        eqs = dynamics.find_equilibria()
-        m,_ = eqs.shape
-        return [Equilibrium(dynamics,eqs[i,:]) for i in range(m)]
-
-    def __init__(self,dynamics,eq):
-        self.dynamics = dynamics
-        self.eq       = eq.copy()
-        self.w,self.v = eig(self.dynamics.StabilityMatrix(self.eq))
-
-    def get_eigendirections(self):
-        for i in range(len(self.w)):
-            yield self.w[i], self.v[:,i]
-
-    def description(self):
-        yield f'Eq: ({self.eq[0]:.4},{self.eq[1]:.4},{self.eq[2]:.4})'
-        for i in range(len(self.w)):
-            if isreal(self.w[i]):
-                yield f'{real(self.w[i]):.4f}'
-            elif imag(self.w[i])>0:
-                T      = 2*pi/imag(self.w[i])
-                Lambda = exp(real(self.w[i])*T)
-                yield f'Period={T:.4f}, Lambda={Lambda:.4f}'
 
 
 def get_orbit(eqs,

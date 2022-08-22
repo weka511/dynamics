@@ -17,8 +17,7 @@
 
 '''Replicate Figure 4.5'''
 
-from eqs               import Equilibrium
-from dynamics          import Lorentz
+from dynamics          import Equilibrium, Lorentz
 from matplotlib.pyplot import figure, plot, show, suptitle, tight_layout
 from numpy             import arange, array, real, set_printoptions
 from scipy.integrate   import solve_ivp
