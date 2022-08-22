@@ -19,8 +19,8 @@
 
 from eqs               import Equilibrium
 from Lorentz           import Lorentz
-from matplotlib.pyplot import figure, plot, show, tight_layout
-from numpy             import arange, array, set_printoptions
+from matplotlib.pyplot import figure, plot, show, suptitle, tight_layout
+from numpy             import arange, array, real, set_printoptions
 from scipy.integrate   import solve_ivp
 
 class Orbit:
@@ -43,23 +43,32 @@ class Orbit:
 if __name__=='__main__':
     set_printoptions(precision=2)
     dynamics    = Lorentz()
-    eqs         = Equilibrium.create(dynamics)
-
-    orbits = [Orbit(dt          = 10,
-                    origin      = eqs[0],
-                    direction   = v,
-                    eigenvalue  = w,
-                    orientation = orientation) for w,v in eqs[0].get_eigendirections() for orientation in [-1,+1]]
-    fig = figure(figsize=(16,16))
-    for i,orbit in enumerate(orbits):
-        if i==2:
-            ax.legend(title='Orientation')
-        if i%2==0:
-            ax = fig.add_subplot(2,2,i//2+1, projection='3d')
-            ax.set_title(f'{orbit.eigenvalue:.2f} {orbit.direction}')
-        ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
-                c          = 'xkcd:blue' if i%2==0 else 'xkcd:red',
-                markersize = 1,
-                label      = f'{"+"if orbit.orientation>0 else "-"}')
+    for eq in Equilibrium.create(dynamics):
+        orbits = [Orbit(dt          = 10,
+                        origin      = eq,
+                        direction   = real(v),
+                        eigenvalue  = w,
+                        orientation = orientation) for w,v in eq.get_eigendirections() for orientation in [-1,+1]]
+        fig = figure(figsize=(16,16))
+        for i,orbit in enumerate(orbits):
+            if i==2:
+                ax.legend()
+            if i%2==0:
+                ax = fig.add_subplot(2,2,i//2+1, projection='3d')
+                ax.set_title(f'{orbit.eigenvalue:.2f} {orbit.direction}')
+            ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
+                    c          = 'xkcd:blue' if i%2==0 else 'xkcd:red',
+                    markersize = 1,
+                    label      = f'{"+"if orbit.orientation>0 else "-"}')
+            ax.scatter(orbit.orbit[0,0],orbit.orbit[1,0],orbit.orbit[2,0],
+                       s      = 25,
+                       color  = 'xkcd:black',
+                       marker = 'X',
+                       label  = 'Start' if i==0 else None)
+            ax.scatter(orbit.orbit[0,-1],orbit.orbit[1,-1],orbit.orbit[2,-1],
+                       s      = 25,
+                       color  = 'xkcd:blue' if i%2==0 else 'xkcd:red',
+                       marker = '+')
+        suptitle(f'Orbits starting {eq.eq}')
 
     show()
