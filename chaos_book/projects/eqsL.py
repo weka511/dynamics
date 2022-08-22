@@ -15,9 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-'''Replicate Figure 4.5'''
+'''Plot orbits starting from equilibria'''
 
-from dynamics          import Equilibrium, Lorentz
+from argparse          import ArgumentParser
+from dynamics          import Equilibrium, DynamicsFactory
 from matplotlib.pyplot import figure, plot, show, suptitle, tight_layout
 from numpy             import arange, array, real, set_printoptions
 from scipy.integrate   import solve_ivp
@@ -41,19 +42,31 @@ class Orbit:
 
 if __name__=='__main__':
     set_printoptions(precision=2)
-    dynamics    = Lorentz()
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument('--dynamics',
+                        choices = DynamicsFactory.products,
+                        default = DynamicsFactory.products[0])
+    parser.add_argument('--dt',
+                        type    = float,
+                        default = 5.0)
+    parser.add_argument('--orientation',
+                       type     = int,
+                       nargs    = '+',
+                       default  = [-1,1])
+    args     = parser.parse_args()
+    dynamics = DynamicsFactory.create(args)
     for eq in Equilibrium.create(dynamics):
-        orbits = [Orbit(dt          = 10,
+        orbits = [Orbit(dt          = args.dt,
                         origin      = eq,
                         direction   = real(v),
                         eigenvalue  = w,
-                        orientation = orientation) for w,v in eq.get_eigendirections() for orientation in [-1,+1]]
+                        orientation = orientation) for w,v in eq.get_eigendirections() for orientation in args.orientation]
         fig = figure(figsize=(16,16))
         for i,orbit in enumerate(orbits):
-            if i==2:
+            if i==len(args.orientation):
                 ax.legend()
-            if i%2==0:
-                ax = fig.add_subplot(2,2,i//2+1, projection='3d')
+            if i%len(args.orientation)==0:
+                ax = fig.add_subplot(2,2,i//len(args.orientation)+1, projection='3d')
                 ax.set_title(f'{orbit.eigenvalue:.2f} {orbit.direction}')
             ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                     c          = 'xkcd:blue' if i%2==0 else 'xkcd:red',
