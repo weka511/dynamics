@@ -18,36 +18,10 @@
 '''Plot orbits starting from equilibria'''
 
 from argparse          import ArgumentParser
-from dynamics          import Equilibrium, DynamicsFactory
+from dynamics          import Equilibrium, DynamicsFactory, Orbit
 from matplotlib.pyplot import plot, show, suptitle, tight_layout
-from numpy             import arange, array, real, set_printoptions
-from scipy.integrate   import solve_ivp
+from numpy             import real, set_printoptions
 from utils             import Figure
-
-class Orbit:
-    def __init__(self,
-                 dt          = 10.0,
-                 nstp        = 10000,
-                 epsilon     = 0.00001,
-                 direction   = array([1,1,1]),
-                 orientation = +1,
-                 origin      = array([0,0,0]),
-                 eigenvalue  = 1):
-        self.orbit = solve_ivp(dynamics.Velocity,  (0.0, dt), get_start(epsilon     = epsilon,
-                                                                        direction   = direction,
-                                                                        orientation = orientation,
-                                                                        origin      = origin),
-                               method = 'RK45',
-                               t_eval = arange(0.0, dt, dt/nstp)).y
-        self.direction   = direction
-        self.eigenvalue  = eigenvalue
-        self.orientation = orientation
-
-def get_start(epsilon     = 0.00001,
-              direction   = array([1,1,1]),
-              orientation = +1,
-              origin      = array([0,0,0])):
-    return origin.eq + orientation*epsilon*direction
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -70,7 +44,8 @@ if __name__=='__main__':
     args     = parse_args()
     dynamics = DynamicsFactory.create(args)
     for seq,eq in enumerate(Equilibrium.create(dynamics)):
-        orbits = [Orbit(dt          = args.dt,
+        orbits = [Orbit(dynamics,
+                        dt          = args.dt,
                         origin      = eq,
                         direction   = real(v),
                         eigenvalue  = w,

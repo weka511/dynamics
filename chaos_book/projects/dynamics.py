@@ -19,9 +19,10 @@
 
 '''A collection of classes that model ODEs '''
 
-from abc          import ABC,abstractmethod
-from numpy        import array, dot, exp, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros
-from numpy.linalg import eig, norm
+from abc             import ABC,abstractmethod
+from numpy           import arange, array, dot, exp, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros
+from numpy.linalg    import eig, norm
+from scipy.integrate import solve_ivp
 
 class Dynamics(ABC):
     '''This abstract class represents the dynamics, i.e. the differential equation.'''
@@ -292,3 +293,32 @@ class Equilibrium:
                 T      = 2*pi/imag(self.w[i])
                 Lambda = exp(real(self.w[i])*T)
                 yield f'Period={T:.4f}, Lambda={Lambda:.4f}'
+
+class Orbit:
+    @classmethod
+    def get_start(cls,
+                  epsilon     = 0.00001,
+                  direction   = array([1,1,1]),
+                  orientation = +1,
+                  origin      = array([0,0,0])):
+        return origin.eq + orientation*epsilon*direction
+
+    def __init__(self,
+                 dynamics,
+                 dt          = 10.0,
+                 nstp        = 10000,
+                 epsilon     = 0.00001,
+                 direction   = array([1,1,1]),
+                 orientation = +1,
+                 origin      = array([0,0,0]),
+                 eigenvalue  = 1):
+        self.orbit = solve_ivp(dynamics.Velocity,  (0.0, dt), Orbit.get_start(epsilon     = epsilon,
+                                                                        direction   = direction,
+                                                                        orientation = orientation,
+                                                                        origin      = origin),
+                               method = 'RK45',
+                               t_eval = arange(0.0, dt, dt/nstp)).y
+        self.direction   = direction
+        self.eigenvalue  = eigenvalue
+        self.orientation = orientation
+
