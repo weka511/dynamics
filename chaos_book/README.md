@@ -48,3 +48,4 @@ projects|dynamics.py|-|Common codes for a few ODEs
 -|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
 -|recurrences.py|-|Plot Poincare sections
 -|rgb.txt|-|RGB values for xkcd colours
+-|utils.py|-|Shared utility programs

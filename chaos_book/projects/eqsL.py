@@ -19,9 +19,10 @@
 
 from argparse          import ArgumentParser
 from dynamics          import Equilibrium, DynamicsFactory
-from matplotlib.pyplot import figure, plot, show, suptitle, tight_layout
+from matplotlib.pyplot import plot, show, suptitle, tight_layout
 from numpy             import arange, array, real, set_printoptions
 from scipy.integrate   import solve_ivp
+from utils             import Figure
 
 class Orbit:
     def __init__(self,
@@ -32,16 +33,23 @@ class Orbit:
                  orientation = +1,
                  origin      = array([0,0,0]),
                  eigenvalue  = 1):
-        self.orbit = solve_ivp(dynamics.Velocity,  (0.0, dt), origin.eq + orientation*epsilon*direction,
+        self.orbit = solve_ivp(dynamics.Velocity,  (0.0, dt), get_start(epsilon     = epsilon,
+                                                                        direction   = direction,
+                                                                        orientation = orientation,
+                                                                        origin      = origin),
                                method = 'RK45',
                                t_eval = arange(0.0, dt, dt/nstp)).y
         self.direction   = direction
         self.eigenvalue  = eigenvalue
         self.orientation = orientation
 
+def get_start(epsilon     = 0.00001,
+              direction   = array([1,1,1]),
+              orientation = +1,
+              origin      = array([0,0,0])):
+    return origin.eq + orientation*epsilon*direction
 
-if __name__=='__main__':
-    set_printoptions(precision=2)
+def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--dynamics',
                         choices = DynamicsFactory.products,
@@ -53,34 +61,43 @@ if __name__=='__main__':
                        type     = int,
                        nargs    = '+',
                        default  = [-1,1])
-    args     = parser.parse_args()
+    parser.add_argument('--figs',
+                        default = './figs')
+    return parser.parse_args()
+
+if __name__=='__main__':
+    set_printoptions(precision=2)
+    args     = parse_args()
     dynamics = DynamicsFactory.create(args)
-    for eq in Equilibrium.create(dynamics):
+    for seq,eq in enumerate(Equilibrium.create(dynamics)):
         orbits = [Orbit(dt          = args.dt,
                         origin      = eq,
                         direction   = real(v),
                         eigenvalue  = w,
                         orientation = orientation) for w,v in eq.get_eigendirections() for orientation in args.orientation]
-        fig = figure(figsize=(16,16))
-        for i,orbit in enumerate(orbits):
-            if i==len(args.orientation):
-                ax.legend()
-            if i%len(args.orientation)==0:
-                ax = fig.add_subplot(2,2,i//len(args.orientation)+1, projection='3d')
-                ax.set_title(f'{orbit.eigenvalue:.2f} {orbit.direction}')
-            ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
-                    c          = 'xkcd:blue' if i%2==0 else 'xkcd:red',
-                    markersize = 1,
-                    label      = f'{"+"if orbit.orientation>0 else "-"}')
-            ax.scatter(orbit.orbit[0,0],orbit.orbit[1,0],orbit.orbit[2,0],
-                       s      = 25,
-                       color  = 'xkcd:black',
-                       marker = 'X',
-                       label  = 'Start' if i==0 else None)
-            ax.scatter(orbit.orbit[0,-1],orbit.orbit[1,-1],orbit.orbit[2,-1],
-                       s      = 25,
-                       color  = 'xkcd:blue' if i%2==0 else 'xkcd:red',
-                       marker = '+')
-        suptitle(f'Orbits starting {eq.eq}')
+        with Figure(dynamics = dynamics,
+                    figs     = args.figs,
+                    name     = str(seq+1),
+                    file     = __file__) as fig:
+            for i,orbit in enumerate(orbits):
+                if i==len(args.orientation):
+                    ax.legend()
+                if i%len(args.orientation)==0:
+                    ax = fig.add_subplot(2,2,i//len(args.orientation)+1, projection='3d')
+                    ax.set_title(f'{orbit.eigenvalue:.2f} {orbit.direction}')
+                ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
+                        c          = 'xkcd:blue' if i%2==0 else 'xkcd:red',
+                        markersize = 1,
+                        label      = f'{"+"if orbit.orientation>0 else "-"}')
+                ax.scatter(orbit.orbit[0,0],orbit.orbit[1,0],orbit.orbit[2,0],
+                           s      = 25,
+                           color  = 'xkcd:black',
+                           marker = 'X',
+                           label  = 'Start' if i==0 else None)
+                ax.scatter(orbit.orbit[0,-1],orbit.orbit[1,-1],orbit.orbit[2,-1],
+                           s      = 25,
+                           color  = 'xkcd:blue' if i%2==0 else 'xkcd:red',
+                           marker = '+')
+            suptitle(f'Orbits starting {eq.eq}')
 
     show()

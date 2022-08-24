@@ -17,6 +17,8 @@
 
 # This program is intended to support my project from https://chaosbook.org/
 
+'''A collection of classes that model ODEs '''
+
 from abc          import ABC,abstractmethod
 from numpy        import array, dot, exp, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros
 from numpy.linalg import eig, norm
