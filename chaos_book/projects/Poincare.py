@@ -157,7 +157,7 @@ class PoincareSection:
                 yield self.find_intersection(ratio*(ts[i+1] - ts[i]), orbit[:,i])
 
 class Recurrences:
-    '''This class keeps track of the recurrences of the Poincare nap'''
+    '''This class keeps track of the recurrences of the Poincare map'''
     def __init__(self,section,ts,orbit,
                  filter        = lambda point: True,
                  spline_degree = 5):   # Final plot looks wonky with default in splrep
