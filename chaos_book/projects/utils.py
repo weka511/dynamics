@@ -15,11 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-# This program is intended to support my project from https://chaosbook.org/
+'''A few utility classes'''
 
 from contextlib        import AbstractContextManager
 from os.path           import basename, join, splitext
-from matplotlib.pyplot import figure,  savefig
+from matplotlib.pyplot import figure,  savefig, show
+from time              import time
 
 class Figure(AbstractContextManager):
     '''Context manager for plotting and saving a figure'''
@@ -45,9 +46,10 @@ class Figure(AbstractContextManager):
         self.source_file = file
         self.dynamics    = dynamics
         self.name        = name
-        self.fig         = figure(figsize=(width,height))
+        self.figsize     = (width,height)
 
     def __enter__(self):
+        self.fig         = figure(figsize=self.figsize)
         return self.fig
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -67,3 +69,29 @@ class Figure(AbstractContextManager):
            4. An additional compoient of the name.
         '''
         return join(self.figs,f'{splitext(basename(self.source_file))[0]}-{self.dynamics.name}-{self.name}')
+
+class Timer(AbstractContextManager):
+    '''
+    Context Manager for estimating time
+    Prints the elapsed time from __enter__(...) to __exit__(...)
+    '''
+    def __init__(self,name='Timer'):
+        self.name = name
+
+    def __enter__(self):
+        self.start = time()
+        return self.start
+
+    def __exit__(self,exc_type, exc_val, exc_tb):
+        print (f'{self.name}: Elapsed time = {time()-self.start:.0f} seconds')
+        return exc_type==None and exc_val==None and exc_tb==None
+
+if __name__=='__main__':
+    with Figure(dynamics=type('Dummy',(object,),{'name':'Dummy'})) as fig:
+        ax = fig.add_subplot(1,1,1)
+        ax.set_title('Test')
+
+    with Timer():
+        x=0
+
+    show()
