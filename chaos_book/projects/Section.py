@@ -26,7 +26,7 @@
 from argparse          import ArgumentParser
 from dynamics          import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot import show
-from numpy             import array, cross, dot, meshgrid, real
+from numpy             import array, cross, dot, linspace, meshgrid, real
 from numpy.linalg      import norm
 from utils             import Figure, Timer
 
@@ -56,24 +56,34 @@ class Section:
         return dot((ssp - self.sspTemplate),self.nTemplate)
 
     def get_plane(self,
-                  xmin = -10,
-                  xmax = 10,
-                  ymin = -10,
-                  ymax = 10,
-                  zmin = -10,
-                  zmax = 10):
-        d = -self.sspTemplate.dot(self.nTemplate) # snarfed from https://stackoverflow.com/questions/3461869/plot-a-plane-based-on-a-normal-vector-and-a-point-in-matlab-or-matplotlib
+                  xmin =  0,
+                  xmax =  1,
+                  ymin =  0,
+                  ymax =  1,
+                  zmin =  0,
+                  zmax =  1,
+                  num  = 50):
+        '''Used to plot section as a surface'''
         if self.nTemplate[0]!= 0:
-            yy, zz = meshgrid(range(int(ymin),int(ymax)), range(int(zmin),int(zmax)))
-            xx     = (-self.nTemplate[1] * yy - self.nTemplate[2] * zz - d) /self.nTemplate[0]
+            yy, zz = meshgrid(linspace(ymin,ymax,num=num), linspace(zmin,zmax,num=num))
+            xx     = (self.sspTemplate.dot(self.nTemplate) - self.nTemplate[1] * yy - self.nTemplate[2] * zz) /self.nTemplate[0]
         elif self.nTemplate[1]!= 0:
-            zz, xx = meshgrid(range(int(zmin),int(zmax)), range(int(xmin),int(xmax)))
-            yy     = (-self.nTemplate[2] * zz - self.nTemplate[0] * xx - d) /self.nTemplate[1]
+            zz, xx = meshgrid(linspace(zmin,zmax,num=num), linspace(xmin,xmax,num=num))
+            yy     = (self.sspTemplate.dot(self.nTemplate) - self.nTemplate[2] * zz - self.nTemplate[0] * xx) /self.nTemplate[1]
         elif self.nTemplate[2]!= 0:
-            xx, yy = meshgrid(range(int(xmin),int(xmax)), range(int(ymin),int(ymax)))
-            zz     = (-self.nTemplate[0] * xx - self.nTemplate[1] * yy - d) /self.nTemplate[2]
-
+            xx, yy = meshgrid(linspace(xmin,xmax,num=num), linspace(ymin,ymax,num=num))
+            zz     = (self.sspTemplate.dot(self.nTemplate) - self.nTemplate[0] * xx - self.nTemplate[1] * yy) /self.nTemplate[2]
+        else:
+            raise Exception('Normal is zero!')
         return xx,yy,zz
+
+    def crossings(self,orbit):
+        '''Used to iterate through intersections between orbit and section'''
+        for i in range(len(orbit)-1):
+            u0 = self.U(orbit.orbit[:,i])
+            u1 = self.U(orbit.orbit[:,i+1])
+            if u0<0 and u1>0:
+                yield orbit.t[i],orbit.orbit[:,i]
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -102,6 +112,14 @@ if __name__=='__main__':
                     direction   = real(v),
                     eigenvalue  = w)
     section  = Section()
+    xs = []
+    ys = []
+    zs = []
+    for _,p in section.crossings(orbit):
+        xs.append(p[0])
+        ys.append(p[1])
+        zs.append(p[2])
+
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics) as fig:
@@ -117,5 +135,11 @@ if __name__=='__main__':
                         alpha = 0.5)
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green')
+        ax.scatter(xs,ys,zs,
+                   color = 'xkcd:red',
+                   s     = 1)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
 
     show()

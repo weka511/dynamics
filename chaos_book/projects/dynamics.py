@@ -312,13 +312,19 @@ class Orbit:
                  orientation = +1,
                  origin      = array([0,0,0]),
                  eigenvalue  = 1):
-        self.orbit = solve_ivp(dynamics.Velocity,  (0.0, dt), Orbit.get_start(epsilon     = epsilon,
-                                                                        direction   = direction,
-                                                                        orientation = orientation,
-                                                                        origin      = origin),
-                               method = 'RK45',
-                               t_eval = arange(0.0, dt, dt/nstp)).y
         self.direction   = direction
         self.eigenvalue  = eigenvalue
         self.orientation = orientation
+        y0               = Orbit.get_start(epsilon     = epsilon,
+                                           direction   = direction,
+                                           orientation = orientation,
+                                           origin      = origin)
+        solution         = solve_ivp(dynamics.Velocity,  (0.0, dt), y0,
+                                     method = 'RK45',
+                                     t_eval = arange(0.0, dt, dt/nstp))
+        self.orbit       = solution.y
+        self.t           = solution.t
+
+    def __len__(self):
+        return len(self.t)
 
