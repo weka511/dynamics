@@ -28,6 +28,7 @@ from dynamics          import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot import show
 from numpy             import array, cross, dot, linspace, meshgrid, real
 from numpy.linalg      import norm
+from scipy.optimize    import fsolve
 from utils             import Figure, Timer
 
 class Section:
@@ -83,7 +84,13 @@ class Section:
             u0 = self.U(orbit.orbit[:,i])
             u1 = self.U(orbit.orbit[:,i+1])
             if u0<0 and u1>0:
-                yield orbit.t[i],orbit.orbit[:,i]
+                ratio = abs(u0)/(abs(u0)+u1)
+                yield self.refine_intersection(orbit, ratio*(orbit.t[i+1] - orbit.t[i]), orbit.orbit[:,i])
+
+    def refine_intersection(self,orbit, dt, y):
+        '''Refine an estimated intersection point '''
+        dt_intersection = fsolve(lambda t: self.U(orbit.Flow(t,y)[1]), dt)[0]
+        return orbit.Flow(dt_intersection, y)
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -115,10 +122,10 @@ if __name__=='__main__':
     xs = []
     ys = []
     zs = []
-    for _,p in section.crossings(orbit):
-        xs.append(p[0])
-        ys.append(p[1])
-        zs.append(p[2])
+    for _,ssp in section.crossings(orbit):
+        xs.append(ssp[0])
+        ys.append(ssp[1])
+        zs.append(ssp[2])
 
     with Figure(figs     = args.figs,
                 file     = __file__,
@@ -134,12 +141,15 @@ if __name__=='__main__':
                         color = 'xkcd:blue',
                         alpha = 0.5)
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
-                color = 'xkcd:green')
+                color = 'xkcd:green',
+                label = f'{dynamics.name}')
         ax.scatter(xs,ys,zs,
                    color = 'xkcd:red',
-                   s     = 1)
+                   s     = 1,
+                   label = 'Crossings')
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
+        ax.legend()
 
     show()

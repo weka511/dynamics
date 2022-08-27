@@ -311,20 +311,28 @@ class Orbit:
                  direction   = array([1,1,1]),
                  orientation = +1,
                  origin      = array([0,0,0]),
-                 eigenvalue  = 1):
+                 eigenvalue  = 1,
+                 method      = 'RK45'):
+        self.dynamics    = dynamics
         self.direction   = direction
         self.eigenvalue  = eigenvalue
         self.orientation = orientation
+        self.method      = method
         y0               = Orbit.get_start(epsilon     = epsilon,
                                            direction   = direction,
                                            orientation = orientation,
                                            origin      = origin)
         solution         = solve_ivp(dynamics.Velocity,  (0.0, dt), y0,
-                                     method = 'RK45',
+                                     method = self.method,
                                      t_eval = arange(0.0, dt, dt/nstp))
         self.orbit       = solution.y
         self.t           = solution.t
 
     def __len__(self):
         return len(self.t)
+
+    def Flow(self,deltat,y):                         #FIXME (may need work, as untested with LSODA)
+        '''Used to integrate for a single step'''
+        solution = solve_ivp(self.dynamics.Velocity, (0, deltat), y, method=self.method)
+        return solution.t[1],solution.y[:,1]
 
