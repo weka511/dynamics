@@ -20,6 +20,7 @@
 from contextlib        import AbstractContextManager
 from os.path           import basename, join, splitext
 from matplotlib.pyplot import figure,  savefig, show
+from numpy             import argwhere, array, dot, linspace, meshgrid, ndarray, roll, stack
 from time              import time
 
 class Figure(AbstractContextManager):
@@ -85,6 +86,21 @@ class Timer(AbstractContextManager):
     def __exit__(self,exc_type, exc_val, exc_tb):
         print (f'{self.name}: Elapsed time = {time()-self.start:.0f} seconds')
         return exc_type==None and exc_val==None and exc_tb==None
+
+def get_plane( sspTemplate = array([1,1,0]),
+               nTemplate   = array([1,-1,0]),
+               xs          = linspace(-1,1,50),
+               ys          = linspace(-1,1,50)):
+    offset = dot(sspTemplate,nTemplate)
+    i_nz   = argwhere(nTemplate)
+    m,_    = i_nz.shape
+    if m==0: raise Exception('Normal should not be zero')
+    k           = ndarray.item(i_nz[[0]])
+    k_roll      = (k+1) % len(nTemplate)
+    rolled_norm = roll(nTemplate,-k_roll)
+    xx,yy       = meshgrid(xs,ys)
+    xyz         = roll(stack([xx,yy,(offset -rolled_norm[0]*xx - rolled_norm[1]*yy)/rolled_norm[2]]),k_roll,0)
+    return xyz[0,:,:],xyz[1,:,:],xyz[2,:,:]
 
 if __name__=='__main__':
     with Figure(dynamics=type('Dummy',(object,),{'name':'Dummy'})) as fig:

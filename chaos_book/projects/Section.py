@@ -29,7 +29,7 @@ from matplotlib.pyplot import show
 from numpy             import array, cross, dot, linspace, meshgrid, real
 from numpy.linalg      import norm
 from scipy.optimize    import fsolve
-from utils             import Figure, Timer
+from utils             import get_plane, Figure, Timer
 
 class Section:
     ''' This class represents a Poincare Section'''
@@ -55,28 +55,10 @@ class Section:
            U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
         '''
         return dot((ssp - self.sspTemplate),self.nTemplate)
-
-    def get_plane(self,
-                  xmin =  0,
-                  xmax =  1,
-                  ymin =  0,
-                  ymax =  1,
-                  zmin =  0,
-                  zmax =  1,
-                  num  = 50):
+    def get_plane(self):
         '''Used to plot section as a surface'''
-        if self.nTemplate[0]!= 0:
-            yy, zz = meshgrid(linspace(ymin,ymax,num=num), linspace(zmin,zmax,num=num))
-            xx     = (self.sspTemplate.dot(self.nTemplate) - self.nTemplate[1] * yy - self.nTemplate[2] * zz) /self.nTemplate[0]
-        elif self.nTemplate[1]!= 0:
-            zz, xx = meshgrid(linspace(zmin,zmax,num=num), linspace(xmin,xmax,num=num))
-            yy     = (self.sspTemplate.dot(self.nTemplate) - self.nTemplate[2] * zz - self.nTemplate[0] * xx) /self.nTemplate[1]
-        elif self.nTemplate[2]!= 0:
-            xx, yy = meshgrid(linspace(xmin,xmax,num=num), linspace(ymin,ymax,num=num))
-            zz     = (self.sspTemplate.dot(self.nTemplate) - self.nTemplate[0] * xx - self.nTemplate[1] * yy) /self.nTemplate[2]
-        else:
-            raise Exception('Normal is zero!')
-        return xx,yy,zz
+        return get_plane(sspTemplate=self.sspTemplate,nTemplate=self.nTemplate)
+
 
     def crossings(self,orbit):
         '''Used to iterate through intersections between orbit and section'''
@@ -131,12 +113,12 @@ if __name__=='__main__':
                 file     = __file__,
                 dynamics = dynamics) as fig:
         ax        = fig.add_subplot(1,1,1,projection='3d')
-        xx,yy,zz  = section.get_plane(xmin = min(orbit.orbit[0,:]),
-                                      xmax = max(orbit.orbit[0,:]),
-                                      ymin = min(orbit.orbit[1,:]),
-                                      ymax = max(orbit.orbit[1,:]),
-                                      zmin = min(orbit.orbit[2,:]),
-                                      zmax = max(orbit.orbit[2,:]))
+        xx,yy,zz  = section.get_plane()#xmin = min(orbit.orbit[0,:]),
+                                      # xmax = max(orbit.orbit[0,:]),
+                                      # ymin = min(orbit.orbit[1,:]),
+                                      # ymax = max(orbit.orbit[1,:]),
+                                      # zmin = min(orbit.orbit[2,:]),
+                                      # zmax = max(orbit.orbit[2,:]))
         ax.plot_surface(xx,yy,zz,
                         color = 'xkcd:blue',
                         alpha = 0.5)
