@@ -55,9 +55,14 @@ class Section:
            U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
         '''
         return dot((ssp - self.sspTemplate),self.nTemplate)
-    def get_plane(self):
+    def get_plane(self,orbit):
         '''Used to plot section as a surface'''
-        return get_plane(sspTemplate=self.sspTemplate,nTemplate=self.nTemplate)
+        m0 = orbit.orbit[:,:].min()
+        m1 = orbit.orbit[:,:].max()
+        return get_plane(sspTemplate = self.sspTemplate,
+                         nTemplate   = self.nTemplate,
+                         xs          = linspace(m0,m1,50),
+                         ys          = linspace(m0,m1,50))
 
 
     def crossings(self,orbit):
@@ -113,12 +118,7 @@ if __name__=='__main__':
                 file     = __file__,
                 dynamics = dynamics) as fig:
         ax        = fig.add_subplot(1,1,1,projection='3d')
-        xx,yy,zz  = section.get_plane()#xmin = min(orbit.orbit[0,:]),
-                                      # xmax = max(orbit.orbit[0,:]),
-                                      # ymin = min(orbit.orbit[1,:]),
-                                      # ymax = max(orbit.orbit[1,:]),
-                                      # zmin = min(orbit.orbit[2,:]),
-                                      # zmax = max(orbit.orbit[2,:]))
+        xx,yy,zz  = section.get_plane(orbit)
         ax.plot_surface(xx,yy,zz,
                         color = 'xkcd:blue',
                         alpha = 0.5)
