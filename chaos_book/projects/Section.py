@@ -60,8 +60,7 @@ class Section:
         '''Used to plot section as a surface'''
         return get_plane(sspTemplate = self.sspTemplate,
                          nTemplate   = self.nTemplate,
-                         lims        = [linspace(m,M,
-                                                 num = num) for m,M in zip(orbit.orbit.min(axis=1),orbit.orbit.max(axis=1))])
+                         limits      = [linspace(m, M, num = num) for m,M in zip(orbit.orbit.min(axis=1),orbit.orbit.max(axis=1))])
 
 
     def crossings(self,orbit):
@@ -117,8 +116,8 @@ if __name__=='__main__':
                 file     = __file__,
                 dynamics = dynamics) as fig:
         ax        = fig.add_subplot(1,1,1,projection='3d')
-        xx,yy,zz  = section.get_plane(orbit)
-        ax.plot_surface(xx,yy,zz,
+        xyz  = section.get_plane(orbit)
+        ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
                         alpha = 0.5)
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],

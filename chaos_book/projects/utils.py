@@ -89,7 +89,7 @@ class Timer(AbstractContextManager):
 
 def get_plane( sspTemplate = array([1,1,0]),
                nTemplate   = array([1,-1,0]),
-               lims        = [linspace(-1,1,50)]*3):
+               limits      = [linspace(-1,1,50)]*3):
     '''
     Used to plot section as a surface
 
@@ -104,21 +104,26 @@ def get_plane( sspTemplate = array([1,1,0]),
               normal = [1,1,1]):
         '''
         Equation of plane. Since we want to avoid divison by zero, the outer function will
-        cyclically permute the axes to ensure that normal[2] is non zero
+        cyclically permute the coordinates (rolling) to ensure that normal[2] is non zero.
+
+        Parameters:
+            x        First independent variable after rolling
+            y        Second independent variable after rolling
+            normal   This is the normal, rolled so it will match x and y. Notice that
+                     the inner product dot(sspTemplate,nTemplate) is invariant under
+                     rotation, so there is no need to roll nTemplate for that calculation.
         '''
         return (dot(sspTemplate,nTemplate) - normal[0]*x - normal[1]*y)/normal[2]
 
-    i_nz          = argwhere(nTemplate)         # Indices of non-zero components
-    m,_           = i_nz.shape                  # Verify that there is at least one non-zero
+    i_nz     = argwhere(nTemplate)                         # Indices of non-zero components
+    m,_      = i_nz.shape                                  # Verify that there is at least one non-zero
     assert m>0,'Normal should not be all zeroes'
-    k             = ndarray.item(i_nz[[0]])     # Index first non-zero component
-    k_roll        = (k+1) % len(nTemplate)      # Amount to roll to left to put 1st non-zero component in last position
-    rolled_lims   = roll(lims,-k_roll)          # We also need to roll the limits by the same amount
-    xx,yy         = meshgrid(rolled_lims[0],rolled_lims[1])
-    zz            = get_z(xx,yy,normal=roll(nTemplate,-k_roll))
-    stacked       = stack([xx,yy,zz])          # Assemble result, but don't forget that we rolled earlier
-    xyz           = roll(stacked,k_roll,axis=0) # So unroll, so x,y,x are in the original order
-    return xyz[0,:,:],xyz[1,:,:],xyz[2,:,:]
+    k        = ndarray.item(i_nz[[0]])                     # Index first non-zero component
+    k_roll   = (k+1) % len(nTemplate)                      # Amount to roll to left to put 1st non-zero component in last position
+    limits   = roll(limits,-k_roll)                        # We also need to roll the limits by the same amount
+    xx,yy    = meshgrid(limits[0],limits[1])               # Independent variables
+    zz       = get_z(xx,yy,normal=roll(nTemplate,-k_roll)) # Calculate dependent variable
+    return roll(stack([xx,yy,zz]),k_roll,axis=0)           # Assemble result, then unroll, so x,y,x are in the original order
 
 if __name__=='__main__':
     with Figure(dynamics=type('Dummy',(object,),{'name':'Dummy'})) as fig:
