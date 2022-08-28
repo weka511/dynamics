@@ -55,14 +55,13 @@ class Section:
            U = (ssp - sspTemplate) . nTemplate (see ChaosBook ver. 14, eq. 3.6)
         '''
         return dot((ssp - self.sspTemplate),self.nTemplate)
-    def get_plane(self,orbit):
+
+    def get_plane(self,orbit,num=50):
         '''Used to plot section as a surface'''
-        m0 = orbit.orbit[:,:].min()
-        m1 = orbit.orbit[:,:].max()
         return get_plane(sspTemplate = self.sspTemplate,
                          nTemplate   = self.nTemplate,
-                         xs          = linspace(m0,m1,50),
-                         ys          = linspace(m0,m1,50))
+                         lims        = [linspace(m,M,
+                                                 num = num) for m,M in zip(orbit.orbit.min(axis=1),orbit.orbit.max(axis=1))])
 
 
     def crossings(self,orbit):

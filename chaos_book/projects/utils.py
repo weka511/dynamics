@@ -89,17 +89,35 @@ class Timer(AbstractContextManager):
 
 def get_plane( sspTemplate = array([1,1,0]),
                nTemplate   = array([1,-1,0]),
-               xs          = linspace(-1,1,50),
-               ys          = linspace(-1,1,50)):
-    offset = dot(sspTemplate,nTemplate)
-    i_nz   = argwhere(nTemplate)
-    m,_    = i_nz.shape
-    if m==0: raise Exception('Normal should not be zero')
-    k           = ndarray.item(i_nz[[0]])
-    k_roll      = (k+1) % len(nTemplate)
-    rolled_norm = roll(nTemplate,-k_roll)
-    xx,yy       = meshgrid(xs,ys)
-    xyz         = roll(stack([xx,yy,(offset -rolled_norm[0]*xx - rolled_norm[1]*yy)/rolled_norm[2]]),k_roll,0)
+               lims        = [linspace(-1,1,50)]*3):
+    '''
+    Used to plot section as a surface
+
+    Parameters:
+        sspTemplate
+        nTemplate
+        lims
+
+    Returns: x,y, and z coordinates for points in a plane
+    '''
+    def get_z(x,y,
+              normal = [1,1,1]):
+        '''
+        Equation of plane. Since we want to avoid divison by zero, the outer function will
+        cyclically permute the axes to ensure that normal[2] is non zero
+        '''
+        return (dot(sspTemplate,nTemplate) - normal[0]*x - normal[1]*y)/normal[2]
+
+    i_nz          = argwhere(nTemplate)         # Indices of non-zero components
+    m,_           = i_nz.shape                  # Verify that there is at least one non-zero
+    assert m>0,'Normal should not be all zeroes'
+    k             = ndarray.item(i_nz[[0]])     # Index first non-zero component
+    k_roll        = (k+1) % len(nTemplate)      # Amount to roll to left to put 1st non-zero component in last position
+    rolled_lims   = roll(lims,-k_roll)          # We also need to roll the limits by the same amount
+    xx,yy         = meshgrid(rolled_lims[0],rolled_lims[1])
+    zz            = get_z(xx,yy,normal=roll(nTemplate,-k_roll))
+    stacked       = stack([xx,yy,zz])          # Assemble result, but don't forget that we rolled earlier
+    xyz           = roll(stacked,k_roll,axis=0) # So unroll, so x,y,x are in the original order
     return xyz[0,:,:],xyz[1,:,:],xyz[2,:,:]
 
 if __name__=='__main__':
