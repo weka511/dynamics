@@ -20,7 +20,7 @@
 from contextlib        import AbstractContextManager
 from os.path           import basename, join, splitext
 from matplotlib.pyplot import figure,  savefig, show
-from numpy             import argwhere, array, dot, linspace, meshgrid, ndarray, roll, stack
+from numpy             import argwhere, array, dot, linspace, meshgrid, ndarray, stack
 from time              import time
 
 class Figure(AbstractContextManager):
@@ -100,6 +100,13 @@ def get_plane( sspTemplate = array([1,1,0]),
 
     Returns: x,y, and z coordinates for points in a plane
     '''
+    def swap(A,k1,k2):
+        '''Copy an array and then swap two "rows", i.e. entities along the first axis'''
+        A_new     = A.copy()
+        A_new[k1] = A[k2]
+        A_new[k2] = A[k1]
+        return A_new
+
     def get_z(x,y,
               normal = [1,1,1]):
         '''
@@ -118,12 +125,12 @@ def get_plane( sspTemplate = array([1,1,0]),
     i_nz     = argwhere(nTemplate)                         # Indices of non-zero components
     m,_      = i_nz.shape                                  # Verify that there is at least one non-zero
     assert m>0,'Normal should not be all zeroes'
-    k        = ndarray.item(i_nz[[0]])                     # Index first non-zero component
-    k_roll   = (k+1) % len(nTemplate)                      # Amount to roll to left to put 1st non-zero component in last position
-    limits   = roll(limits,-k_roll)                        # We also need to roll the limits by the same amount
-    xx,yy    = meshgrid(limits[0],limits[1])               # Independent variables
-    zz       = get_z(xx,yy,normal=roll(nTemplate,-k_roll)) # Calculate dependent variable
-    return roll(stack([xx,yy,zz]),k_roll,axis=0)           # Assemble result, then unroll, so x,y,x are in the original order
+    index_last_non_zero_component = i_nz[[-1]].item()
+    index_z                       = len(nTemplate)-1
+    limits                        = swap(limits,index_last_non_zero_component,index_z)
+    xx,yy                         = meshgrid(limits[0],limits[1])
+    zz       = get_z(xx,yy,normal=swap(nTemplate,index_last_non_zero_component,index_z))
+    return swap(stack([xx,yy,zz]),index_last_non_zero_component,index_z)
 
 if __name__=='__main__':
     with Figure(dynamics=type('Dummy',(object,),{'name':'Dummy'})) as fig:
