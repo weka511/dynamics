@@ -26,7 +26,7 @@
 from argparse          import ArgumentParser
 from dynamics          import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot import show
-from numpy             import array, cross, dot, linspace, meshgrid, real
+from numpy             import array, cross, dot, linspace,  real
 from numpy.linalg      import norm
 from scipy.optimize    import fsolve
 from utils             import get_plane, Figure, Timer
