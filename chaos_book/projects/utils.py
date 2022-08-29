@@ -106,6 +106,14 @@ def get_plane( sspTemplate = array([1,1,0]),
             self.k1 = k1
             self.k2 = k2
 
+        '''
+        Actually swap the two rows
+
+        Parameters:
+               A Array whose rows are to be swapped
+        Returns:
+               A with rows swapped
+        '''
         def swap(self,A):
             Product          = A.copy()
             Product[self.k1] = A[self.k2]
@@ -121,9 +129,9 @@ def get_plane( sspTemplate = array([1,1,0]),
         Parameters:
             x        First independent variable after rolling
             y        Second independent variable after rolling
-            normal   This is the normal, rolled so it will match x and y. Notice that
-                     the inner product dot(sspTemplate,nTemplate) is invariant under
-                     rotation, so there is no need to roll nTemplate for that calculation.
+            normal   This is the normal, with rows swapped so it will match x and y.
+                     The inner product dot(sspTemplate,nTemplate) is invariant,
+                     so there is no need to swap nTemplate for that calculation.
         '''
         return (dot(sspTemplate,nTemplate) - normal[0]*x - normal[1]*y)/normal[2]
 
@@ -133,8 +141,8 @@ def get_plane( sspTemplate = array([1,1,0]),
     swapper = Swapper(i_nz[[-1]].item(),len(nTemplate)-1)
     limits  = swapper.swap(limits)
     xx,yy   = meshgrid(limits[0],limits[1])
-    zz      = get_z(xx,yy,normal=swapper.swap(nTemplate))
-    return swapper.swap(stack([xx,yy,zz]))
+    return swapper.swap(stack([xx,yy,get_z(xx,yy,
+                                           normal = swapper.swap(nTemplate))]))
 
 if __name__=='__main__':
     with Figure(dynamics=type('Dummy',(object,),{'name':'Dummy'})) as fig:
