@@ -81,29 +81,44 @@ def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--dynamics',
                         choices = DynamicsFactory.products,
-                        default = DynamicsFactory.products[0])
+                        default = DynamicsFactory.products[0],
+                        help    = 'The Dynamics to be investigated')
     parser.add_argument('--dt',
                         type    = float,
-                        default = 50.0)
-    parser.add_argument('--eq',
+                        default = 50.0,
+                        help    = 'Time interval for integration')
+    parser.add_argument('--fp',
                         type     = int,
-                        default  = 0)
+                        default  = 0,
+                        help    = 'Fixed point to start from')
     parser.add_argument('--figs',
-                        default = './figs')
+                        default = './figs',
+                        help    = 'Folder to store figures')
+    parser.add_argument('--sspTemplate',
+                        nargs   = 3,
+                        type    = float,
+                        default = [1,1,0],
+                        help    = 'Template point for Poincare Section')
+    parser.add_argument('--nTemplate',
+                        nargs   = 3,
+                        type    = float,
+                        default = [1,-1,0],
+                        help    = 'Normal for Poincare Section')
     return parser.parse_args()
 
 if __name__=='__main__':
     args     = parse_args()
     dynamics = DynamicsFactory.create(args)
     eqs      = Equilibrium.create(dynamics)
-    eq       = eqs[args.eq]
-    w,v      = list(eq.get_eigendirections())[0]
+    fp       = eqs[args.fp]
+    w,v      = list(fp.get_eigendirections())[0]
     orbit    = Orbit(dynamics,
                     dt          = args.dt,
-                    origin      = eqs[args.eq],
+                    origin      = fp,
                     direction   = real(v),
                     eigenvalue  = w)
-    section  = Section()
+    section  = Section(sspTemplate = args.sspTemplate,
+                       nTemplate   = args.nTemplate)
     xs = []
     ys = []
     zs = []
