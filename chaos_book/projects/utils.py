@@ -100,12 +100,17 @@ def get_plane( sspTemplate = array([1,1,0]),
 
     Returns: x,y, and z coordinates for points in a plane
     '''
-    def swap(A,k1,k2):
+    class Swapper:
         '''Copy an array and then swap two "rows", i.e. entities along the first axis'''
-        A_new     = A.copy()
-        A_new[k1] = A[k2]
-        A_new[k2] = A[k1]
-        return A_new
+        def __init__(self,k1,k2):
+            self.k1 = k1
+            self.k2 = k2
+
+        def swap(self,A):
+            Product          = A.copy()
+            Product[self.k1] = A[self.k2]
+            Product[self.k2] = A[self.k1]
+            return Product
 
     def get_z(x,y,
               normal = [1,1,1]):
@@ -125,12 +130,11 @@ def get_plane( sspTemplate = array([1,1,0]),
     i_nz     = argwhere(nTemplate)                         # Indices of non-zero components
     m,_      = i_nz.shape                                  # Verify that there is at least one non-zero
     assert m>0,'Normal should not be all zeroes'
-    index_last_non_zero_component = i_nz[[-1]].item()
-    index_z                       = len(nTemplate)-1
-    limits                        = swap(limits,index_last_non_zero_component,index_z)
-    xx,yy                         = meshgrid(limits[0],limits[1])
-    zz       = get_z(xx,yy,normal=swap(nTemplate,index_last_non_zero_component,index_z))
-    return swap(stack([xx,yy,zz]),index_last_non_zero_component,index_z)
+    swapper = Swapper(i_nz[[-1]].item(),len(nTemplate)-1)
+    limits  = swapper.swap(limits)
+    xx,yy   = meshgrid(limits[0],limits[1])
+    zz      = get_z(xx,yy,normal=swapper.swap(nTemplate))
+    return swapper.swap(stack([xx,yy,zz]))
 
 if __name__=='__main__':
     with Figure(dynamics=type('Dummy',(object,),{'name':'Dummy'})) as fig:
