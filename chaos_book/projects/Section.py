@@ -23,13 +23,15 @@
 # Much of the code has been shamelessly stolen from Newton.py
 # on page https://phys7224.herokuapp.com/grader/homework3
 
-from argparse          import ArgumentParser
-from dynamics          import DynamicsFactory, Equilibrium, Orbit
-from matplotlib.pyplot import show
-from numpy             import array, cross, dot, linspace,  real
-from numpy.linalg      import norm
-from scipy.optimize    import fsolve
-from utils             import get_plane, Figure, Timer
+from argparse               import ArgumentParser
+from dynamics               import DynamicsFactory, Equilibrium, Orbit
+from matplotlib.pyplot      import show
+from numpy                  import argmin, argsort, argwhere, array, cross, dot, linspace, real, zeros
+from numpy.linalg           import norm
+from scipy.interpolate      import splev, splprep, splrep
+from scipy.optimize         import fsolve
+from scipy.spatial.distance import pdist, squareform
+from utils                  import get_plane, Figure
 
 class Section:
     ''' This class represents a Poincare Section'''
@@ -63,7 +65,7 @@ class Section:
                          limits      = [linspace(m, M, num = num) for m,M in zip(orbit.orbit.min(axis=1),orbit.orbit.max(axis=1))])
 
 
-    def crossings(self,orbit):
+    def get_crossings(self,orbit):
         '''Used to iterate through intersections between orbit and section'''
         for i in range(len(orbit)-1):
             u0 = self.U(orbit.orbit[:,i])
@@ -76,6 +78,81 @@ class Section:
         '''Refine an estimated intersection point '''
         dt_intersection = fsolve(lambda t: self.U(orbit.Flow(t,y)[1]), dt)[0]
         return orbit.Flow(dt_intersection, y)
+
+    def project_to_section(self,points):
+        '''Transform points on the section from (x,y,z) to coordinates embedded in surface'''
+        Transformed = dot(self.ProjPoincare, points.transpose())
+        Transformed =  Transformed.transpose()
+        return  Transformed[:, 0:2]
+
+class Recurrences:
+    '''This class keeps track of the recurrences of the Poincare map'''
+    def __init__(self,section):
+        self.section   = section
+
+    def build2D(self,crossings):
+        points3D = array([point for _,point in crossings])
+        self.points2D = self.section.project_to_section(points3D)
+        Distance, self.Sorted = self.sort_by_distance_from_centre(self.points2D)
+        self.build_interpolated(Distance)
+
+    def sort_by_distance_from_centre(self,points2D):
+        Distance = squareform(pdist(points2D))
+        n,_      = points2D.shape
+        Sorted   = points2D.copy()
+
+        for k in range(n - 1):
+            m                   = argmin(Distance[k, k + 1:]) + k + 1
+            saved_poincare_row  = Sorted[k + 1, :].copy()
+            Sorted[k + 1, :]    = Sorted[m, :]
+            Sorted[m, :]        = saved_poincare_row
+
+            saved_column        = Distance[:, k + 1].copy()
+            Distance[:, k + 1]  = Distance[:, m]
+            Distance[:, m]      = saved_column
+
+            saved_row           = Distance[k + 1, :].copy()
+            Distance[k + 1, :]  = Distance[m, :]
+            Distance[m, :]      = saved_row
+
+        return Distance, Sorted
+
+    def build_interpolated(self,Distance,num  = 1000):
+        n,_      = self.Sorted.shape
+        ArcLengthsAfterSorting = zeros(n)  # arclengths of the Poincare section points ordered by distance from centre
+        sn                     = zeros(n)  # arclengths of the Poincare section points in dynamical order
+
+        for k in range(n - 1):
+            ArcLengthsAfterSorting[k + 1]          = ArcLengthsAfterSorting[k] + Distance[k, k + 1]
+            index_in_original_poincare_section     = argwhere(self.points2D[:, 0] == self.Sorted[k + 1, 0])
+            sn[index_in_original_poincare_section] = ArcLengthsAfterSorting[k + 1]
+
+        #Parametric spline interpolation to the Poincare section:
+        self.tckPoincare, u = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
+                                                   u = ArcLengthsAfterSorting,
+                                                   s = 0)
+        self.sArray                      = linspace(min(ArcLengthsAfterSorting), max(ArcLengthsAfterSorting),
+                                                    num = num)
+
+        self.Interpolated   = self.fPoincare(self.sArray)
+        sn1                 = sn[0:-1]
+        sn2                 = sn[1:]
+        isort               = argsort(sn1)
+        self.sn1            = sn1[isort]
+        self.sn2            = sn2[isort]
+        self.tckReturn      = splrep(self.sn1,self.sn2)
+        self.snPlus1        = splev(self.sArray, self.tckReturn)
+
+    def fPoincare(self,s):
+        '''
+        Parametric interpolation to the Poincare section
+        Inputs:
+        s: Arc length which parametrizes the curve, a float or dx1-dim numpy rray
+        Outputs:
+        xy = x and y coordinates on the Poincare section, 2-dim numpy array or (dx2)-dim numpy array
+        '''
+        interpolation = splev(s, self.tckPoincare)
+        return array([interpolation[0], interpolation[1]], float).transpose()
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -106,31 +183,38 @@ def parse_args():
                         help    = 'Normal for Poincare Section')
     return parser.parse_args()
 
-if __name__=='__main__':
-    args     = parse_args()
-    dynamics = DynamicsFactory.create(args)
-    eqs      = Equilibrium.create(dynamics)
-    fp       = eqs[args.fp]
-    w,v      = list(fp.get_eigendirections())[0]
-    orbit    = Orbit(dynamics,
-                    dt          = args.dt,
-                    origin      = fp,
-                    direction   = real(v),
-                    eigenvalue  = w)
-    section  = Section(sspTemplate = args.sspTemplate,
-                       nTemplate   = args.nTemplate)
+
+
+def build_crossing_plot(crossings):
     xs = []
     ys = []
     zs = []
-    for _,ssp in section.crossings(orbit):
+    for _,ssp in crossings:
         xs.append(ssp[0])
         ys.append(ssp[1])
         zs.append(ssp[2])
+    return xs,ys,zs
+
+if __name__=='__main__':
+    args        = parse_args()
+    dynamics    = DynamicsFactory.create(args)
+    eqs         = Equilibrium.create(dynamics)
+    fp          = eqs[args.fp]
+    w,v         = list(fp.get_eigendirections())[0]
+    orbit       = Orbit(dynamics,
+                        dt          = args.dt,
+                        origin      = fp,
+                        direction   = real(v),
+                        eigenvalue  = w)
+    section     = Section(sspTemplate = args.sspTemplate,
+                          nTemplate   = args.nTemplate)
+    recurrences = Recurrences(section)
+    recurrences.build2D(section.get_crossings(orbit))
 
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics) as fig:
-        ax        = fig.add_subplot(1,1,1,projection='3d')
+        ax   = fig.add_subplot(1,2,1,projection='3d')
         xyz  = section.get_plane(orbit)
         ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
@@ -138,6 +222,7 @@ if __name__=='__main__':
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
+        xs,ys,zs  = build_crossing_plot(section.get_crossings(orbit))
         ax.scatter(xs,ys,zs,
                    color = 'xkcd:red',
                    s     = 1,
@@ -146,5 +231,26 @@ if __name__=='__main__':
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
         ax.legend()
-
+        ax = fig.add_subplot(1,2,2)
+        ax.scatter(recurrences.points2D[:, 0], recurrences.points2D[:, 1],
+                   c      = 'xkcd:red',
+                   marker = 'x',
+                   s      = 25,
+                   label  = 'Poincare Section')
+        ax.scatter(recurrences.Sorted[:, 0], recurrences.Sorted[:, 1],
+                c      = 'xkcd:blue',
+                marker = '+',
+                s      = 25,
+                label  = 'Sorted Poincare Section')
+        ax.scatter(recurrences.Interpolated[:, 0], recurrences.Interpolated[:, 1],
+                c      = 'xkcd:green',
+                marker = 'o',
+                s      = 1,
+                label  = 'Interpolated Poincare Section')
+        # ax.scatter(psfixed[0], psfixed[1],
+                   # c      = 'xkcd:magenta',
+                   # marker = 'D',
+                   # s      = 25,
+                   # label  = 'psfixed')
+        ax.legend()
     show()
