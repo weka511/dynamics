@@ -164,7 +164,23 @@ class Recurrences:
         psFixed = self.fPoincare(sfixed)
         return  sfixed,psFixed,self.section.project_to_space(psFixed)
 
+class CycleFinder:
+    def __init__(self,
+                 section     = None,
+                 recurrences = None,
+                 orbit      = None):
+        self.recurrences = recurrences
+        self.section     = section
+        self.orbit       = orbit
 
+    def find_initial_cycle(self,
+              dt0   = 0,
+              s0    = 0):
+        sfixed,psfixed,sspfixed = self.recurrences.get_fixed(s0 = s0)
+        Tguess                  = dt0 / size(self.recurrences.Sorted, 0)
+        dt                      = fsolve(lambda t: self.section.U(self.orbit.Flow(t,sspfixed)[1]), Tguess)[0]
+        print (dt, Tguess,sfixed,psfixed,sspfixed)
+        return dt, sfixed, psfixed, sspfixed
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -198,8 +214,6 @@ def parse_args():
                         default = 15.0)
     return parser.parse_args()
 
-
-
 def build_crossing_plot(crossings):
     xs = []
     ys = []
@@ -210,20 +224,7 @@ def build_crossing_plot(crossings):
         zs.append(ssp[2])
     return xs,ys,zs
 
-class CycleFinder:
-    def __init__(self,section, recurrences):
-        self.recurrences = recurrences
-        self.section     = section
 
-    def find1(self,
-              dt0    = 0,
-              s0    = 0,
-              orbit = None):
-        sfixed,psfixed,sspfixed = self.recurrences.get_fixed(s0 = args.s0)
-        Tguess                  = dt0 / size(self.recurrences.Sorted, 0)
-        dt                      = fsolve(lambda t: self.section.U(orbit.Flow(t,sspfixed)[1]), Tguess)[0]
-        print (dt, Tguess,sfixed,psfixed,sspfixed)
-        return dt, sfixed, psfixed, sspfixed
 
 if __name__=='__main__':
     args        = parse_args()
@@ -240,16 +241,21 @@ if __name__=='__main__':
                           nTemplate   = args.nTemplate)
     recurrences = Recurrences(section)
     recurrences.build2D(section.get_crossings(orbit))
-    cycle_finder = CycleFinder(section,recurrences)
-    dt, sfixed, psfixed, sspfixed = cycle_finder.find1(s0    = args.s0,
-                                                       dt0   = args.dt,
-                                                       orbit = orbit)
-    sspfixedSolution = orbit.Flow(dt,sspfixed, nstp=100)[1]
+    cycle_finder                  = CycleFinder(section     = section,
+                                                recurrences = recurrences,
+                                                orbit       = orbit)
+    dt, sfixed, psfixed, sspfixed = cycle_finder.find_initial_cycle(s0    = args.s0,
+                                                                    dt0   = args.dt)
+
+    sspfixedSolution              = orbit.Flow(dt,sspfixed, nstp=1000)[1]
+
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics,
                 width    = 12,
                 height   = 12) as fig:
+
+        fig.suptitle(dynamics.get_title())
         ax   = fig.add_subplot(2,2,1,projection='3d')
         xyz  = section.get_plane(orbit)
         ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
@@ -314,7 +320,19 @@ if __name__=='__main__':
         ax.plot(sspfixedSolution[0,:], sspfixedSolution[1,:], sspfixedSolution[2,:],
                 markersize = 1,
                 c          = 'xkcd:blue',
-                label      = 'Orbit')
+                label      = 'sspfixedSolution')
+        ax.scatter(sspfixedSolution[0,0], sspfixedSolution[1,0], sspfixedSolution[2,0],
+                   color  = 'xkcd:red',
+                   marker = 'x',
+                   s      = 25,
+                   label = 'Start')
+        ax.scatter(sspfixedSolution[0,-1], sspfixedSolution[1,-1], sspfixedSolution[2,-1],
+                   color  = 'xkcd:black',
+                   marker = '+',
+                   s      = 25,
+                   label = 'End')
+        ax.legend()
+
         fig.tight_layout()
 
     show()
