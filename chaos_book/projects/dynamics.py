@@ -331,8 +331,12 @@ class Orbit:
     def __len__(self):
         return len(self.t)
 
-    def Flow(self,deltat,y):                         #FIXME (may need work, as untested with LSODA)
+    def Flow(self,deltat,y,nstp=1):                         #FIXME (may need work, as untested with LSODA)
         '''Used to integrate for a single step'''
-        solution = solve_ivp(self.dynamics.Velocity, (0, deltat), y, method=self.method)
-        return solution.t[1],solution.y[:,1]
+        solution = solve_ivp(self.dynamics.Velocity, (0, deltat), y,
+                             method=self.method,
+                             t_eval = arange(0.0, deltat, deltat/nstp) if nstp>1 else None)
+        return  (solution.t, solution.y) if nstp>1 else (solution.t[1],solution.y[:,1])
+
+
 
