@@ -26,7 +26,7 @@
 from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
-from numpy                  import argmin, argsort, argwhere, array, cross, dot, linspace, real, zeros
+from numpy                  import argmin, argsort, argwhere, array, cross, dot, linspace, real, size, zeros
 from numpy.linalg           import norm
 from scipy.interpolate      import splev, splprep, splrep
 from scipy.optimize         import fsolve
@@ -91,50 +91,10 @@ class Recurrences:
         self.section   = section
 
     def build2D(self,crossings):
-        points3D = array([point for _,point in crossings])
-        self.points2D = self.section.project_to_section(points3D)
-        Distance, self.Sorted = self.sort_by_distance_from_centre(self.points2D)
-        self.build_interpolated(Distance)
-
-    def sort_by_distance_from_centre(self,points2D):
-        Distance = squareform(pdist(points2D))
-        n,_      = points2D.shape
-        Sorted   = points2D.copy()
-
-        for k in range(n - 1):
-            m                   = argmin(Distance[k, k + 1:]) + k + 1
-            saved_poincare_row  = Sorted[k + 1, :].copy()
-            Sorted[k + 1, :]    = Sorted[m, :]
-            Sorted[m, :]        = saved_poincare_row
-
-            saved_column        = Distance[:, k + 1].copy()
-            Distance[:, k + 1]  = Distance[:, m]
-            Distance[:, m]      = saved_column
-
-            saved_row           = Distance[k + 1, :].copy()
-            Distance[k + 1, :]  = Distance[m, :]
-            Distance[m, :]      = saved_row
-
-        return Distance, Sorted
-
-    def build_interpolated(self,Distance,num  = 1000):
-        n,_      = self.Sorted.shape
-        ArcLengthsAfterSorting = zeros(n)  # arclengths of the Poincare section points ordered by distance from centre
-        sn                     = zeros(n)  # arclengths of the Poincare section points in dynamical order
-
-        for k in range(n - 1):
-            ArcLengthsAfterSorting[k + 1]          = ArcLengthsAfterSorting[k] + Distance[k, k + 1]
-            index_in_original_poincare_section     = argwhere(self.points2D[:, 0] == self.Sorted[k + 1, 0])
-            sn[index_in_original_poincare_section] = ArcLengthsAfterSorting[k + 1]
-
-        #Parametric spline interpolation to the Poincare section:
-        self.tckPoincare, u = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
-                                                   u = ArcLengthsAfterSorting,
-                                                   s = 0)
-        self.sArray                      = linspace(min(ArcLengthsAfterSorting), max(ArcLengthsAfterSorting),
-                                                    num = num)
-
-        self.Interpolated   = self.fPoincare(self.sArray)
+        points3D                    = array([point for _,point in crossings])
+        self.points2D               = self.section.project_to_section(points3D)
+        self.Sorted, ArcLengths, sn = self.sort_by_distance_from_centre(self.points2D)
+        self.build_interpolated( ArcLengths, sn)
         sn1                 = sn[0:-1]
         sn2                 = sn[1:]
         isort               = argsort(sn1)
@@ -142,6 +102,41 @@ class Recurrences:
         self.sn2            = sn2[isort]
         self.tckReturn      = splrep(self.sn1,self.sn2)
         self.snPlus1        = splev(self.sArray, self.tckReturn)
+
+    def sort_by_distance_from_centre(self,points2D):
+        Distance   = squareform(pdist(points2D))
+        Sorted     = points2D.copy()
+        n          = size(self.points2D,0)
+        ArcLengths = zeros(n)  # arclengths of the Poincare section points ordered by distance from centre
+        sn                     = zeros(n)  # arclengths of the Poincare section points in dynamical order
+        for k in range(n - 1):
+            m                     = argmin(Distance[k, k + 1:]) + k + 1
+
+            saved                 = Sorted[k + 1, :].copy()
+            Sorted[k + 1, :] = Sorted[m, :]
+            Sorted[m, :]     = saved
+
+            saved               = Distance[:, k + 1].copy()
+            Distance[:, k + 1]  = Distance[:, m]
+            Distance[:, m]      = saved
+
+            saved               = Distance[k + 1, :].copy()
+            Distance[k + 1, :]  = Distance[m, :]
+            Distance[m, :]      = saved
+
+            ArcLengths[k + 1]                                = ArcLengths[k] + Distance[k, k + 1]
+            sn[argwhere(points2D[:, 0] == Sorted[k + 1, 0])] = ArcLengths[k + 1]
+
+        return  Sorted, ArcLengths, sn
+
+    def build_interpolated(self, ArcLengths, sn, num  = 1000):
+        self.tckPoincare,_ = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
+                                                   u = ArcLengths,
+                                                   s = 0)
+        self.sArray       = linspace(min(ArcLengths), max(ArcLengths),
+                                                    num = num)
+        self.Interpolated = self.fPoincare(self.sArray)
+
 
     def fPoincare(self,s):
         '''
