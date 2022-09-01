@@ -44,9 +44,8 @@ projects|dynamics.py|-|Common codes for a few ODEs
 -|eqs.py|-|Replicate figure 4.5 for Rossler
 -|eqsL.py|-|Show equilibria for Lorentz
 -|hypersphere.py|-|Plot areas and volumes of hyperspheres
--|Poincare.py|-|This program is intended to support my project from [Chaos: Classical and Quantum - open projects](https://chaosbook.org/) Periodic orbits and desymmetrization of the Lorenz flow
 -|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
 -|recurrences.py|-|Plot Poincare sections
 -|rgb.txt|-|RGB values for xkcd colours
--|Section.py|-|Poincare Section
+-|Section.py|-|This program is intended to support my project from [Chaos: Classical and Quantum - open projects](https://chaosbook.org/) Periodic orbits and desymmetrization of the Lorenz flow
 -|utils.py|-|Shared utility programs
