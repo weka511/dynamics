@@ -165,6 +165,7 @@ class Recurrences:
         return  sfixed,psFixed,self.section.project_to_space(psFixed)
 
 class CycleFinder:
+    '''Used to find cycles in flow'''
     def __init__(self,
                  section     = None,
                  recurrences = None,
@@ -178,42 +179,40 @@ class CycleFinder:
               s0    = 0):
         sfixed,psfixed,sspfixed = self.recurrences.get_fixed(s0 = s0)
         Tguess                  = dt0 / size(self.recurrences.Sorted, 0)
-        dt                      = fsolve(lambda t: self.section.U(self.orbit.Flow(t,sspfixed)[1]), Tguess)[0]
-        print (dt, Tguess,sfixed,psfixed,sspfixed)
-        return dt, sfixed, psfixed, sspfixed
+        return fsolve(lambda t: self.section.U(self.orbit.Flow(t,sspfixed)[1]), Tguess)[0], sfixed, psfixed, sspfixed
 
     def refine(self, Tnext, sspfixed,
                tol        = 1e-9,
                kmax       = 20,
-               orbit      = None):
-        period     = Tnext.copy()  # copy Tnext to a new variable period
-        error      = zeros(4)  # Initiate the error vector
-        Delta      = zeros(4)  # Initiate the delta vector
-        error[0:3] = orbit.Flow(period,sspfixed)[1] - sspfixed
-        Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
-        k          = 0
+               orbit      = None,
+               nstp       = 1000):
+        '''Use Newton's method to refine an estimate for a cycle. See Chaos Book chapter 7'''
+        def iterating():
+            '''Iterator for Newton's mthod'''
+            k  = 0
+            while max(abs(error)) > tol:
+                if k > kmax:
+                    raise Exception("Passed the maximum number of iterations")
+                k += 1
+                yield k
 
-        #We are going to iterate the newton method until the maximum value of the
-        #absolute error meets the tolerance:
-        while max(abs(error)) > tol:
-            if k > kmax:
-                raise Exception("Passed the maximum number of iterations")
-            k += 1
-            Newton[0:3, 0:3] = 1 - orbit.Jacobian(Tnext,sspfixed)     #First 3x3 block is 1 - J^t(x)
-            Newton[0:3, 3]   = - orbit.dynamics.Velocity(Tnext,sspfixed,)   #Fourth column is the negative velocity at time T: -v(f^T(x))
-            Newton[3, 0:3]   = self.section.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
-            Delta            = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
-            sspfixed         = sspfixed + Delta[0:3]   #Update our guesses:
-            period           = period + Delta[3]
-            error[0:3]       = orbit.Flow(period, sspfixed)[1] - sspfixed #Compute the new errors:
+        d          = dynamics.d
+        period     = Tnext.copy()
+        error      = zeros(d+1)
+        Delta      = zeros(d+1)
+        error[0:d] = orbit.Flow(period,sspfixed)[1] - sspfixed
+        Newton     = zeros((d+1, d+1))
 
-        print("Shortest periodic orbit is at: ", sspfixed[0],
-                                                 sspfixed[1],
-                                                 sspfixed[2])
-        print("Period:", period)
+        for _ in iterating():
+            Newton[0:d, 0:d] = 1 - orbit.Jacobian(Tnext,sspfixed)
+            Newton[0:d, d]   = - orbit.dynamics.Velocity(Tnext,sspfixed,)
+            Newton[d, 0:d]   = self.section.nTemplate
+            Delta            = dot(inv(Newton), error)
+            sspfixed         = sspfixed + Delta[0:d]
+            period           = period + Delta[d]
+            error[0:d]       = orbit.Flow(period, sspfixed)[1] - sspfixed
 
-        periodicOrbit = orbit.Flow(period,sspfixed,nstp=1000)[1]
-        return period, periodicOrbit
+        return period, sspfixed, orbit.Flow(period,sspfixed,nstp=nstp)[1]
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -280,8 +279,12 @@ if __name__=='__main__':
     dt, sfixed, psfixed, sspfixed = cycle_finder.find_initial_cycle(s0    = args.s0,
                                                                     dt0   = args.dt)
 
-    sspfixedSolution              = orbit.Flow(dt,sspfixed, nstp=1000)[1]
-    period, periodicOrbit         = cycle_finder.refine(dt, sspfixed, orbit      = orbit)
+    sspfixedSolution                = orbit.Flow(dt,sspfixed, nstp=1000)[1]
+    period, sspfixed1, periodicOrbit = cycle_finder.refine(dt, sspfixed, orbit      = orbit)
+    print("Shortest periodic orbit is at: ", sspfixed1[0],
+                                             sspfixed1[1],
+                                             sspfixed1[2])
+    print("Period:", period)
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics,
@@ -351,9 +354,10 @@ if __name__=='__main__':
 
         ax = fig.add_subplot(2,2,4, projection='3d')
         ax.plot(sspfixedSolution[0,:], sspfixedSolution[1,:], sspfixedSolution[2,:],
-                markersize = 25,
-                c          = 'xkcd:blue',
-                label      = 'sspfixedSolution')
+                linewidth = 5,
+                linestyle = 'dashed',
+                c         = 'xkcd:blue',
+                label     = f'Approx, period={dt:.6f}')
         ax.scatter(sspfixedSolution[0,0], sspfixedSolution[1,0], sspfixedSolution[2,0],
                    color  = 'xkcd:red',
                    marker = 'x',
@@ -365,9 +369,14 @@ if __name__=='__main__':
                    s      = 25,
                    label = 'End')
         ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
-                markersize = 1,
-                c          = 'xkcd:magenta',
-                label      = 'periodicOrbit')
+                linewidth = 1,
+                c         = 'xkcd:magenta',
+                label     = f'Orbit: period={period:.6f}')
+        ax.scatter(periodicOrbit[0,0], periodicOrbit[1,0], periodicOrbit[2,0],
+                   color  = 'xkcd:green',
+                   marker = 'o',
+                   s      = 25,
+                   label = 'Refined')
         ax.legend()
 
         fig.tight_layout()
