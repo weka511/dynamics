@@ -350,17 +350,14 @@ class Orbit:
             J: Jacobian of trajectory f^t(ssp). dxd NumPy array
         '''
 
-        Jacobian0 = identity(self.dynamics.d)
+        Jacobian0                       = identity(self.dynamics.d)
         # Initial condition for Jacobian integral is a d+d^2 dimensional matrix
         # formed by concatenation of initial condition for state space and the Jacobian:
-        sspJacobian0        = zeros(self.dynamics.d + self.dynamics.d ** 2)  # Initiate
-        sspJacobian0[0:self.dynamics.d]   = ssp  # First self.dynamics.d elemenets
-        sspJacobian0[self.dynamics.d:]    = reshape(Jacobian0, self.dynamics.d ** 2)  # Remaining 9 elements
-        tInitial            = 0
-        tFinal              = t
-        solution = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,
-                             method=self.method)
-
-        sspJacobianSolution = solution.y[:,-1]
+        sspJacobian0                    = zeros(self.dynamics.d + self.dynamics.d ** 2)
+        sspJacobian0[0:self.dynamics.d] = ssp
+        sspJacobian0[self.dynamics.d:]  = reshape(Jacobian0, self.dynamics.d ** 2)
+        solution                        = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,
+                                                    method=self.method)
+        sspJacobianSolution             = solution.y[:,-1]
         return sspJacobianSolution[ self.dynamics.d:].reshape((self.dynamics.d, self.dynamics.d))
 
