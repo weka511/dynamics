@@ -20,7 +20,7 @@
 '''A collection of classes that model ODEs '''
 
 from abc             import ABC,abstractmethod
-from numpy           import arange, array, dot, exp, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros
+from numpy           import arange, array, dot, exp, identity, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros
 from numpy.linalg    import eig, norm
 from scipy.integrate import solve_ivp
 
@@ -339,5 +339,28 @@ class Orbit:
                              t_eval = arange(0.0, deltat, deltat/nstp) if nstp>1 else None)
         return  (solution.t, solution.y) if nstp>1 else (solution.t[-1],solution.y[:,-1])
 
+    def Jacobian(self,t, ssp):
+        '''
+        Jacobian function for the trajectory started on ssp, evolved for time t
 
+        Inputs:
+            ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
+            t: Integration time
+        Outputs:
+            J: Jacobian of trajectory f^t(ssp). dxd NumPy array
+        '''
+
+        Jacobian0 = identity(self.dynamics.d)
+        # Initial condition for Jacobian integral is a d+d^2 dimensional matrix
+        # formed by concatenation of initial condition for state space and the Jacobian:
+        sspJacobian0        = zeros(self.dynamics.d + self.dynamics.d ** 2)  # Initiate
+        sspJacobian0[0:self.dynamics.d]   = ssp  # First self.dynamics.d elemenets
+        sspJacobian0[self.dynamics.d:]    = reshape(Jacobian0, self.dynamics.d ** 2)  # Remaining 9 elements
+        tInitial            = 0
+        tFinal              = t
+        solution = solve_ivp(self.dynamics.JacobianVelocity, (0, t), sspJacobian0,
+                             method=self.method)
+
+        sspJacobianSolution = solution.y[:,-1]
+        return sspJacobianSolution[ self.dynamics.d:].reshape((self.dynamics.d, self.dynamics.d))
 
