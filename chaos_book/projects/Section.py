@@ -27,7 +27,7 @@ from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
 from numpy                  import append, argmin, argsort, argwhere, array, cross, dot, linspace, real, size, zeros
-from numpy.linalg           import norm
+from numpy.linalg           import inv, norm
 from scipy.interpolate      import splev, splprep, splrep
 from scipy.optimize         import fsolve
 from scipy.spatial.distance import pdist, squareform
@@ -182,6 +182,46 @@ class CycleFinder:
         print (dt, Tguess,sfixed,psfixed,sspfixed)
         return dt, sfixed, psfixed, sspfixed
 
+    def refine(self, Tnext, sspfixed,
+               tol        = 1e-9,
+               kmax       = 20,
+               orbit      = None):
+        period     = Tnext.copy()  # copy Tnext to a new variable period
+        error      = zeros(4)  # Initiate the error vector
+        Delta      = zeros(4)  # Initiate the delta vector
+        error[0:3] = orbit.Flow(period,sspfixed)[1] - sspfixed
+        Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
+
+        k    = 0
+
+        #We are going to iterate the newton method until the maximum value of the
+        #absolute error meets the tolerance:
+        while max(abs(error)) > tol:
+            if k > kmax:
+                print("Passed the maximum number of iterations")
+                break
+            k += 1
+            print(f'Iteration {k}')
+            Newton[0:3, 0:3] = 1 - orbit.Jacobian(Tnext,sspfixed)     #First 3x3 block is 1 - J^t(x)
+            Newton[0:3, 3]  = - orbit.dynamics.Velocity(Tnext,sspfixed,)   #Fourth column is the negative velocity at time T: -v(f^T(x))
+            Newton[3, 0:3]  = self.section.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
+            Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
+            sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
+            period          = period + Delta[3]
+            error[0:3]      = orbit.Flow(period, sspfixed)[1] - sspfixed #Compute the new errors:
+
+
+        print("Shortest periodic orbit is at: ", sspfixed[0],
+                                                 sspfixed[1],
+                                                 sspfixed[2])
+        print("Period:", period)
+
+        #Let us integrate the periodic orbit:
+        # tArray        = linspace(0, period, 1000)  # Time array for solution integration
+        # periodicOrbit = odeint(Velocity, sspfixed, tArray)
+        periodicOrbit = orbit.Flow(period,sspfixed,nstp=1000)[1]
+        return period, periodicOrbit
+
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--dynamics',
@@ -248,7 +288,7 @@ if __name__=='__main__':
                                                                     dt0   = args.dt)
 
     sspfixedSolution              = orbit.Flow(dt,sspfixed, nstp=1000)[1]
-
+    period, periodicOrbit         = cycle_finder.refine(dt, sspfixed, orbit      = orbit)
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics,
@@ -331,6 +371,10 @@ if __name__=='__main__':
                    marker = '+',
                    s      = 25,
                    label = 'End')
+        ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                markersize = 1,
+                c          = 'xkcd:magenta',
+                label      = 'periodicOrbit')
         ax.legend()
 
         fig.tight_layout()
