@@ -18,7 +18,13 @@
 # This program is intended to support my project from https://chaosbook.org/
 #  Chaos: Classical and Quantum - open projects
 
-'''Periodic orbits and desymmetrization of the Lorenz flow'''
+'''
+Periodic orbits and desymmetrization of the Lorenz flow
+
+This file contains classes that model a Poincare Section and
+assist in finding recurrences and cycles. It includes test code
+for the Rossler equation.
+'''
 
 # Much of the code has been shamelessly stolen from Newton.py
 # on page https://phys7224.herokuapp.com/grader/homework3
@@ -109,11 +115,19 @@ class Recurrences:
         self.snPlus1                = splev(self.sArray, self.tckReturn)
 
     def sort_by_distance_from_centre(self,points2D):
+        '''
+        Organize crossings by distance from centre.
+
+        Returns:
+             Sorted       Crossings ordered by distance from centre. Coordinates are relative to Section
+             ArcLengths   arclengths of the Poincare section points ordered by distance from centre
+             sn           arclengths of the Poincare section points in dynamical order
+        '''
         Distance   = squareform(pdist(points2D))
         Sorted     = points2D.copy()
         n          = size(Sorted,0)
-        ArcLengths = zeros(n)  # arclengths of the Poincare section points ordered by distance from centre
-        sn         = zeros(n)  # arclengths of the Poincare section points in dynamical order
+        ArcLengths = zeros(n)
+        sn         = zeros(n)
         for k in range(n - 1):
             m                = argmin(Distance[k, k + 1:]) + k + 1
 
@@ -135,6 +149,9 @@ class Recurrences:
         return  Sorted, ArcLengths, sn
 
     def build_interpolated(self, ArcLengths, sn, num  = 1000):
+        '''
+        Represent arclengths by an interpolation
+        '''
         self.tckPoincare,_ = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
                                      u = ArcLengths,
                                      s = 0)
@@ -177,6 +194,7 @@ class CycleFinder:
     def find_initial_cycle(self,
               dt0   = 0,
               s0    = 0):
+        '''First approximation to cycle'''
         sfixed,psfixed,sspfixed = self.recurrences.get_fixed(s0 = s0)
         Tguess                  = dt0 / size(self.recurrences.Sorted, 0)
         return fsolve(lambda t: self.section.U(self.orbit.Flow(t,sspfixed)[1]), Tguess)[0], sfixed, psfixed, sspfixed
@@ -215,18 +233,19 @@ class CycleFinder:
         return period, sspfixed, orbit.Flow(period,sspfixed,nstp=nstp)[1]
 
 def parse_args():
+    '''Parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--dynamics',
                         choices = DynamicsFactory.products,
-                        default = DynamicsFactory.products[0],
+                        default = 'Rossler',
                         help    = 'The Dynamics to be investigated')
     parser.add_argument('--dt',
                         type    = float,
-                        default = 50.0,
+                        default = 900.0,
                         help    = 'Time interval for integration')
     parser.add_argument('--fp',
                         type     = int,
-                        default  = 0,
+                        default  = 1,
                         help    = 'Fixed point to start from')
     parser.add_argument('--figs',
                         default = './figs',
@@ -234,19 +253,20 @@ def parse_args():
     parser.add_argument('--sspTemplate',
                         nargs   = 3,
                         type    = float,
-                        default = [1,1,0],
+                        default = [1, 0 ,0],
                         help    = 'Template point for Poincare Section')
     parser.add_argument('--nTemplate',
                         nargs   = 3,
                         type    = float,
-                        default = [1,-1,0],
+                        default = [0, 1, 0],
                         help    = 'Normal for Poincare Section')
     parser.add_argument('--s0',
                         type    = float,
-                        default = 15.0)
+                        default = 12.0)
     return parser.parse_args()
 
 def build_crossing_plot(crossings):
+    '''Used to construct plot for crossing section'''
     xs = []
     ys = []
     zs = []
