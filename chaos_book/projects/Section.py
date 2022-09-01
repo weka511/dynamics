@@ -191,34 +191,27 @@ class CycleFinder:
         Delta      = zeros(4)  # Initiate the delta vector
         error[0:3] = orbit.Flow(period,sspfixed)[1] - sspfixed
         Newton     = zeros((4, 4))  # Initiate the 4x4 Newton matrix
-
-        k    = 0
+        k          = 0
 
         #We are going to iterate the newton method until the maximum value of the
         #absolute error meets the tolerance:
         while max(abs(error)) > tol:
             if k > kmax:
-                print("Passed the maximum number of iterations")
-                break
+                raise Exception("Passed the maximum number of iterations")
             k += 1
-            print(f'Iteration {k}')
             Newton[0:3, 0:3] = 1 - orbit.Jacobian(Tnext,sspfixed)     #First 3x3 block is 1 - J^t(x)
-            Newton[0:3, 3]  = - orbit.dynamics.Velocity(Tnext,sspfixed,)   #Fourth column is the negative velocity at time T: -v(f^T(x))
-            Newton[3, 0:3]  = self.section.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
-            Delta           = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
-            sspfixed        = sspfixed + Delta[0:3]   #Update our guesses:
-            period          = period + Delta[3]
-            error[0:3]      = orbit.Flow(period, sspfixed)[1] - sspfixed #Compute the new errors:
-
+            Newton[0:3, 3]   = - orbit.dynamics.Velocity(Tnext,sspfixed,)   #Fourth column is the negative velocity at time T: -v(f^T(x))
+            Newton[3, 0:3]   = self.section.nTemplate# dot(nTemplate,error[0:2])   #Fourth row is the Poincare section constraint:
+            Delta            = dot(inv(Newton), error)     #Now we will invert this matrix and act on the error vector to find the updates to our guesses:
+            sspfixed         = sspfixed + Delta[0:3]   #Update our guesses:
+            period           = period + Delta[3]
+            error[0:3]       = orbit.Flow(period, sspfixed)[1] - sspfixed #Compute the new errors:
 
         print("Shortest periodic orbit is at: ", sspfixed[0],
                                                  sspfixed[1],
                                                  sspfixed[2])
         print("Period:", period)
 
-        #Let us integrate the periodic orbit:
-        # tArray        = linspace(0, period, 1000)  # Time array for solution integration
-        # periodicOrbit = odeint(Velocity, sspfixed, tArray)
         periodicOrbit = orbit.Flow(period,sspfixed,nstp=1000)[1]
         return period, periodicOrbit
 
@@ -358,7 +351,7 @@ if __name__=='__main__':
 
         ax = fig.add_subplot(2,2,4, projection='3d')
         ax.plot(sspfixedSolution[0,:], sspfixedSolution[1,:], sspfixedSolution[2,:],
-                markersize = 1,
+                markersize = 25,
                 c          = 'xkcd:blue',
                 label      = 'sspfixedSolution')
         ax.scatter(sspfixedSolution[0,0], sspfixedSolution[1,0], sspfixedSolution[2,0],
