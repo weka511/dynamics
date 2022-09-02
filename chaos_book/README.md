@@ -44,6 +44,7 @@ projects|dynamics.py|-|Common codes for a few ODEs
 -|eqs.py|-|Replicate figure 4.5 for Rossler
 -|eqsL.py|-|Show equilibria for Lorentz
 -|hypersphere.py|-|Plot areas and volumes of hyperspheres
+-|integrators.py|-|Verify that all integration methods give same results for initial orbit
 -|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
 -|recurrences.py|-|Plot Poincare sections
 -|rgb.txt|-|RGB values for xkcd colours
