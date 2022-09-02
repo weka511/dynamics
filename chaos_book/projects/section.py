@@ -203,7 +203,9 @@ class CycleFinder:
                tol        = 1e-9,
                kmax       = 20,
                orbit      = None,
-               nstp       = 1000):
+               nstp       = 1000,
+               freq       = None,
+               alpha      = 1.0):
         '''Use Newton's method to refine an estimate for a cycle. See Chaos Book chapter 7'''
         def iterating():
             '''Iterator for Newton's mthod'''
@@ -212,22 +214,24 @@ class CycleFinder:
                 if k > kmax:
                     raise Exception("Passed the maximum number of iterations")
                 k += 1
+                if freq != None and k%freq == 0:
+                    print (f'Iteration {k} error = {max(abs(error))}')
                 yield k
 
-        d          = dynamics.d
+        d          = orbit.dynamics.d
         period     = Tnext.copy()
         error      = zeros(d+1)
         Delta      = zeros(d+1)
         error[0:d] = orbit.Flow(period,sspfixed)[1] - sspfixed
         Newton     = zeros((d+1, d+1))
 
-        for _ in iterating():
+        for k in iterating():
             Newton[0:d, 0:d] = 1 - orbit.Jacobian(Tnext,sspfixed)
             Newton[0:d, d]   = - orbit.dynamics.Velocity(Tnext,sspfixed,)
             Newton[d, 0:d]   = self.section.nTemplate
             Delta            = dot(inv(Newton), error)
-            sspfixed         = sspfixed + Delta[0:d]
-            period           = period + Delta[d]
+            sspfixed         = sspfixed +alpha* Delta[0:d]
+            period           = period + alpha*Delta[d]
             error[0:d]       = orbit.Flow(period, sspfixed)[1] - sspfixed
 
         return period, sspfixed, orbit.Flow(period,sspfixed,nstp=nstp)[1]
