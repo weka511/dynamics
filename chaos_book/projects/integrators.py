@@ -30,17 +30,23 @@ from numpy                  import real
 from utils                  import Figure, Timer
 
 
-def get_linestyle(i,n=6,m=5):
+def get_linestyle(i,n=7,m=5):
     '''Used to distinguish individual plots'''
-    return (i, ((n-i)//2,m+i))
+    return (0, ((n-i)//2,m+i))
 
 def parse_args():
     '''Parse command line arguments'''
+    methods = ['RK45','RK23','DOP853','Radau','BDF','LSODA']
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--dynamics',
                         choices = DynamicsFactory.products,
                         default = 'ProtoLorentz',
                         help    = 'The Dynamics to be investigated')
+    parser.add_argument('--methods',
+                        choices = methods,
+                        nargs   = '+',
+                        default = methods,
+                        help    = 'Allows us to focus on a subset of the available methods')
     parser.add_argument('--dt',
                         type    = float,
                         default = 20.0,
@@ -77,7 +83,7 @@ if __name__=='__main__':
         fig.suptitle(dynamics.get_title())
         ax   = fig.add_subplot(1,1,1,projection='3d')
 
-        for i,method in enumerate(['RK45','RK23','DOP853','Radau','BDF','LSODA']):
+        for i,method in enumerate(args.methods):
             with Timer(silent=True) as timer:
                 orbit = Orbit(dynamics,
                               method     = method,
@@ -88,6 +94,7 @@ if __name__=='__main__':
 
                 ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                         linestyle = get_linestyle(i) if args.linestyles else None,
+                        c = ['xkcd:green','xkcd:purple','xkcd:red','xkcd:blue','xkcd:cyan','xkcd:yellow'][i],
                         label     = f'{method:>8}, nfev={orbit.nfev:>6}, dt={timer.get_elapsed():>.2f} sec.')
 
         ax.set_xlabel('X')
