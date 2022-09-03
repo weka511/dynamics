@@ -327,6 +327,7 @@ class Orbit:
                                      t_eval = arange(0.0, dt, dt/nstp))
         self.orbit       = solution.y
         self.t           = solution.t
+        self.nfev        = solution.nfev
 
     def __len__(self):
         return len(self.t)
