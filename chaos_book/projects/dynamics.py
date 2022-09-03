@@ -325,9 +325,12 @@ class Orbit:
         solution         = solve_ivp(dynamics.Velocity,  (0.0, dt), y0,
                                      method = self.method,
                                      t_eval = arange(0.0, dt, dt/nstp))
-        self.orbit       = solution.y
-        self.t           = solution.t
-        self.nfev        = solution.nfev
+        if solution.status==0:
+            self.orbit       = solution.y
+            self.t           = solution.t
+            self.nfev        = solution.nfev
+        else:
+            raise Exception(f'solve_ivp failed {solution.status}')
 
     def __len__(self):
         return len(self.t)
