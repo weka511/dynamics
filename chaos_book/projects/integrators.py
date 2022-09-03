@@ -17,7 +17,11 @@
 
 # This program is intended to support my project from https://chaosbook.org/
 
-'''Verify that all integration methods give same results for initial orbit'''
+'''
+Verify that all integration methods give same results for initial orbit
+
+Spoiler: they don't!
+'''
 
 from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
@@ -28,7 +32,7 @@ from utils                  import Figure, Timer
 
 def get_linestyle(i,n=6,m=5):
     '''Used to distinguish individual plots'''
-    return (0, ((n-i)//2,m+i))
+    return (i, ((n-i)//2,m+i))
 
 def parse_args():
     '''Parse command line arguments'''
@@ -48,7 +52,14 @@ def parse_args():
     parser.add_argument('--figs',
                         default = './figs',
                         help    = 'Folder to store figures')
-
+    parser.add_argument('--linestyles',
+                        default = False,
+                        action = 'store_true',
+                        help   = 'Use a different linestyle for each method')
+    parser.add_argument('--show',
+                        default = False,
+                        action = 'store_true',
+                        help   = 'Show plot (otherwise, just save to file)')
     return parser.parse_args()
 
 if __name__=='__main__':
@@ -69,18 +80,20 @@ if __name__=='__main__':
         for i,method in enumerate(['RK45','RK23','DOP853','Radau','BDF','LSODA']):
             with Timer(silent=True) as timer:
                 orbit = Orbit(dynamics,
+                              method     = method,
                               dt         = args.dt,
                               origin     = fp,
                               direction  = real(v),
                               eigenvalue = w)
 
                 ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
-                        linestyle = get_linestyle(i),
-                        label = f'{method} {timer.get_elapsed():.2f} sec.')
+                        linestyle = get_linestyle(i) if args.linestyles else None,
+                        label     = f'{method:>8}, nfev={orbit.nfev:>6}, dt={timer.get_elapsed():>.2f} sec.')
 
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        ax.legend()
+        ax.legend(prop={'family': 'monospace'})
 
-    show()
+    if args.show:
+        show()
