@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-'''A few utility classes'''
+'''Utility classes for use by other programs'''
 
 from contextlib        import AbstractContextManager
 from os.path           import basename, join, splitext
@@ -76,16 +76,21 @@ class Timer(AbstractContextManager):
     Context Manager for estimating time
     Prints the elapsed time from __enter__(...) to __exit__(...)
     '''
-    def __init__(self,name='Timer'):
-        self.name = name
+    def __init__(self,name='Timer',silent=False):
+        self.name   = name
+        self.silent = silent
 
     def __enter__(self):
         self.start = time()
-        return self.start
+        return self
 
     def __exit__(self,exc_type, exc_val, exc_tb):
-        print (f'{self.name}: Elapsed time = {time()-self.start:.0f} seconds')
+        if not self.silent:
+            print (f'{self.name}: Elapsed time = {time()-self.start:.0f} seconds')
         return exc_type==None and exc_val==None and exc_tb==None
+
+    def get_elapsed(self):
+        return time()-self.start
 
 def get_plane( sspTemplate = array([1,1,0]),
                nTemplate   = array([1,-1,0]),
