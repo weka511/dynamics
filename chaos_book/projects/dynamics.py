@@ -21,7 +21,7 @@
 
 from abc             import ABC,abstractmethod
 from numpy           import arange, array, dot, exp, identity, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros
-from numpy.linalg    import eig, norm
+from scipy.linalg    import eig, norm
 from scipy.integrate import solve_ivp
 
 class Dynamics(ABC):
@@ -312,7 +312,8 @@ class Orbit:
                  orientation = +1,
                  origin      = array([0,0,0]),
                  eigenvalue  = 1,
-                 method      = 'RK45'):
+                 method      = 'RK45',
+                 events      = None):
         self.dynamics    = dynamics
         self.direction   = direction
         self.eigenvalue  = eigenvalue
@@ -324,11 +325,14 @@ class Orbit:
                                            origin      = origin)
         solution         = solve_ivp(dynamics.Velocity,  (0.0, dt), y0,
                                      method = self.method,
-                                     t_eval = arange(0.0, dt, dt/nstp))
+                                     t_eval = arange(0.0, dt, dt/nstp),
+                                     events = events)
         if solution.status==0:
-            self.orbit       = solution.y
-            self.t           = solution.t
-            self.nfev        = solution.nfev
+            self.orbit    = solution.y
+            self.t        = solution.t
+            self.nfev     = solution.nfev
+            self.t_events = solution.t_events
+            self.y_events = solution.y_events
         else:
             raise Exception(f'solve_ivp failed {solution.status}')
 

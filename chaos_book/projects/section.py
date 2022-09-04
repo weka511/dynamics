@@ -72,18 +72,12 @@ class Section:
 
 
     def get_crossings(self,orbit):
-        '''Used to iterate through intersections between orbit and section'''
-        for i in range(len(orbit)-1):
-            u0 = self.U(orbit.orbit[:,i])
-            u1 = self.U(orbit.orbit[:,i+1])
-            if u0<0 and u1>0:
-                ratio = abs(u0)/(abs(u0)+u1)
-                yield self.refine_intersection(orbit, ratio*(orbit.t[i+1] - orbit.t[i]), orbit.orbit[:,i])
-
-    def refine_intersection(self,orbit, dt, y):
-        '''Refine an estimated intersection point '''
-        dt_intersection = fsolve(lambda t: self.U(orbit.Flow(t,y)[1]), dt)[0]
-        return orbit.Flow(dt_intersection, y)
+        t0 = 0
+        t_events = orbit.t_events[0]
+        y_events = orbit.y_events[0]
+        for i in range(len(t_events)):
+            yield t_events[i]-t0,array(y_events[i])
+            t0 = t_events[i]
 
     def project_to_section(self,points):
         '''Transform points on the section from (x,y,z) to coordinates embedded in surface'''
@@ -284,17 +278,21 @@ def build_crossing_plot(crossings):
 
 if __name__=='__main__':
     args        = parse_args()
+    section     = Section(sspTemplate = args.sspTemplate,
+                          nTemplate   = args.nTemplate)
     dynamics    = DynamicsFactory.create(args)
     eqs         = Equilibrium.create(dynamics)
     fp          = eqs[args.fp]
     w,v         = list(fp.get_eigendirections())[0]
+    event       = lambda t,y: section.U(y)
+    event.direction = 1.0
     orbit       = Orbit(dynamics,
                         dt          = args.dt,
                         origin      = fp,
                         direction   = real(v),
-                        eigenvalue  = w)
-    section     = Section(sspTemplate = args.sspTemplate,
-                          nTemplate   = args.nTemplate)
+                        eigenvalue  = w,
+                        events      = event)
+
     recurrences = Recurrences(section)
     recurrences.build2D(section.get_crossings(orbit))
     cycle_finder                  = CycleFinder(section     = section,
