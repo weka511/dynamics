@@ -46,7 +46,6 @@ projects|dynamics.py|-|Common codes for a few ODEs
 -|hypersphere.py|-|Plot areas and volumes of hyperspheres
 -|integrators.py|-|Verify that all integration methods give same results for initial orbit
 -|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
--|recurrences.py|-|Plot Poincare sections
 -|rgb.txt|-|RGB values for xkcd colours
 -|Section.py|-|This program is intended to support my project from [Chaos: Classical and Quantum - open projects](https://chaosbook.org/) Periodic orbits and desymmetrization of the Lorenz flow
 -|utils.py|-|Shared utility programs
