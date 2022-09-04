@@ -74,27 +74,13 @@ class Section:
 
     def establish_crossings(self,direction = 1.0):
         '''
-        Establish the definition of an orbit corssing section.
+        Establish the definition of an orbit crossing section.
 
         Used by Orbit to define events for solve_ivp.
         '''
         event           = lambda t,y: self.U(y)
         event.direction = direction
         return event
-
-
-
-def build_crossing_plot(crossings):
-    '''Used to construct plot for crossing section'''
-    xs = []
-    ys = []
-    zs = []
-    for _,ssp in crossings:
-        xs.append(ssp[0])
-        ys.append(ssp[1])
-        zs.append(ssp[2])
-    return xs,ys,zs
-
 
 def parse_args():
     '''Parse command line arguments'''
@@ -153,14 +139,15 @@ if __name__=='__main__':
         fig.suptitle(dynamics.get_title())
         ax   = fig.add_subplot(1,1,1,projection='3d')
         xyz  = section.get_plane(orbit)
+        crossings = array([ssp for _,ssp in orbit.get_events()])
         ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
                         alpha = 0.5)
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
-        xs,ys,zs  = build_crossing_plot(orbit.get_events())
-        ax.scatter(xs,ys,zs,
+
+        ax.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
                    color = 'xkcd:red',
                    s     = 1,
                    label = 'Crossings')

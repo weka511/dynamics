@@ -217,19 +217,6 @@ def parse_args():
                         default = 12.0)
     return parser.parse_args()
 
-def build_crossing_plot(crossings):
-    '''Used to construct plot for crossing section'''
-    xs = []
-    ys = []
-    zs = []
-    for _,ssp in crossings:
-        xs.append(ssp[0])
-        ys.append(ssp[1])
-        zs.append(ssp[2])
-    return xs,ys,zs
-
-
-
 
 if __name__=='__main__':
     args        = parse_args()
@@ -270,14 +257,15 @@ if __name__=='__main__':
         fig.suptitle(dynamics.get_title())
         ax   = fig.add_subplot(2,2,1,projection='3d')
         xyz  = section.get_plane(orbit)
+        crossings = array([ssp for _,ssp in orbit.get_events()])
         ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
                         alpha = 0.5)
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
-        xs,ys,zs  = build_crossing_plot(orbit.get_events())
-        ax.scatter(xs,ys,zs,
+
+        ax.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
                    color = 'xkcd:red',
                    s     = 1,
                    label = 'Crossings')
