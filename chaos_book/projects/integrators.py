@@ -94,7 +94,7 @@ if __name__=='__main__':
 
                 ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                         linestyle = get_linestyle(i) if args.linestyles else None,
-                        c = ['xkcd:green','xkcd:purple','xkcd:red','xkcd:blue','xkcd:cyan','xkcd:yellow'][i],
+                        c         = ['xkcd:green','xkcd:purple','xkcd:red','xkcd:blue','xkcd:cyan','xkcd:yellow'][i],
                         label     = f'{method:>8}, nfev={orbit.nfev:>6}, dt={timer.get_elapsed():>.2f} sec.')
 
         ax.set_xlabel('X')
