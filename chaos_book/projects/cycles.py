@@ -32,103 +32,68 @@ from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
 from numpy                  import argmin, argsort, argwhere, array, dot, linspace, real, size, zeros
+from recurrence             import Recurrences
 from scipy.linalg           import inv, norm
 from scipy.interpolate      import splev, splprep, splrep
 from scipy.optimize         import fsolve
-from scipy.spatial.distance import pdist, squareform
 from section                import Section
 from utils                  import get_plane, Figure
 
 
-class Recurrences:
-    '''This class keeps track of the recurrences of the Poincare map'''
-    def __init__(self,section):
-        self.section   = section
+class CycleFinder:
+    '''Used to find cycles in flow'''
+    def __init__(self,
+                 section     = None,
+                 recurrences = None,
+                 orbit      = None):
+        self.recurrences = recurrences
+        self.section     = section
+        self.orbit       = orbit
 
-    def build2D(self,crossings):
-        '''
-        Build up a collection of crossings organized by distance from centre,
-        plus an interpolation polynomial that we can use to find fixed points.
-        '''
-        self.points2D               = self.section.project_to_section(array([point for _,point in crossings]))
-        self.Sorted, ArcLengths, sn = self.sort_by_distance_from_centre(self.points2D)
-        self.Interpolated           = self.build_interpolated( ArcLengths, sn)
-        sn1                         = sn[0:-1]
-        sn2                         = sn[1:]
-        isort                       = argsort(sn1)
-        self.sn1                    = sn1[isort]
-        self.sn2                    = sn2[isort]
-        self.tckReturn              = splrep(self.sn1,self.sn2)
-        self.snPlus1                = splev(self.sArray, self.tckReturn)
+    def find_initial_cycle(self,
+              dt0   = 0,
+              s0    = 0):
+        '''First approximation to cycle'''
+        sfixed,psfixed,sspfixed = self.recurrences.get_fixed(s0 = s0)
+        Tguess                  = dt0 / size(self.recurrences.Sorted, 0)
+        return fsolve(lambda t: self.section.U(self.orbit.Flow(t,sspfixed)[1]), Tguess)[0], sfixed, psfixed, sspfixed
 
-    def sort_by_distance_from_centre(self,points2D):
-        '''
-        Organize crossings by distance from centre.
+    def refine(self, Tnext, sspfixed,
+               tol        = 1e-9,
+               kmax       = 20,
+               orbit      = None,
+               nstp       = 1000,
+               freq       = None,
+               alpha      = 1.0):
+        '''Use Newton's method to refine an estimate for a cycle. See Chaos Book chapter 7'''
+        def iterating():
+            '''Iterator for Newton's mthod'''
+            k  = 0
+            while max(abs(error)) > tol:
+                if k > kmax:
+                    raise Exception("Passed the maximum number of iterations")
+                k += 1
+                if freq != None and k%freq == 0:
+                    print (f'Iteration {k} error = {max(abs(error))}')
+                yield k
 
-        Returns:
-             Sorted       Crossings ordered by distance from centre. Coordinates are relative to Section
-             ArcLengths   arclengths of the Poincare section points ordered by distance from centre
-             sn           arclengths of the Poincare section points in dynamical order
-        '''
-        Distance   = squareform(pdist(points2D))
-        Sorted     = points2D.copy()
-        n          = size(Sorted,0)
-        ArcLengths = zeros(n)
-        sn         = zeros(n)
-        for k in range(n - 1):
-            m                = argmin(Distance[k, k + 1:]) + k + 1
+        d          = orbit.dynamics.d
+        period     = Tnext.copy()
+        error      = zeros(d+1)
+        Delta      = zeros(d+1)
+        error[0:d] = orbit.Flow(period,sspfixed)[1] - sspfixed
+        Newton     = zeros((d+1, d+1))
 
-            temp             = Sorted[k + 1, :].copy()
-            Sorted[k + 1, :] = Sorted[m, :]
-            Sorted[m, :]     = temp
+        for k in iterating():
+            Newton[0:d, 0:d] = 1 - orbit.Jacobian(Tnext,sspfixed)
+            Newton[0:d, d]   = - orbit.dynamics.Velocity(Tnext,sspfixed,)
+            Newton[d, 0:d]   = self.section.nTemplate
+            Delta            = dot(inv(Newton), error)
+            sspfixed         = sspfixed +alpha* Delta[0:d]
+            period           = period + alpha*Delta[d]
+            error[0:d]       = orbit.Flow(period, sspfixed)[1] - sspfixed
 
-            temp               = Distance[:, k + 1].copy()
-            Distance[:, k + 1] = Distance[:, m]
-            Distance[:, m]     = temp
-
-            temp               = Distance[k + 1, :].copy()
-            Distance[k + 1, :] = Distance[m, :]
-            Distance[m, :]     = temp
-
-            ArcLengths[k + 1]                                = ArcLengths[k] + Distance[k, k + 1]
-            sn[argwhere(points2D[:, 0] == Sorted[k + 1, 0])] = ArcLengths[k + 1]
-
-        return  Sorted, ArcLengths, sn
-
-    def build_interpolated(self, ArcLengths, sn, num  = 1000):
-        '''
-        Represent arclengths by an interpolation
-        '''
-        self.tckPoincare,_ = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
-                                     u = ArcLengths,
-                                     s = 0)
-        self.sArray       = linspace(min(ArcLengths), max(ArcLengths),
-                                     num = num)
-        return self.fPoincare(self.sArray)
-
-
-    def fPoincare(self,s):
-        '''
-        Parametric interpolation to the Poincare section
-        Inputs:
-        s: Arc length which parametrizes the curve, a float or dx1-dim numpy rray
-        Outputs:
-        xy = x and y coordinates on the Poincare section, 2-dim numpy array or (dx2)-dim numpy array
-        '''
-        interpolation = splev(s, self.tckPoincare)
-        return array([interpolation[0], interpolation[1]], float).transpose()
-
-    def ReturnMap(self,r):
-        '''This function is zero when r is a fixed point of the interpolated return map'''
-        return splev(r, self.tckReturn) - r
-
-    def get_fixed(self, s0=5):
-        '''Find fixed points of return map'''
-        sfixed  = fsolve(self.ReturnMap, s0)[0]
-        psFixed = self.fPoincare(sfixed)
-        return  sfixed,psFixed,self.section.project_to_space(psFixed)
-
-
+        return period, sspfixed, orbit.Flow(period,sspfixed,nstp=nstp)[1]
 
 def parse_args():
     '''Parse command line arguments'''
@@ -158,7 +123,9 @@ def parse_args():
                         type    = float,
                         default = [0, 1, 0],
                         help    = 'Normal for Poincare Section')
-
+    parser.add_argument('--s0',
+                        type    = float,
+                        default = 12.0)
     return parser.parse_args()
 
 
@@ -180,8 +147,18 @@ if __name__=='__main__':
 
     recurrences = Recurrences(section)
     recurrences.build2D(orbit.get_events())
+    cycle_finder                  = CycleFinder(section     = section,
+                                                recurrences = recurrences,
+                                                orbit       = orbit)
+    dt, sfixed, psfixed, sspfixed = cycle_finder.find_initial_cycle(s0    = args.s0,
+                                                                    dt0   = args.dt)
 
-
+    sspfixedSolution                = orbit.Flow(dt,sspfixed, nstp=1000)[1]
+    period, sspfixed1, periodicOrbit = cycle_finder.refine(dt, sspfixed, orbit      = orbit)
+    print("Shortest periodic orbit is at: ", sspfixed1[0],
+                                             sspfixed1[1],
+                                             sspfixed1[2])
+    print("Period:", period)
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics,
@@ -223,7 +200,11 @@ if __name__=='__main__':
                 marker = 'o',
                 s      = 1,
                 label  = 'Interpolated Poincare Section')
-
+        ax.scatter(psfixed[0], psfixed[1],
+                   c      = 'xkcd:magenta',
+                   marker = 'D',
+                   s      = 25,
+                   label  = 'psfixed')
         ax.set_xlabel('$\\hat{x}\'$')
         ax.set_ylabel('$z$')
         ax.legend()
@@ -246,7 +227,32 @@ if __name__=='__main__':
         ax.legend()
         ax.set_title('Arc Lengths')
 
-
+        ax = fig.add_subplot(2,2,4, projection='3d')
+        ax.plot(sspfixedSolution[0,:], sspfixedSolution[1,:], sspfixedSolution[2,:],
+                linewidth = 5,
+                linestyle = 'dashed',
+                c         = 'xkcd:blue',
+                label     = f'Approx, period={dt:.6f}')
+        ax.scatter(sspfixedSolution[0,0], sspfixedSolution[1,0], sspfixedSolution[2,0],
+                   color  = 'xkcd:red',
+                   marker = 'x',
+                   s      = 25,
+                   label = 'Start')
+        ax.scatter(sspfixedSolution[0,-1], sspfixedSolution[1,-1], sspfixedSolution[2,-1],
+                   color  = 'xkcd:black',
+                   marker = '+',
+                   s      = 25,
+                   label = 'End')
+        ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+                linewidth = 1,
+                c         = 'xkcd:magenta',
+                label     = f'Orbit: period={period:.6f}')
+        ax.scatter(periodicOrbit[0,0], periodicOrbit[1,0], periodicOrbit[2,0],
+                   color  = 'xkcd:green',
+                   marker = 'o',
+                   s      = 25,
+                   label = 'Refined')
+        ax.legend()
 
         fig.tight_layout()
 
