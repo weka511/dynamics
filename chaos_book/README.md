@@ -47,5 +47,6 @@ projects|dynamics.py|-|Common codes for a few ODEs
 -|integrators.py|-|Verify that all integration methods give same results for initial orbit
 -|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
 -|rgb.txt|-|RGB values for xkcd colours
--|Section.py|-|This program is intended to support my project from [Chaos: Classical and Quantum - open projects](https://chaosbook.org/) Periodic orbits and desymmetrization of the Lorenz flow
+-|recurrence.py|-|
+-|section.py|-|Code to represent a Poincaré Section
 -|utils.py|-|Shared utility programs
