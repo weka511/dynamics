@@ -295,6 +295,7 @@ class Equilibrium:
                 yield f'Period={T:.4f}, Lambda={Lambda:.4f}'
 
 class Orbit:
+    '''Represents the orbit, starting at a specfied point '''
     @classmethod
     def get_start(cls,
                   epsilon     = 0.00001,
@@ -314,6 +315,20 @@ class Orbit:
                  eigenvalue  = 1,
                  method      = 'RK45',
                  events      = None):
+        '''
+        Parameters:
+            dynamics,
+            dt
+            nstp
+            epsilon
+            direction
+            orientation
+            origin
+            eigenvalue
+            method
+            events
+        '''
+
         self.dynamics    = dynamics
         self.direction   = direction
         self.eigenvalue  = eigenvalue
@@ -337,6 +352,7 @@ class Orbit:
             raise Exception(f'solve_ivp failed {solution.status}')
 
     def __len__(self):
+        '''Number of time points in solution'''
         return len(self.t)
 
     def Flow(self,deltat,y,
@@ -359,8 +375,6 @@ class Orbit:
         '''
 
         Jacobian0                       = identity(self.dynamics.d)
-        # Initial condition for Jacobian integral is a d+d^2 dimensional matrix
-        # formed by concatenation of initial condition for state space and the Jacobian:
         sspJacobian0                    = zeros(self.dynamics.d + self.dynamics.d ** 2)
         sspJacobian0[0:self.dynamics.d] = ssp
         sspJacobian0[self.dynamics.d:]  = reshape(Jacobian0, self.dynamics.d ** 2)
@@ -369,3 +383,7 @@ class Orbit:
         sspJacobianSolution             = solution.y[:,-1]
         return sspJacobianSolution[ self.dynamics.d:].reshape((self.dynamics.d, self.dynamics.d))
 
+    def get_events(self,n = 0):
+        '''Used to find points where orbit crosses section'''
+        for t,y in zip(self.t_events[n],self.y_events[n]):
+            yield t,array(y)

@@ -71,13 +71,6 @@ class Section:
                          limits      = [linspace(m, M, num = num) for m,M in zip(orbit.orbit.min(axis=1),orbit.orbit.max(axis=1))])
 
 
-    def get_crossings(self,orbit):
-        t0 = 0
-        t_events = orbit.t_events[0]
-        y_events = orbit.y_events[0]
-        for i in range(len(t_events)):
-            yield t_events[i]-t0,array(y_events[i])
-            t0 = t_events[i]
 
     def project_to_section(self,points):
         '''Transform points on the section from (x,y,z) to coordinates embedded in surface'''
@@ -86,6 +79,16 @@ class Section:
     def project_to_space(self,point):
         '''Transform a point embedded in surface back to (x,y,z) coordinates '''
         return dot(append(point, 0.0), self.ProjPoincare)
+
+    def establish_crossings(self,direction = 1.0):
+        '''
+        Establish the definition of an orbit corssing section.
+
+        Used by Orbit to define events for solve_ivp.
+        '''
+        event           = lambda t,y: self.U(y)
+        event.direction = direction
+        return event
 
 class Recurrences:
     '''This class keeps track of the recurrences of the Poincare map'''
@@ -276,6 +279,7 @@ def build_crossing_plot(crossings):
 
 
 
+
 if __name__=='__main__':
     args        = parse_args()
     section     = Section(sspTemplate = args.sspTemplate,
@@ -284,17 +288,16 @@ if __name__=='__main__':
     eqs         = Equilibrium.create(dynamics)
     fp          = eqs[args.fp]
     w,v         = list(fp.get_eigendirections())[0]
-    event       = lambda t,y: section.U(y)
-    event.direction = 1.0
+
     orbit       = Orbit(dynamics,
                         dt          = args.dt,
                         origin      = fp,
                         direction   = real(v),
                         eigenvalue  = w,
-                        events      = event)
+                        events      = section.establish_crossings())
 
     recurrences = Recurrences(section)
-    recurrences.build2D(section.get_crossings(orbit))
+    recurrences.build2D(orbit.get_events())
     cycle_finder                  = CycleFinder(section     = section,
                                                 recurrences = recurrences,
                                                 orbit       = orbit)
@@ -322,7 +325,7 @@ if __name__=='__main__':
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
-        xs,ys,zs  = build_crossing_plot(section.get_crossings(orbit))
+        xs,ys,zs  = build_crossing_plot(orbit.get_events())
         ax.scatter(xs,ys,zs,
                    color = 'xkcd:red',
                    s     = 1,
