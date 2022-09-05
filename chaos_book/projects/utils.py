@@ -149,7 +149,16 @@ def get_plane( sspTemplate = array([1,1,0]),
     return swapper.swap(stack([xx,yy,get_z(xx,yy,
                                            normal = swapper.swap(nTemplate))]))
 
+def xkcd_colour_names(file='./rgb.txt', prefix='xkcd'):
+    '''A generator to list colour names for rgb.txt'''
+    with open(file) as f:
+        for line in f:
+            name = line.split('#')[0]
+            yield(f'{prefix}:{name.strip()}')
+
 if __name__=='__main__':
+    for name in xkcd_colour_names():
+        print (name)
     with Figure(dynamics=type('Dummy',(object,),{'name':'Dummy'})) as fig:
         ax = fig.add_subplot(1,1,1)
         ax.set_title('Test')

@@ -27,7 +27,9 @@ from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
 from numpy                  import real
-from utils                  import Figure, Timer
+from utils                  import Figure, Timer, xkcd_colour_names
+
+
 
 
 def get_linestyle(i,n=7,m=5):
@@ -74,7 +76,7 @@ if __name__=='__main__':
     eqs         = Equilibrium.create(dynamics)
     fp          = eqs[args.fp]
     w,v         = list(fp.get_eigendirections())[0]
-
+    colour      = xkcd_colour_names()
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics,
@@ -94,7 +96,7 @@ if __name__=='__main__':
 
                 ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                         linestyle = get_linestyle(i) if args.linestyles else None,
-                        c         = ['xkcd:green','xkcd:purple','xkcd:red','xkcd:blue','xkcd:cyan','xkcd:yellow'][i],
+                        c         = next(colour),
                         label     = f'{method:>8}, nfev={orbit.nfev:>6}, dt={timer.get_elapsed():>.2f} sec.')
 
         ax.set_xlabel('X')
