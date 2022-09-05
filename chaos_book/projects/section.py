@@ -72,7 +72,9 @@ class Section:
         '''Transform a point embedded in surface back to (x,y,z) coordinates '''
         return dot(append(point, 0.0), self.ProjPoincare)
 
-    def establish_crossings(self,direction = 1.0):
+    def establish_crossings(self,
+                            direction = 1.0,
+                            terminal = False):
         '''
         Establish the definition of an orbit crossing section.
 
@@ -80,6 +82,7 @@ class Section:
         '''
         event           = lambda t,y: self.U(y)
         event.direction = direction
+        event.terminal  = terminal
         return event
 
 def parse_args():

@@ -356,12 +356,22 @@ class Orbit:
         return len(self.t)
 
     def Flow(self,deltat,y,
-             nstp = 1):                         #FIXME (may need work, as untested with LSODA)
+             nstp = 1):
         '''Used to integrate for a part of orbit'''
-        solution = solve_ivp(self.dynamics.Velocity, (0, deltat), y,   #FIXME - hangs here for deltat<0
-                             method=self.method,
+        solution = solve_ivp(self.dynamics.Velocity, (0, deltat), y,
+                             method = self.method,
                              t_eval = arange(0.0, deltat, deltat/nstp) if nstp>1 else None)
         return  (solution.t, solution.y) if nstp>1 else (solution.t[-1],solution.y[:,-1])
+
+    def Flow1(self,dt,y0,
+              epsilon = 1.0e-12,
+              t_eval  = None,
+              events  = None):
+        return solve_ivp(self.dynamics.Velocity,  (0.0, dt), y0+epsilon*self.dynamics.Velocity(0,y0),
+                         method = self.method,
+                         t_eval = t_eval,
+                         events = events)
+
 
     def Jacobian(self,t, ssp):
         '''

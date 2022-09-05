@@ -31,7 +31,7 @@ and assist in finding cycles. It includes test code for the Rossler equation.
 from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
-from numpy                  import argmin, argsort, argwhere, array, dot, linspace, real, size, zeros
+from numpy                  import arange, argmin, argsort, argwhere, array, dot, linspace, real, size, zeros
 from scipy.linalg           import inv, norm
 from scipy.interpolate      import splev, splprep, splrep
 from scipy.optimize         import fsolve
@@ -180,7 +180,15 @@ if __name__=='__main__':
 
     recurrences = Recurrences(section)
     recurrences.build2D(orbit.get_events())
+    sfixed,psfixed,sspfixed = recurrences.get_fixed(s0 = 12)
+    nstp                    = 100
+    epsilon = 1.0e-12
+    sspfixed_solution = orbit.Flow1(args.dt,sspfixed,events = section.establish_crossings(terminal=True))
 
+    print (sspfixed, sspfixed_solution.t_events, sspfixed_solution.y_events)
+    sspfixed_solution = orbit.Flow1(args.dt,sspfixed,
+                                    t_eval = arange(0.0, sspfixed_solution.t_events[0], sspfixed_solution.t_events[0]/nstp),
+                                    events = section.establish_crossings(terminal=True))
 
     with Figure(figs     = args.figs,
                 file     = __file__,
@@ -198,6 +206,7 @@ if __name__=='__main__':
         ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
+
 
         ax.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
                    color = 'xkcd:red',
@@ -223,7 +232,11 @@ if __name__=='__main__':
                 marker = 'o',
                 s      = 1,
                 label  = 'Interpolated Poincare Section')
-
+        ax.scatter(psfixed[0], psfixed[1],
+                   c      = 'xkcd:yellow',
+                   marker = 'D',
+                   s      = 25,
+                   label  = 'psfixed')
         ax.set_xlabel('$\\hat{x}\'$')
         ax.set_ylabel('$z$')
         ax.legend()
@@ -246,7 +259,10 @@ if __name__=='__main__':
         ax.legend()
         ax.set_title('Arc Lengths')
 
-
+        ax   = fig.add_subplot(2,2,4,projection='3d')
+        ax.plot(sspfixed_solution.y[0,:],sspfixed_solution.y[1,:],sspfixed_solution.y[2,:],
+                color = 'xkcd:purple',
+                label = f'sspfixed_solution')
 
         fig.tight_layout()
 
