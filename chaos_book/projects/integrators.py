@@ -29,9 +29,6 @@ from matplotlib.pyplot      import show
 from numpy                  import real
 from utils                  import Figure, Timer, xkcd_colour_names
 
-
-
-
 def get_linestyle(i,n=7,m=5):
     '''Used to distinguish individual plots'''
     return (0, ((n-i)//2,m+i))
