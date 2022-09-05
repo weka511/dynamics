@@ -47,7 +47,7 @@ projects|dynamics.py|-|Common codes for a few ODEs
 -|hypersphere.py|-|Plot areas and volumes of hyperspheres
 -|integrators.py|-|Verify that all integration methods give same results for initial orbit
 -|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
--|rgb.txt|-|RGB values for xkcd colours
+-|rgb.txt|-|RGB values for xkcd colours, in descending order (most recognizable first)
 -|recurrence.py|-|Model the recurrences of a Poincare Section
 -|section.py|-|Code to represent a Poincaré Section
 -|utils.py|-|Shared utility programs
