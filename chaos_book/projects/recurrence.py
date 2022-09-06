@@ -42,20 +42,13 @@ from utils                  import get_plane, Figure
 
 class Recurrences:
     '''This class keeps track of the recurrences of the Poincare map'''
-    def __init__(self,section,crossings):
-        self.section                                                   = section
-        self.points2D, self.Sorted, self.ArcLengths, sn = self.build2D(crossings)
-        self.tckPoincare            = self.build_interpolated( self.Sorted, self.ArcLengths)
-        self.sn1,self.sn2,self.tckReturn                               = self.map_arc_lengths(sn)
-
-    def build2D(self,crossings):
-        '''
-        Build up a collection of crossings organized by distance from centre,
-        plus an interpolation polynomial that we can use to find fixed points.
-        '''
-        points2D               = self.section.project_to_section(array([point for _,point in crossings]))
-        Sorted, ArcLengths, sn = self.sort_by_distance_from_centre(points2D)
-        return points2D, Sorted, ArcLengths,sn
+    def __init__(self,section,crossings, num=1000):
+        self.section                          = section
+        self.num                              = num
+        self.points2D                         = self.section.project_to_section(array([point for _,point in crossings]))
+        self.Sorted, self.ArcLengths, self.sn = self.sort_by_distance_from_centre(self.points2D)
+        self.tckPoincare                      = self.build_interpolated( self.Sorted, self.ArcLengths)
+        self.sn1,self.sn2,self.tckReturn      = self.map_arc_lengths(self.sn)
 
     def map_arc_lengths(self,sn):
         '''
@@ -118,12 +111,10 @@ class Recurrences:
                                      u = ArcLengths,
                                      s = 0)
         return tckPoincare
-        # sArray       = linspace(min(ArcLengths), max(ArcLengths),
-                                     # num = num)
-        # return sArray, self.fPoincare(sArray)
 
-    def get_sArray(self, num=1000):
-        return linspace(min(self.ArcLengths), max(self.ArcLengths), num = num)
+    def create_sArray(self):
+        '''Array used to plot interpolated data'''
+        return linspace(min(self.ArcLengths), max(self.ArcLengths), num = self.num)
 
     def fPoincare(self,s):
         '''
@@ -176,7 +167,10 @@ def parse_args():
                         type    = float,
                         default = [0, 1, 0],
                         help    = 'Normal for Poincare Section')
-
+    parser.add_argument('--num',
+                        type    = int,
+                        default = 1000,
+                        help    = 'Number of points when we interpolate')
     return parser.parse_args()
 
 
@@ -196,7 +190,7 @@ if __name__=='__main__':
                         eigenvalue  = w,
                         events      = section.establish_crossings())
 
-    recurrences = Recurrences(section,orbit.get_events())
+    recurrences = Recurrences(section,orbit.get_events(),num = args.num)
     sfixed,psfixed,sspfixed = recurrences.get_fixed(s0 = 12)
     nstp                    = 100
     epsilon = 1.0e-12
@@ -214,74 +208,74 @@ if __name__=='__main__':
                 height   = 10) as fig:
 
         fig.suptitle(dynamics.get_title())
-        ax        = fig.add_subplot(2,2,1,projection='3d')
+        ax1        = fig.add_subplot(2,2,1,projection='3d')
         xyz       = section.get_plane(orbit)
         crossings = array([ssp for _,ssp in orbit.get_events()])
-        ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
+        ax1.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
                         alpha = 0.5)
-        ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
+        ax1.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
 
 
-        ax.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
+        ax1.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
                    color = 'xkcd:red',
                    s     = 1,
                    label = 'Crossings')
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.legend()
-        ax = fig.add_subplot(2,2,2)
-        ax.scatter(recurrences.points2D[:, 0], recurrences.points2D[:, 1],
+        ax1.set_xlabel('X')
+        ax1.set_ylabel('Y')
+        ax1.set_zlabel('Z')
+        ax1.legend()
+
+        ax2 = fig.add_subplot(2,2,2)
+        ax2.scatter(recurrences.points2D[:, 0], recurrences.points2D[:, 1],
                    c      = 'xkcd:red',
                    marker = 'x',
                    s      = 25,
                    label  = 'Poincare Section')
-        ax.scatter(recurrences.Sorted[:, 0], recurrences.Sorted[:, 1],
+        ax2.scatter(recurrences.Sorted[:, 0], recurrences.Sorted[:, 1],
                 c      = 'xkcd:blue',
                 marker = '+',
                 s      = 25,
                 label  = 'Sorted Poincare Section')
-        sArray       = recurrences.get_sArray()
-        Interpolated = recurrences.fPoincare(sArray)
-        ax.scatter(Interpolated[:,0], Interpolated[:,1],
+        Interpolated = recurrences.fPoincare(recurrences.create_sArray())
+        ax2.scatter(Interpolated[:,0], Interpolated[:,1],
                 c      = 'xkcd:green',
                 marker = 'o',
                 s      = 1,
                 label  = 'Interpolated Poincare Section')
-        ax.scatter(psfixed[0], psfixed[1],
+        ax2.scatter(psfixed[0], psfixed[1],
                    c      = 'xkcd:yellow',
                    marker = 'D',
                    s      = 25,
                    label  = 'psfixed')
-        ax.set_xlabel('$\\hat{x}\'$')
-        ax.set_ylabel('$z$')
-        ax.legend()
+        ax2.set_xlabel('$\\hat{x}\'$')
+        ax2.set_ylabel('$z$')
+        ax2.legend()
 
-        ax = fig.add_subplot(2,2,3)
-        ax.scatter(recurrences.sn1, recurrences.sn2,
+        ax3 = fig.add_subplot(2,2,3)
+        ax3.scatter(recurrences.sn1, recurrences.sn2,
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'As fn(previous)')
-        ax.scatter(recurrences.get_sArray(), splev(recurrences.get_sArray(), recurrences.tckReturn),
+        ax3.scatter(recurrences.create_sArray(), splev(recurrences.create_sArray(), recurrences.tckReturn),
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax.plot(recurrences.get_sArray(), recurrences.get_sArray(),
+        ax3.plot(recurrences.create_sArray(), recurrences.create_sArray(),
                 color     = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
-        ax.legend()
-        ax.set_xlabel('previous')
-        ax.set_xlabel('next')
-        ax.set_title('Arc Lengths')
+        ax3.legend()
+        ax3.set_xlabel('previous')
+        ax3.set_xlabel('next')
+        ax3.set_title('Arc Lengths')
 
-        ax   = fig.add_subplot(2,2,4,projection='3d')
-        ax.plot(sspfixed_solution.y[0,:],sspfixed_solution.y[1,:],sspfixed_solution.y[2,:],
+        ax4   = fig.add_subplot(2,2,4,projection='3d')
+        ax4.plot(sspfixed_solution.y[0,:],sspfixed_solution.y[1,:],sspfixed_solution.y[2,:],
                 color = 'xkcd:purple',
                 label = f'sspfixed_solution')
 
