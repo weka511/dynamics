@@ -39,40 +39,40 @@ from scipy.spatial.distance import pdist, squareform
 from section                import Section
 from utils                  import get_plane, Figure
 
-
 class Recurrences:
     '''This class keeps track of the recurrences of the Poincare map'''
     def __init__(self,section,crossings, num=1000):
         '''
         Initialize class and sort crossings
         '''
-        self.section                     = section
-        self.num                         = num
-        self.points2D                    = self.section.project_to_section(array([point for _,point in crossings]))
-        self.Sorted, Distance            = self.sort_by_distance_from_centre()
-        self.ArcLengths                  = self.build_arc_lengths_by_distance(Distance)
-        self.sn                          = self.build_arc_lengths_in_dynamical_order()
-        self.tckPoincare                 = self.build_interpolated()
-        self.sn1,self.sn2,self.tckReturn = self.map_arc_lengths()
+        self.section          = section
+        self.num              = num
+        self.points2D         = self.section.project_to_section(array([point for _,point in crossings]))
+        self.Sorted, Distance = self.sort_by_distance_from_centre()
+        self.ArcLengths       = self.build_arc_lengths_by_distance(Distance)
+        self.sn               = self.build_arc_lengths_in_dynamical_order()
+        self.tckPoincare,_    = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
+                                        u = self.ArcLengths,
+                                        s = 0)
+        self.sn1,self.sn2     = self.map_arc_lengths()
+        self.tckReturn        = splrep(self.sn1,self.sn2)
 
     def map_arc_lengths(self):
         '''
-        Represent arc lengths of the Poincare section as a function of the previous point
+        Represent arc lengths of the Poincare section as a function of the previous point.
 
         Parameters:
              sn represents the Arc lengths of the Poincare section points in dynamical order
 
-        We want to represent this as a continuous function, so we can find a fixed point
-        of the mapping from one point to the next
+        Returns:
+               Table representing Mapping. We want to represent this as a continuous function,
+               so we can find a fixed point of the mapping from one point to the next
         '''
-        sn1       = self.sn[0:-1]                # Arc lengths in dynamical order, skipping last
-        sn2       = self.sn[1:]                  # So sn1->sn2 represents mapping
-        isort     = argsort(sn1)            # We will order mapping by sn1
-        sn1       = sn1[isort]
-        sn2       = sn2[isort]
-        tckReturn = splrep(sn1,sn2)          # Represent sn2 as a function of sn1
+        sn1   = self.sn[0:-1]                # Arc lengths in dynamical order, skipping last
+        sn2   = self.sn[1:]                  # So sn1->sn2 represents mapping
+        isort = argsort(sn1)                 # We will order mapping by sn1
 
-        return sn1, sn2, tckReturn
+        return sn1[isort],sn2[isort]
 
     def sort_by_distance_from_centre(self):
         '''
@@ -120,15 +120,6 @@ class Recurrences:
             sn[argwhere(self.points2D[:, 0] == self.Sorted[k + 1, 0])] = self.ArcLengths[k + 1]
 
         return sn
-
-    def build_interpolated(self, num  = 1000):
-        '''
-        Represent arclengths by an interpolation
-        '''
-        tckPoincare,_ = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
-                                     u = self.ArcLengths,
-                                     s = 0)
-        return tckPoincare
 
     def create_sArray(self):
         '''Array used to plot interpolated data'''
