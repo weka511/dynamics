@@ -135,8 +135,8 @@ def parse_args():
 
 if __name__=='__main__':
     args        = parse_args()
-    section     = Section(sspTemplate = args.sspTemplate,
-                          nTemplate   = args.nTemplate)
+    section     = Section(sspTemplate = array(args.sspTemplate),
+                          nTemplate   = array(args.nTemplate))
     dynamics    = DynamicsFactory.create(args)
     eqs         = Equilibrium.create(dynamics)
     fp          = eqs[args.fp]
