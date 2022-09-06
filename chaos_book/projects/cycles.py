@@ -126,6 +126,10 @@ def parse_args():
     parser.add_argument('--s0',
                         type    = float,
                         default = 12.0)
+    parser.add_argument('--num',
+                        type    = int,
+                        default = 1000,
+                        help    = 'Number of points when we interpolate')
     return parser.parse_args()
 
 
@@ -145,8 +149,7 @@ if __name__=='__main__':
                         eigenvalue  = w,
                         events      = section.establish_crossings())
 
-    recurrences = Recurrences(section)
-    recurrences.build2D(orbit.get_events())
+    recurrences = Recurrences(section,orbit.get_events(),num = args.num)
     cycle_finder                  = CycleFinder(section     = section,
                                                 recurrences = recurrences,
                                                 orbit       = orbit)
@@ -166,93 +169,95 @@ if __name__=='__main__':
                 height   = 12) as fig:
 
         fig.suptitle(dynamics.get_title())
-        ax   = fig.add_subplot(2,2,1,projection='3d')
+        ax1   = fig.add_subplot(2,2,1,projection='3d')
         xyz  = section.get_plane(orbit)
         crossings = array([ssp for _,ssp in orbit.get_events()])
-        ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
+        ax1.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
                         alpha = 0.5)
-        ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
+        ax1.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
 
-        ax.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
+        ax1.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
                    color = 'xkcd:red',
                    s     = 1,
                    label = 'Crossings')
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.legend()
-        ax = fig.add_subplot(2,2,2)
-        ax.scatter(recurrences.points2D[:, 0], recurrences.points2D[:, 1],
+        ax1.set_xlabel('X')
+        ax1.set_ylabel('Y')
+        ax1.set_zlabel('Z')
+        ax1.legend()
+
+        ax2 = fig.add_subplot(2,2,2)
+        ax2.scatter(recurrences.points2D[:, 0], recurrences.points2D[:, 1],
                    c      = 'xkcd:red',
                    marker = 'x',
                    s      = 25,
                    label  = 'Poincare Section')
-        ax.scatter(recurrences.Sorted[:, 0], recurrences.Sorted[:, 1],
+        ax2.scatter(recurrences.Sorted[:, 0], recurrences.Sorted[:, 1],
                 c      = 'xkcd:blue',
                 marker = '+',
                 s      = 25,
                 label  = 'Sorted Poincare Section')
-        ax.scatter(recurrences.Interpolated[:, 0], recurrences.Interpolated[:, 1],
+        Interpolated = recurrences.fPoincare(recurrences.create_sArray())
+        ax2.scatter(Interpolated[:, 0], Interpolated[:, 1],
                 c      = 'xkcd:green',
                 marker = 'o',
                 s      = 1,
                 label  = 'Interpolated Poincare Section')
-        ax.scatter(psfixed[0], psfixed[1],
+        ax2.scatter(psfixed[0], psfixed[1],
                    c      = 'xkcd:magenta',
                    marker = 'D',
                    s      = 25,
                    label  = 'psfixed')
-        ax.set_xlabel('$\\hat{x}\'$')
-        ax.set_ylabel('$z$')
-        ax.legend()
+        ax2.set_xlabel('$\\hat{x}\'$')
+        ax2.set_ylabel('$z$')
+        ax2.legend()
 
-        ax = fig.add_subplot(2,2,3)
-        ax.scatter(recurrences.sn1, recurrences.sn2,
+        ax3 = fig.add_subplot(2,2,3)
+        ax3.scatter(recurrences.sn1, recurrences.sn2,
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'Sorted')
-        ax.scatter(recurrences.sArray, recurrences.snPlus1,
+        ax3.scatter(recurrences.create_sArray(), splev(recurrences.create_sArray(), recurrences.tckReturn),
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax.plot(recurrences.sArray, recurrences.sArray,
+        ax3.plot(recurrences.create_sArray(), recurrences.create_sArray(),
                 color     = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
-        ax.legend()
-        ax.set_title('Arc Lengths')
+        ax3.legend()
+        ax3.set_title('Arc Lengths')
 
-        ax = fig.add_subplot(2,2,4, projection='3d')
-        ax.plot(sspfixedSolution[0,:], sspfixedSolution[1,:], sspfixedSolution[2,:],
+        ax4 = fig.add_subplot(2,2,4, projection='3d')
+        ax4.plot(sspfixedSolution[0,:], sspfixedSolution[1,:], sspfixedSolution[2,:],
                 linewidth = 5,
                 linestyle = 'dashed',
                 c         = 'xkcd:blue',
                 label     = f'Approx, period={dt:.6f}')
-        ax.scatter(sspfixedSolution[0,0], sspfixedSolution[1,0], sspfixedSolution[2,0],
+        ax4.scatter(sspfixedSolution[0,0], sspfixedSolution[1,0], sspfixedSolution[2,0],
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 25,
                    label = 'Start')
-        ax.scatter(sspfixedSolution[0,-1], sspfixedSolution[1,-1], sspfixedSolution[2,-1],
+        ax4.scatter(sspfixedSolution[0,-1], sspfixedSolution[1,-1], sspfixedSolution[2,-1],
                    color  = 'xkcd:black',
                    marker = '+',
                    s      = 25,
                    label = 'End')
-        ax.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
+        ax4.plot(periodicOrbit[0,:], periodicOrbit[1,:], periodicOrbit[2,:],
                 linewidth = 1,
                 c         = 'xkcd:magenta',
                 label     = f'Orbit: period={period:.6f}')
-        ax.scatter(periodicOrbit[0,0], periodicOrbit[1,0], periodicOrbit[2,0],
+        ax4.scatter(periodicOrbit[0,0], periodicOrbit[1,0], periodicOrbit[2,0],
                    color  = 'xkcd:green',
                    marker = 'o',
                    s      = 25,
                    label = 'Refined')
-        ax.legend()
+        ax4.legend()
 
         fig.tight_layout()
 
