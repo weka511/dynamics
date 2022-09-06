@@ -31,7 +31,7 @@ and assist in finding cycles. It includes test code for the Rossler equation.
 from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
-from numpy                  import arange, argmin, argsort, argwhere, array, dot, linspace, real, size, zeros
+from numpy                  import arange, argmin, argsort, argwhere, array, cumsum, dot, linspace, real, size, zeros
 from scipy.linalg           import inv, norm
 from scipy.interpolate      import splev, splprep, splrep
 from scipy.optimize         import fsolve
@@ -43,14 +43,19 @@ from utils                  import get_plane, Figure
 class Recurrences:
     '''This class keeps track of the recurrences of the Poincare map'''
     def __init__(self,section,crossings, num=1000):
-        self.section                          = section
-        self.num                              = num
-        self.points2D                         = self.section.project_to_section(array([point for _,point in crossings]))
-        self.Sorted, self.ArcLengths, self.sn = self.sort_by_distance_from_centre(self.points2D)
-        self.tckPoincare                      = self.build_interpolated( self.Sorted, self.ArcLengths)
-        self.sn1,self.sn2,self.tckReturn      = self.map_arc_lengths(self.sn)
+        '''
+        Initialize class and sort crossings
+        '''
+        self.section                     = section
+        self.num                         = num
+        self.points2D                    = self.section.project_to_section(array([point for _,point in crossings]))
+        self.Sorted, Distance            = self.sort_by_distance_from_centre()
+        self.ArcLengths                  = self.build_arc_lengths_by_distance(Distance)
+        self.sn                          = self.build_arc_lengths_in_dynamical_order()
+        self.tckPoincare                 = self.build_interpolated()
+        self.sn1,self.sn2,self.tckReturn = self.map_arc_lengths()
 
-    def map_arc_lengths(self,sn):
+    def map_arc_lengths(self):
         '''
         Represent arc lengths of the Poincare section as a function of the previous point
 
@@ -60,8 +65,8 @@ class Recurrences:
         We want to represent this as a continuous function, so we can find a fixed point
         of the mapping from one point to the next
         '''
-        sn1       = sn[0:-1]                # Arc lengths in dynamical order, skipping last
-        sn2       = sn[1:]                  # So sn1->sn2 represents mapping
+        sn1       = self.sn[0:-1]                # Arc lengths in dynamical order, skipping last
+        sn2       = self.sn[1:]                  # So sn1->sn2 represents mapping
         isort     = argsort(sn1)            # We will order mapping by sn1
         sn1       = sn1[isort]
         sn2       = sn2[isort]
@@ -69,20 +74,18 @@ class Recurrences:
 
         return sn1, sn2, tckReturn
 
-    def sort_by_distance_from_centre(self,points2D):
+    def sort_by_distance_from_centre(self):
         '''
         Organize crossings by distance from centre.
 
         Returns:
              Sorted       Crossings ordered by distance from centre. Coordinates are relative to Section
-             ArcLengths   Arc lengths of the Poincare section points ordered by distance from centre
-             sn           Arc lengths of the Poincare section points in dynamical order
+             Distances    Matrix of distances between crossings
         '''
-        Distance   = squareform(pdist(points2D))
-        Sorted     = points2D.copy()
+        Distance   = squareform(pdist(self.points2D))
+        Sorted     = self.points2D.copy()
         n          = size(Sorted,0)
-        ArcLengths = zeros(n)
-        sn         = zeros(n)
+
         for k in range(n - 1):
             m                = argmin(Distance[k, k + 1:]) + k + 1
 
@@ -98,17 +101,32 @@ class Recurrences:
             Distance[k + 1, :] = Distance[m, :]
             Distance[m, :]     = temp
 
-            ArcLengths[k + 1]                                = ArcLengths[k] + Distance[k, k + 1]
-            sn[argwhere(points2D[:, 0] == Sorted[k + 1, 0])] = ArcLengths[k + 1]
+        return Sorted, Distance
 
-        return  Sorted, ArcLengths, sn
+    def build_arc_lengths_by_distance(self,Distance):
+        '''
+        Construct Arc lengths of the Poincare section points ordered by distance from centre
+        '''
+        n  = size(self.Sorted,0)
+        return cumsum([0]+[Distance[k, k + 1] for k in range(n - 1)])
 
-    def build_interpolated(self, Sorted, ArcLengths, num  = 1000):
+    def build_arc_lengths_in_dynamical_order(self):
+        '''
+        Construct Arc lengths of the Poincare section points in dynamical order
+        '''
+        n   = size(self.Sorted,0)
+        sn  = zeros(n)
+        for k in range(n - 1):
+            sn[argwhere(self.points2D[:, 0] == self.Sorted[k + 1, 0])] = self.ArcLengths[k + 1]
+
+        return sn
+
+    def build_interpolated(self, num  = 1000):
         '''
         Represent arclengths by an interpolation
         '''
-        tckPoincare,_ = splprep([Sorted[:, 0], Sorted[:, 1]],
-                                     u = ArcLengths,
+        tckPoincare,_ = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
+                                     u = self.ArcLengths,
                                      s = 0)
         return tckPoincare
 
@@ -136,8 +154,6 @@ class Recurrences:
         sfixed  = fsolve(self.ReturnMap, s0)[0]
         psFixed = self.fPoincare(sfixed)
         return  sfixed,psFixed,self.section.project_to_space(psFixed)
-
-
 
 def parse_args():
     '''Parse command line arguments'''
@@ -176,8 +192,8 @@ def parse_args():
 
 if __name__=='__main__':
     args        = parse_args()
-    section     = Section(sspTemplate = args.sspTemplate,
-                          nTemplate   = args.nTemplate)
+    section     = Section(sspTemplate = array(args.sspTemplate),
+                          nTemplate   = array(args.nTemplate))
     dynamics    = DynamicsFactory.create(args)
     eqs         = Equilibrium.create(dynamics)
     fp          = eqs[args.fp]
@@ -190,16 +206,17 @@ if __name__=='__main__':
                         eigenvalue  = w,
                         events      = section.establish_crossings())
 
-    recurrences = Recurrences(section,orbit.get_events(),num = args.num)
+    recurrences             = Recurrences(section,orbit.get_events(),num = args.num)
     sfixed,psfixed,sspfixed = recurrences.get_fixed(s0 = 12)
     nstp                    = 100
-    epsilon = 1.0e-12
-    sspfixed_solution = orbit.Flow1(args.dt,sspfixed,events = section.establish_crossings(terminal=True))
+    epsilon                 = 1.0e-12
+    sspfixed_solution       = orbit.Flow1(args.dt,sspfixed,
+                                          events = section.establish_crossings(terminal=True))
 
     print (sspfixed, sspfixed_solution.t_events, sspfixed_solution.y_events)
-    sspfixed_solution = orbit.Flow1(args.dt,sspfixed,
-                                    t_eval = arange(0.0, sspfixed_solution.t_events[0], sspfixed_solution.t_events[0]/nstp),
-                                    events = section.establish_crossings(terminal=True))
+    sspfixed_solution       = orbit.Flow1(args.dt,sspfixed,
+                                          t_eval = arange(0.0, sspfixed_solution.t_events[0], sspfixed_solution.t_events[0]/nstp),
+                                          events = section.establish_crossings(terminal=True))
 
     with Figure(figs     = args.figs,
                 file     = __file__,
@@ -229,22 +246,22 @@ if __name__=='__main__':
         ax1.legend()
 
         ax2 = fig.add_subplot(2,2,2)
-        ax2.scatter(recurrences.points2D[:, 0], recurrences.points2D[:, 1],
-                   c      = 'xkcd:red',
-                   marker = 'x',
-                   s      = 25,
-                   label  = 'Poincare Section')
-        ax2.scatter(recurrences.Sorted[:, 0], recurrences.Sorted[:, 1],
-                c      = 'xkcd:blue',
-                marker = '+',
-                s      = 25,
-                label  = 'Sorted Poincare Section')
         Interpolated = recurrences.fPoincare(recurrences.create_sArray())
         ax2.scatter(Interpolated[:,0], Interpolated[:,1],
                 c      = 'xkcd:green',
                 marker = 'o',
                 s      = 1,
                 label  = 'Interpolated Poincare Section')
+        ax2.scatter(recurrences.points2D[:, 0], recurrences.points2D[:, 1],
+                   c      = 'xkcd:red',
+                   marker = 'x',
+                   s      = 25,
+                   label  = 'Crossing Poincare Section')
+        ax2.scatter(recurrences.Sorted[:, 0], recurrences.Sorted[:, 1],
+                c      = 'xkcd:blue',
+                marker = '+',
+                s      = 25,
+                label  = 'Sorted Crossings')
         ax2.scatter(psfixed[0], psfixed[1],
                    c      = 'xkcd:yellow',
                    marker = 'D',
