@@ -44,8 +44,9 @@ class Recurrences:
     '''This class keeps track of the recurrences of the Poincare map'''
     def __init__(self,section,crossings):
         self.section                                                   = section
-        self.points2D, self.sArray, self.Sorted, self.Interpolated, sn = self.build2D(crossings)
-        self.sn1,self.sn2,self.tckReturn                               = self.map_arc_lenghths(sn)
+        self.points2D, self.Sorted, self.ArcLengths, sn = self.build2D(crossings)
+        self.tckPoincare            = self.build_interpolated( self.Sorted, self.ArcLengths)
+        self.sn1,self.sn2,self.tckReturn                               = self.map_arc_lengths(sn)
 
     def build2D(self,crossings):
         '''
@@ -54,10 +55,9 @@ class Recurrences:
         '''
         points2D               = self.section.project_to_section(array([point for _,point in crossings]))
         Sorted, ArcLengths, sn = self.sort_by_distance_from_centre(points2D)
-        sArray, Interpolated           = self.build_interpolated( Sorted, ArcLengths)
-        return points2D, sArray, Sorted, Interpolated, sn
+        return points2D, Sorted, ArcLengths,sn
 
-    def map_arc_lenghths(self,sn):
+    def map_arc_lengths(self,sn):
         '''
         Represent arc lengths of the Poincare section as a function of the previous point
 
@@ -114,13 +114,16 @@ class Recurrences:
         '''
         Represent arclengths by an interpolation
         '''
-        self.tckPoincare,_ = splprep([Sorted[:, 0], Sorted[:, 1]],
+        tckPoincare,_ = splprep([Sorted[:, 0], Sorted[:, 1]],
                                      u = ArcLengths,
                                      s = 0)
-        sArray       = linspace(min(ArcLengths), max(ArcLengths),
-                                     num = num)
-        return sArray, self.fPoincare(sArray)
+        return tckPoincare
+        # sArray       = linspace(min(ArcLengths), max(ArcLengths),
+                                     # num = num)
+        # return sArray, self.fPoincare(sArray)
 
+    def get_sArray(self, num=1000):
+        return linspace(min(self.ArcLengths), max(self.ArcLengths), num = num)
 
     def fPoincare(self,s):
         '''
@@ -241,7 +244,9 @@ if __name__=='__main__':
                 marker = '+',
                 s      = 25,
                 label  = 'Sorted Poincare Section')
-        ax.scatter(recurrences.Interpolated[:, 0], recurrences.Interpolated[:, 1],
+        sArray       = recurrences.get_sArray()
+        Interpolated = recurrences.fPoincare(sArray)
+        ax.scatter(Interpolated[:,0], Interpolated[:,1],
                 c      = 'xkcd:green',
                 marker = 'o',
                 s      = 1,
@@ -261,12 +266,12 @@ if __name__=='__main__':
                    marker = 'x',
                    s      = 64,
                    label  = 'As fn(previous)')
-        ax.scatter(recurrences.sArray, splev(recurrences.sArray, recurrences.tckReturn),
+        ax.scatter(recurrences.get_sArray(), splev(recurrences.get_sArray(), recurrences.tckReturn),
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax.plot(recurrences.sArray, recurrences.sArray,
+        ax.plot(recurrences.get_sArray(), recurrences.get_sArray(),
                 color     = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
