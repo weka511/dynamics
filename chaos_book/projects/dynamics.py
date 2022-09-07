@@ -20,7 +20,7 @@
 '''A collection of classes that model ODEs '''
 
 from abc             import ABC,abstractmethod
-from numpy           import arange, array, dot, exp, identity, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros
+from numpy           import arange, array, dot, exp, identity, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros, zeros_like
 from scipy.linalg    import eig, norm
 from scipy.integrate import solve_ivp
 
@@ -45,7 +45,7 @@ class Dynamics(ABC):
 
     def JacobianVelocity(self,t, sspJacobian):
         '''
-        Velocity function for the Jacobian integration
+        Velocity function for the Jacobian integration. See Chaosbook (4.10)
 
         Inputs:
             sspJacobian: (d+d^2)x1 dimensional state space vector including both the
@@ -60,7 +60,7 @@ class Dynamics(ABC):
 
         ssp            = sspJacobian[0:self.d]
         J              = sspJacobian[self.d:].reshape((self.d, self.d))
-        velJ           = zeros(size(sspJacobian))
+        velJ           = zeros_like(sspJacobian)
         velJ[0:self.d] = self.Velocity(t, ssp)
         velTangent     = dot(self.StabilityMatrix(ssp), J)
         velJ[self.d:]  = reshape(velTangent, self.d**2)
@@ -143,7 +143,7 @@ class Lorentz(Dynamics):
 
 
 class ProtoLorentz(Dynamics):
-    '''Dynamics of Proto-Lorentz Equation'''
+    '''Dynamics of Proto-Lorentz System (Miranda and Stone)'''
     def __init__(self,
                  sigma = 10.0,
                  rho   = 28.0,
@@ -195,6 +195,7 @@ class ProtoLorentz(Dynamics):
         return 'v'
 
 class Rossler(Dynamics):
+    '''Dynamics of Rossler System'''
     def __init__(self,
                  a = 0.2,
                  b = 0.2,
@@ -216,7 +217,7 @@ class Rossler(Dynamics):
 
     def Velocity(self, t,stateVec):
         '''
-        Return the Velocity field of Lorentz system.
+        Return the Velocity field of Rossler system.
         stateVec : the state vector in the full space. [x, y, z]
         t : time is used since solve_ivp() requires it.
         '''
@@ -298,40 +299,46 @@ class Orbit:
     '''Represents the orbit, starting at a specfied point '''
     @classmethod
     def get_start(cls,
-                  epsilon     = 0.00001,
+                  origin      = array([0,0,0]),
+                  epsilon     = 1e-6,
                   direction   = array([1,1,1]),
-                  orientation = +1,
-                  origin      = array([0,0,0])):
+                  orientation = +1):
+        '''
+        Used to determine starting value for orbit
+
+        Parameters:
+            origin          Orbit starts near here
+            epsilon         ...with a stepsize epsilon
+            direction       ...in this direction
+            orientation     ...either positive or negative
+        '''
         return origin.eq + orientation*epsilon*direction
 
     def __init__(self,
                  dynamics,
                  dt          = 10.0,
                  nstp        = 10000,
-                 epsilon     = 0.00001,
+                 origin      = array([0,0,0]),
+                 epsilon     = 1e-6,
                  direction   = array([1,1,1]),
                  orientation = +1,
-                 origin      = array([0,0,0]),
-                 eigenvalue  = 1,
                  method      = 'RK45',
                  events      = None):
         '''
         Parameters:
-            dynamics,
-            dt
-            nstp
-            epsilon
-            direction
-            orientation
-            origin
-            eigenvalue
-            method
-            events
+            dynamics      The system that generates this orbit
+            dt            Time interval to be generated
+            nstp          Number of steps to be sampled
+            origin        Orbit starts near here
+            epsilon       ...with a stepsize epsilon
+            direction     ...in this direction
+            orientation   ...either positive or negative
+            method        Integration method that will be passed to solve_ivp
+            events        Functiona that will be pass to solve_ivp to detect crossings of Poincare Section
         '''
 
         self.dynamics    = dynamics
         self.direction   = direction
-        self.eigenvalue  = eigenvalue
         self.orientation = orientation
         self.method      = method
         y0               = Orbit.get_start(epsilon     = epsilon,
@@ -367,6 +374,10 @@ class Orbit:
               epsilon = 1.0e-12,
               t_eval  = None,
               events  = None):
+        '''
+        Used to integrate for a part of orbit, but stepping out a wee bit from the initial value,
+        so we don't get a premature termination from events being triggered
+        '''
         return solve_ivp(self.dynamics.Velocity,  (0.0, dt), y0+epsilon*self.dynamics.Velocity(0,y0),
                          method = self.method,
                          t_eval = t_eval,
@@ -376,7 +387,7 @@ class Orbit:
     def Jacobian(self,t, ssp):
         '''
         Jacobian function for the trajectory started on ssp, evolved for time t
-
+        See Chaosbook (4.10)
         Inputs:
             ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
             t: Integration time

@@ -146,7 +146,6 @@ if __name__=='__main__':
                         dt          = args.dt,
                         origin      = fp,
                         direction   = real(v),
-                        eigenvalue  = w,
                         events      = section.establish_crossings())
 
     recurrences = Recurrences(section,orbit.get_events(),num = args.num)

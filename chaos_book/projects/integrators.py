@@ -88,8 +88,7 @@ if __name__=='__main__':
                               method     = method,
                               dt         = args.dt,
                               origin     = fp,
-                              direction  = real(v),
-                              eigenvalue = w)
+                              direction  = real(v))
 
                 ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
                         linestyle = get_linestyle(i) if args.linestyles else None,
