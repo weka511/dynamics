@@ -199,7 +199,7 @@ if __name__=='__main__':
                 marker = '+',
                 s      = 25,
                 label  = 'Sorted Poincare Section')
-        Interpolated = recurrences.fPoincare(recurrences.create_sArray())
+        Interpolated = recurrences.fPoincare(recurrences.arcs.create_sArray())
         ax2.scatter(Interpolated[:, 0], Interpolated[:, 1],
                 c      = 'xkcd:green',
                 marker = 'o',
@@ -215,17 +215,17 @@ if __name__=='__main__':
         ax2.legend()
 
         ax3 = fig.add_subplot(2,2,3)
-        ax3.scatter(recurrences.sn1, recurrences.sn2,
+        ax3.scatter(recurrences.arcs.sn1, recurrences.arcs.sn2,
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'Sorted')
-        ax3.scatter(recurrences.create_sArray(), splev(recurrences.create_sArray(), recurrences.tckReturn),
+        ax3.scatter(recurrences.arcs.create_sArray(), splev(recurrences.arcs.create_sArray(), recurrences.arcs.tckReturn),
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax3.plot(recurrences.create_sArray(), recurrences.create_sArray(),
+        ax3.plot(recurrences.arcs.create_sArray(), recurrences.arcs.create_sArray(),
                 color     = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')

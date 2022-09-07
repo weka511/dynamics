@@ -39,40 +39,22 @@ from scipy.spatial.distance import pdist, squareform
 from section                import Section
 from utils                  import get_plane, Figure
 
+
+
 class Recurrences:
     '''This class keeps track of the recurrences of the Poincare map'''
     def __init__(self,section,crossings, num=1000):
         '''
         Initialize class and sort crossings
         '''
-        self.section          = section
         self.num              = num
+        self.section          = section
         self.points2D         = self.section.project_to_section(array([point for _,point in crossings]))
         self.Sorted, Distance = self.sort_by_distance_from_centre()
-        self.ArcLengths       = self.build_arc_lengths_by_distance(Distance)
-        self.sn               = self.build_arc_lengths_in_dynamical_order()
+        self.arcs             = self.Arc(self,Distance)
         self.tckPoincare,_    = splprep([self.Sorted[:, 0], self.Sorted[:, 1]],
-                                        u = self.ArcLengths,
+                                        u = self.arcs.Lengths,
                                         s = 0)
-        self.sn1,self.sn2     = self.map_arc_lengths()
-        self.tckReturn        = splrep(self.sn1,self.sn2)
-
-    def map_arc_lengths(self):
-        '''
-        Represent arc lengths of the Poincare section as a function of the previous point.
-
-        Parameters:
-             sn represents the Arc lengths of the Poincare section points in dynamical order
-
-        Returns:
-               Table representing Mapping. We want to represent this as a continuous function,
-               so we can find a fixed point of the mapping from one point to the next
-        '''
-        sn1   = self.sn[0:-1]                # Arc lengths in dynamical order, skipping last
-        sn2   = self.sn[1:]                  # So sn1->sn2 represents mapping
-        isort = argsort(sn1)                 # We will order mapping by sn1
-
-        return sn1[isort],sn2[isort]
 
     def sort_by_distance_from_centre(self):
         '''
@@ -82,9 +64,9 @@ class Recurrences:
              Sorted       Crossings ordered by distance from centre. Coordinates are relative to Section
              Distances    Matrix of distances between crossings
         '''
-        Distance   = squareform(pdist(self.points2D))
-        Sorted     = self.points2D.copy()
-        n          = size(Sorted,0)
+        Distance = squareform(pdist(self.points2D))
+        Sorted   = self.points2D.copy()
+        n        = size(Distance,0)
 
         for k in range(n - 1):
             m                = argmin(Distance[k, k + 1:]) + k + 1
@@ -103,28 +85,6 @@ class Recurrences:
 
         return Sorted, Distance
 
-    def build_arc_lengths_by_distance(self,Distance):
-        '''
-        Construct Arc lengths of the Poincare section points ordered by distance from centre
-        '''
-        n  = size(self.Sorted,0)
-        return cumsum([0]+[Distance[k, k + 1] for k in range(n - 1)])
-
-    def build_arc_lengths_in_dynamical_order(self):
-        '''
-        Construct Arc lengths of the Poincare section points in dynamical order
-        '''
-        n   = size(self.Sorted,0)
-        sn  = zeros(n)
-        for k in range(n - 1):
-            sn[argwhere(self.points2D[:, 0] == self.Sorted[k + 1, 0])] = self.ArcLengths[k + 1]
-
-        return sn
-
-    def create_sArray(self):
-        '''Array used to plot interpolated data'''
-        return linspace(min(self.ArcLengths), max(self.ArcLengths), num = self.num)
-
     def fPoincare(self,s):
         '''
         Parametric interpolation to the Poincare section
@@ -136,15 +96,38 @@ class Recurrences:
         interpolation = splev(s, self.tckPoincare)
         return array([interpolation[0], interpolation[1]], float).transpose()
 
-    def ReturnMap(self,r):
-        '''This function is zero when r is a fixed point of the interpolated return map'''
-        return splev(r, self.tckReturn) - r
-
     def get_fixed(self, s0=5):
         '''Find fixed points of return map'''
-        sfixed  = fsolve(self.ReturnMap, s0)[0]
+        sfixed  = fsolve(self.arcs.ReturnMap, s0)[0]
         psFixed = self.fPoincare(sfixed)
         return  sfixed,psFixed,self.section.project_to_space(psFixed)
+
+    class Arc:
+        '''
+        This class represents the 1D component of the Recurrences, the arc lengths
+        '''
+        def __init__(self, owner, Distance):
+            self.owner     = owner
+            n              = size(Distance,0)
+            self.Lengths   = cumsum([0]+[Distance[k, k + 1] for k in range(n - 1)])  # Arc lengths ordered by distance from centre
+            self.sn        = zeros(n)                                                # Arc Lengths in dynamical order
+            for k in range(n - 1):
+                index_dynamical_order          = argwhere(owner.points2D[:, 0] == owner.Sorted[k + 1, 0])
+                self.sn[index_dynamical_order] = self.Lengths[k + 1]
+            sn1            = self.sn[0:-1]                # Arc lengths in dynamical order, skipping last
+            sn2            = self.sn[1:]                  # So sn1->sn2 represents mapping
+            isort          = argsort(sn1)                 # We will order mapping by sn1
+            self.sn1       = sn1[isort]
+            self.sn2       = sn2[isort]
+            self.tckReturn = splrep(self.sn1,self.sn2)
+
+        def create_sArray(self):
+            '''Array used to plot interpolated data'''
+            return linspace(min(self.Lengths), max(self.Lengths), num = self.owner.num)
+
+        def ReturnMap(self,r):
+            '''This function is zero when r is a fixed point of the interpolated return map'''
+            return splev(r, self.tckReturn) - r
 
 def parse_args():
     '''Parse command line arguments'''
@@ -237,7 +220,7 @@ if __name__=='__main__':
         ax1.legend()
 
         ax2 = fig.add_subplot(2,2,2)
-        Interpolated = recurrences.fPoincare(recurrences.create_sArray())
+        Interpolated = recurrences.fPoincare(recurrences.arcs.create_sArray())
         ax2.scatter(Interpolated[:,0], Interpolated[:,1],
                 c      = 'xkcd:green',
                 marker = 'o',
@@ -263,17 +246,17 @@ if __name__=='__main__':
         ax2.legend()
 
         ax3 = fig.add_subplot(2,2,3)
-        ax3.scatter(recurrences.sn1, recurrences.sn2,
+        ax3.scatter(recurrences.arcs.sn1, recurrences.arcs.sn2,
                    color  = 'xkcd:red',
                    marker = 'x',
                    s      = 64,
                    label  = 'As fn(previous)')
-        ax3.scatter(recurrences.create_sArray(), splev(recurrences.create_sArray(), recurrences.tckReturn),
+        ax3.scatter(recurrences.arcs.create_sArray(), splev(recurrences.arcs.create_sArray(), recurrences.arcs.tckReturn),
                    color  = 'xkcd:blue',
                    marker = 'o',
                    s      = 1,
                    label = 'Interpolated')
-        ax3.plot(recurrences.create_sArray(), recurrences.create_sArray(),
+        ax3.plot(recurrences.arcs.create_sArray(), recurrences.arcs.create_sArray(),
                 color     = 'xkcd:black',
                 linestyle = 'dotted',
                 label     = '$y=x$')
