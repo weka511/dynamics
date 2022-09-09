@@ -350,8 +350,8 @@ class Orbit:
                                      method = self.method,
                                      t_eval = arange(0.0, dt, dt/nstp),
                                      events = events)
-        if solution.status==0:
-            self.orbit    = solution.y
+        if solution.success:
+            self.y        = solution.y
             self.t        = solution.t
             self.nfev     = solution.nfev
             self.t_events = solution.t_events
