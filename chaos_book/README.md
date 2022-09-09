@@ -49,5 +49,6 @@ projects|dynamics.py|-|Common codes for a few ODEs
 -|Lorentz.tex|-|Writeup for [Chaos: Classical and Quantum - open projects](https://chaosbook.org/)
 -|rgb.txt|-|RGB values for xkcd colours, in descending order (most recognizable first)
 -|recurrence.py|-|Model the recurrences of a Poincare Section
+-|return.py|-|Replicate calculations form Arindam Basu's paper
 -|section.py|-|Code to represent a Poincaré Section
 -|utils.py|-|Shared utility programs
