@@ -182,14 +182,13 @@ if __name__=='__main__':
     recurrences             = Recurrences(section,orbit.get_events(),num = args.num)
     sfixed,psfixed,sspfixed = recurrences.get_fixed(s0 = 12)
     nstp                    = 100
-    epsilon                 = 1.0e-12
-    sspfixed_solution       = orbit.Flow1(args.dt,sspfixed,
-                                          events = section.establish_crossings(terminal=True))
+    sspfixed_solution       = orbit.FlowToNextCrossing(args.dt,sspfixed,
+                                                       events = section.establish_crossings(terminal=True))
 
     print (sspfixed, sspfixed_solution.t_events, sspfixed_solution.y_events)
-    sspfixed_solution       = orbit.Flow1(args.dt,sspfixed,
-                                          t_eval = arange(0.0, sspfixed_solution.t_events[0], sspfixed_solution.t_events[0]/nstp),
-                                          events = section.establish_crossings(terminal=True))
+    sspfixed_solution       = orbit.FlowToNextCrossing(args.dt,sspfixed,
+                                                       t_eval = arange(0.0, sspfixed_solution.t_events[0], sspfixed_solution.t_events[0]/nstp),
+                                                       events = section.establish_crossings(terminal=True))
 
     with Figure(figs     = args.figs,
                 file     = __file__,

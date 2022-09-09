@@ -23,6 +23,7 @@ from abc             import ABC,abstractmethod
 from numpy           import arange, array, dot, exp, identity, imag, isreal, pi, real, reshape, size, sqrt, stack, zeros, zeros_like
 from scipy.linalg    import eig, norm
 from scipy.integrate import solve_ivp
+from sys             import float_info
 
 class Dynamics(ABC):
     '''This abstract class represents the dynamics, i.e. the differential equation.'''
@@ -370,8 +371,8 @@ class Orbit:
                              t_eval = arange(0.0, deltat, deltat/nstp) if nstp>1 else None)
         return  (solution.t, solution.y) if nstp>1 else (solution.t[-1],solution.y[:,-1])
 
-    def Flow1(self,dt,y0,
-              epsilon = 1.0e-12,
+    def FlowToNextCrossing(self,dt,y0,
+              epsilon = float_info.min,
               t_eval  = None,
               events  = None):
         '''
