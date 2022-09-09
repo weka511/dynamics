@@ -60,7 +60,7 @@ class Section:
         '''Used to plot section as a surface'''
         return get_plane(sspTemplate = self.sspTemplate,
                          nTemplate   = self.nTemplate,
-                         limits      = [linspace(m, M, num = num) for m,M in zip(orbit.orbit.min(axis=1),orbit.orbit.max(axis=1))])
+                         limits      = [linspace(m, M, num = num) for m,M in zip(orbit.y.min(axis=1),orbit.y.max(axis=1))])
 
 
 
@@ -145,7 +145,7 @@ if __name__=='__main__':
         ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
                         alpha = 0.5)
-        ax.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
+        ax.plot(orbit.y[0,:],orbit.y[1,:],orbit.y[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
 

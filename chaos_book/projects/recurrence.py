@@ -203,11 +203,9 @@ if __name__=='__main__':
         ax1.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
                         color = 'xkcd:blue',
                         alpha = 0.5)
-        ax1.plot(orbit.orbit[0,:],orbit.orbit[1,:],orbit.orbit[2,:],
+        ax1.plot(orbit.y[0,:],orbit.y[1,:],orbit.y[2,:],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
-
-
         ax1.scatter(crossings[:,0],crossings[:,1],crossings[:,2],
                    color = 'xkcd:red',
                    s     = 1,
