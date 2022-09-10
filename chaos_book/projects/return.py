@@ -25,7 +25,7 @@ Replicate calculations form Arindam Basu's paper
 from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
-from numpy                  import arange, array, real, searchsorted
+from numpy                  import arange, array, real, searchsorted,stack
 from section                import Section
 from sys                    import float_info
 from utils                  import get_plane, Figure
@@ -48,7 +48,16 @@ def parse_args():
     parser.add_argument('--figs',
                         default = './figs',
                         help    = 'Folder to store figures')
+    parser.add_argument('--N',
+                        type     = int,
+                        default  = 100,
+                        help    = 'Used to establish mapping')
+
     return parser.parse_args()
+
+def get_y_cross(y0):
+    _,y_start = orbit.Flow(1,y0)
+    return orbit.FlowToNextCrossing(args.dt,y_start,events = section.establish_crossings(terminal=True)).y_events[-0][0,:]
 
 if __name__ == '__main__':
     args        = parse_args()
@@ -66,6 +75,12 @@ if __name__ == '__main__':
                         direction   = real(v),
                         events      = section.establish_crossings(terminal=False))
 
+    crossings    = orbit.get_events()
+    t0,y0        = next(crossings)
+    t1,y1        = next(crossings)
+    delta_y      = (y1-y0)/(args.N+1)
+    ys           = stack([y0+i*delta_y for i in range(args.N)])
+    y_recurrence = stack([get_y_cross(ys[i,:]) for i in range(args.N)])
     with Figure(figs     = args.figs,
                 file     = __file__,
                 dynamics = dynamics,
@@ -75,9 +90,6 @@ if __name__ == '__main__':
         fig.suptitle(dynamics.get_title())
         ax   = fig.add_subplot(1,1,1,projection='3d')
 
-        crossings = orbit.get_events()
-        t0,y0     = next(crossings)
-        t1,y1     = next(crossings)
         xyz  = section.get_plane(orbit,
                                  t0 = t0,
                                  t1 = t1)
@@ -100,8 +112,12 @@ if __name__ == '__main__':
                    s     = 25,
                    marker = '+',
                    label = '$X_B$')
-
-
+        ax.scatter(ys[:,0], ys[:,1], ys[:,2],
+                   color = 'xkcd:purple',
+                   s     = 1)
+        ax.scatter(y_recurrence[:,0], y_recurrence[:,1], y_recurrence[:,2],
+                   color = 'xkcd:black',
+                   s     = 1)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
