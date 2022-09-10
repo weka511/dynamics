@@ -99,9 +99,9 @@ def get_plane( sspTemplate = array([1,1,0]),
     Used to plot section as a surface
 
     Parameters:
-        sspTemplate
-        nTemplate
-        lims
+        sspTemplate     Template point for surface
+        nTemplate       Normal to surface plotted
+        limits          Controls the size of the area to be
 
     Returns: x,y, and z coordinates for points in a plane
     '''
