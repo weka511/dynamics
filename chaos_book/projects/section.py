@@ -27,8 +27,9 @@ This file contains classes that model a Poincare Section.
 from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
-from numpy                  import append, array, cross, dot, linspace, real
+from numpy                  import append, array, cross, dot, linspace, real, searchsorted
 from scipy.linalg           import norm
+from sys                    import float_info
 from utils                  import get_plane, Figure
 
 class Section:
@@ -56,11 +57,25 @@ class Section:
         '''
         return dot((ssp - self.sspTemplate),self.nTemplate)
 
-    def get_plane(self,orbit,num=50):
-        '''Used to plot section as a surface'''
+    def get_plane(self,orbit,
+                  t0  = 0,
+                  t1  = float_info.max,
+                  num = 50):
+        '''
+        Used to plot section as a surface
+
+        Parameters:
+            orbit    An orbit: the surface will be of compable size to orbit
+            t0       If specified, the size will depend only on points subsequent to this time
+            t1       If specified, the size will depend only on points prior to this time
+            num      Controls granularity of area to be plotted
+        '''
+        i0        = searchsorted(orbit.t,t0)
+        i1        = searchsorted(orbit.t,t1)
+        yy_reduced = orbit.y[:,i0:i1]
         return get_plane(sspTemplate = self.sspTemplate,
                          nTemplate   = self.nTemplate,
-                         limits      = [linspace(m, M, num = num) for m,M in zip(orbit.y.min(axis=1),orbit.y.max(axis=1))])
+                         limits      = [linspace(m, M, num = num) for m,M in zip(yy_reduced.min(axis=1),yy_reduced.max(axis=1))])
 
 
 
@@ -130,7 +145,6 @@ if __name__=='__main__':
                         origin      = fp,
                         direction   = real(v),
                         events      = section.establish_crossings())
-
 
     with Figure(figs     = args.figs,
                 file     = __file__,

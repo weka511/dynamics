@@ -25,7 +25,7 @@ Replicate calculations form Arindam Basu's paper
 from argparse               import ArgumentParser
 from dynamics               import DynamicsFactory, Equilibrium, Orbit
 from matplotlib.pyplot      import show
-from numpy                  import arange, argwhere, array, real
+from numpy                  import arange, array, real, searchsorted
 from section                import Section
 from sys                    import float_info
 from utils                  import get_plane, Figure
@@ -74,15 +74,18 @@ if __name__ == '__main__':
 
         fig.suptitle(dynamics.get_title())
         ax   = fig.add_subplot(1,1,1,projection='3d')
-        xyz  = section.get_plane(orbit)
+
         crossings = orbit.get_events()
         t0,y0     = next(crossings)
         t1,y1     = next(crossings)
-        i0        = argwhere(orbit.t>t0).min()
-        i1        = argwhere(orbit.t<t1).max()
-        # ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
-                        # color = 'xkcd:blue',
-                        # alpha = 0.5)
+        xyz  = section.get_plane(orbit,
+                                 t0 = t0,
+                                 t1 = t1)
+        ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
+                        color = 'xkcd:blue',
+                        alpha = 0.5)
+        i0 = searchsorted(orbit.t,t0)
+        i1 = searchsorted(orbit.t,t1)
         ax.plot(orbit.y[0,i0:i1],orbit.y[1,i0:i1],orbit.y[2,i0:i1],
                 color = 'xkcd:green',
                 label = f'{dynamics.name}')
@@ -91,12 +94,12 @@ if __name__ == '__main__':
                    color = 'xkcd:red',
                    s     = 25,
                    marker = 'X',
-                   label = 'Crossings')
+                   label = '$X_A$')
         ax.scatter(y1[0], y1[1], y1[2],
                    color = 'xkcd:red',
                    s     = 25,
                    marker = '+',
-                   label = 'Crossings')
+                   label = '$X_B$')
 
 
         ax.set_xlabel('X')
