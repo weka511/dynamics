@@ -22,9 +22,7 @@ from argparse import ArgumentParser
 from os.path import join
 from time import time
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.optim import Adam
+
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
