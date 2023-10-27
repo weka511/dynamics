@@ -4,6 +4,7 @@
 
 -| Name | Description
 --:|------------------|----------------------------------------------------------
+2|exercise_2_5_3|Showing that X tends to infinity in a finite time
 3|exercise_3.7.6.py|Kermack & McKendrick model of an epidemic
 6|exercise_6_1.py|Plot phase portraits for a number of ODEs
 6|exercise_6_2.py|Plot phase portraits for a number of ODEs

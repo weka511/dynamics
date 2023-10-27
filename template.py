@@ -22,7 +22,7 @@ from argparse import ArgumentParser
 from os.path import join
 from time import time
 import numpy as np
-
+from matplotlib.pyplot import figure, show
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
