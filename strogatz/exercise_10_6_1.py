@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import matplotlib.pyplot as plt
 
 if __name__=='__main__':
@@ -11,7 +13,7 @@ if __name__=='__main__':
     step         = (R1-R0)/N
     bifurcations = []
     cycle_length0 = 1
-    cycle_length  = None    
+    cycle_length  = None
     for i in range(N):
         r  = R0+i*step
         x  = x_init
@@ -19,7 +21,7 @@ if __name__=='__main__':
         xs = []
         for j in range(L):
             x=r*x*(1-x)
-        x0 = x    
+        x0 = x
         for j in range(M):
             x=r*x*(1-x)
             rs.append(r)
@@ -31,12 +33,11 @@ if __name__=='__main__':
             bifurcations.append((r,cycle_length))
             cycle_length0 = cycle_length
         plt.scatter(rs,xs,s=1,edgecolors='b',c='b')
-    
+
     print (bifurcations)
     for i in range(len(bifurcations)-2):
         a,_=bifurcations[i]
         b,_=bifurcations[i+1]
         c,_=bifurcations[i+2]
         print ((a-b)/(b-c))
-    plt.show()       
-    
+    plt.show()

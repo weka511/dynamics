@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (C) 2017-2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
@@ -21,27 +23,27 @@ sys.path.append('../')
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,1-np.exp(x)))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=1-e^x$',suptitle='Example 6.1.1') 
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=1-e^x$',suptitle='Example 6.1.1')
 plt.figure()
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-x**3,-y))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-x^3,\dot{y}=-y$',suptitle='Example 6.1.2') 
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-x^3,\dot{y}=-y$',suptitle='Example 6.1.2')
 plt.figure()
 
 X,Y,U,V,_=phase.generate(f=lambda x,y:(x*(x-y),y*(2*x-y)))
-phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title=r'$\dot{x}=x(x-y),\dot{y}=y*(2x-y)$',suptitle='Example 6.1.3') 
+phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title=r'$\dot{x}=x(x-y),\dot{y}=y*(2x-y)$',suptitle='Example 6.1.3')
 plt.figure()
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y,x*(1+y)-1))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=y,\dot{y}=x(1+y)-1$',suptitle='Example 6.1.4') 
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=y,\dot{y}=x(1+y)-1$',suptitle='Example 6.1.4')
 plt.figure()
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*(2-x-y),x-y))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x(2-x-y),\dot{y}=x-y$',suptitle='Example 6.1.5') 
-plt.figure() 
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x(2-x-y),\dot{y}=x-y$',suptitle='Example 6.1.5')
+plt.figure()
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*x-y,x-y))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x^2-y,\dot{y}=x-y$',suptitle='Example 6.1.6') 
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x^2-y,\dot{y}=x-y$',suptitle='Example 6.1.6')
 plt.figure()
 
 def f(x,y):
@@ -60,10 +62,10 @@ plt.plot([z[0] for z in xy],
                 [z[1] for z in xy],
                 c='r',
                 label='Stable manifold',
-                linewidth=2)  
+                linewidth=2)
 
 leg=plt.legend(loc='best')
-    
+
 plt.figure()
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x,-x+y*(1-x*x)))
@@ -85,5 +87,5 @@ phase.plot_phase_portrait(X,Y,U,V,fixed,
                           suptitle='Example 6.1.11 - Parrot')
 
 
-    
+
 plt.show()

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 # Copyright (C) 2017-2022 Greenweaves Software Limited
 

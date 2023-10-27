@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (C) 2017-2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
@@ -20,7 +22,7 @@ import  matplotlib.pyplot as plt,matplotlib.colors as colors,math,numpy as np,rk
 def f(y):
     r,theta = y
     return (r*(1-r)*(1+r),1)
- 
+
 def plot(h = 0.1,start=(0.1,0),n=10,color='b'):
     pts = [start]
     for i in range(int(2*n*math.pi/h)+1):
@@ -29,9 +31,8 @@ def plot(h = 0.1,start=(0.1,0),n=10,color='b'):
                 [r*math.sin(theta) for (r,theta) in pts],
                 c=color,
                 s=1)
-    
+
 if __name__=='__main__':
     plot()
     plot(start=(2,0),color='r')
     plt.show()
-        

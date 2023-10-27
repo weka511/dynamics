@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (C) 2017-2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
@@ -21,7 +23,7 @@ sys.path.append('../')
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
 
 X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,x*x-4))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=x^2-4$',suptitle='Example 6.3.1') 
+phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=x^2-4$',suptitle='Example 6.3.1')
 plt.figure()
 
 import utilities,rk4
@@ -33,7 +35,7 @@ X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-100,xmax=100,ymin=-100,y
 
 phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=y^3-4x,\dot{y}=y^3-y-3x$',suptitle='Example 6.3.9')
 
-cs = ['r','b','g','m','c','y']    
+cs = ['r','b','g','m','c','y']
 starts=[ (0,25*i) for i in range(-5,6)]
 for xy0,i in zip(starts,range(len(starts))):
     xy=[xy0]
@@ -46,5 +48,5 @@ for xy0,i in zip(starts,range(len(starts))):
 
 leg=plt.legend(loc='best')
 
-     
+
 plt.show()

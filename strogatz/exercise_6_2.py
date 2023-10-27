@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (C) 2017-2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
@@ -38,11 +40,11 @@ for xy0,i in zip(starts,range(len(starts))):
     plt.plot([z[0] for z in xy],
                     [z[1] for z in xy],
                     c=cs[i%len(cs)],
-                    linewidth=1)  
+                    linewidth=1)
 
 leg=plt.legend(loc='best')
 
-    
 
-    
+
+
 plt.show()

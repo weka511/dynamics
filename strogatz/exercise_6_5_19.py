@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (C) 2019 Greenweaves Software Limited
 
 # This is free software: you can redistribute it and/or modify
@@ -21,11 +23,11 @@ sys.path.append('../')
 
 import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4,utilities
 for mu in [1,2,3]:
-    plt.figure()    
+    plt.figure()
     X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*(1-y),mu*y*(x-1)),nx=64,ny=64,xmin=-0.05,xmax=3.0,ymin=-0.05,ymax=3.0)
-    phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x(1-y),\dot{y}=\mu y(y-1)$',suptitle='Example 6.5.19 - Lotka-Volterra') 
- 
+    phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x(1-y),\dot{y}=\mu y(y-1)$',suptitle='Example 6.5.19 - Lotka-Volterra')
 
 
-     
+
+
 plt.show()
