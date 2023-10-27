@@ -39,11 +39,10 @@ if __name__=='__main__':
 
     fig = figure(figsize=(12,12))
     ax = fig.add_subplot(1,1,1)
+    X = np.arange(0.1, 25, 0.05)
     for r in [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]:
         vget_T = np.vectorize(lambda X: get_T(X,r=r))
-        X = np.arange(0.1, 25, 0.05)
-        T = vget_T(X)
-        ax.plot(X,T,label=f'r={r}')
+        ax.plot(X,vget_T(X),label=f'r={r}')
         ax.legend()
     ax.set_xlabel('X')
     ax.set_ylabel('T')
