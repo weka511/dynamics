@@ -1,4 +1,6 @@
-# Copyright (C) 2014-2016 Greenweaves Software Pty Ltd
+#!/usr/bin/env python
+
+# Copyright (C) 2014-2023 Simon Crase
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +20,7 @@
 def rk4(h,y,f):
     """
     Traditional 4th order Runge Kutta
-    
+
         Parameters:
             h      Step size
             y      Initial value for y in y'=f(y)
