@@ -110,6 +110,7 @@ dynamics.bib.sav.tmp
 *.npz
 *.ini
 *.bak
+*.png
 
 # Files produced by tex
 
