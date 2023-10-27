@@ -19,7 +19,7 @@
 
 
 from argparse import ArgumentParser
-from os.path import join
+from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
@@ -27,6 +27,10 @@ from matplotlib.pyplot import figure, show
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     return parser.parse_args()
+
+def get_name_for_save():
+    '''Extract name for saving figure'''
+    return splitext(basename(__file__))[0]
 
 if __name__=='__main__':
     start  = time()

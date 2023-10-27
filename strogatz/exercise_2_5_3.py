@@ -19,7 +19,7 @@
 
 
 from argparse import ArgumentParser
-from os.path import join
+from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
@@ -32,6 +32,10 @@ def get_T(X,r=1,x0=0.1):
     def get_T_helper(X):
         return (np.log(X) - 0.5 * np.log(r + X**2))/r
     return get_T_helper(X) - get_T_helper(x0)
+
+def get_name_for_save():
+    '''Extract name for saving figure'''
+    return splitext(basename(__file__))[0]
 
 if __name__=='__main__':
     start  = time()
@@ -46,8 +50,10 @@ if __name__=='__main__':
         ax.legend()
     ax.set_xlabel('X')
     ax.set_ylabel('T')
-    show()
+    fig.savefig(get_name_for_save())
+
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
+    show()
