@@ -100,6 +100,32 @@ class Section:
         event.terminal  = terminal
         return event
 
+    def plot_surface(self,ax,orbit,
+                     t0     = 0,
+                     t1    = float_info.max,
+                     num   = 50,
+                     color = 'xkcd:blue',
+                     alpha = 0.5):
+        '''
+        Plot Poincare Surface into 3D plot
+
+        Parameters:
+            ax       Identifies subplot
+            orbit    An orbit: the surface will be of compable size to orbit
+            t0       If specified, the size will depend only on points subsequent to this time
+            t1       If specified, the size will depend only on points prior to this time
+            num      Controls granularity of area to be plotted
+            color
+            alpha
+        '''
+        xyz  = self.get_plane(orbit,
+                              t0  = t0,
+                              t1  = t1,
+                              num = num)
+        ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
+                        color = color,
+                        alpha = alpha)
+
 def parse_args():
     '''Parse command line arguments'''
     parser = ArgumentParser(description=__doc__)

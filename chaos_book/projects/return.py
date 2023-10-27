@@ -42,15 +42,15 @@ def parse_args():
                         default = 900.0,
                         help    = 'Time interval for integration')
     parser.add_argument('--fp',
-                        type     = int,
-                        default  = 1,
+                        type    = int,
+                        default = 1,
                         help    = 'Fixed point to start from')
     parser.add_argument('--figs',
                         default = './figs',
                         help    = 'Folder to store figures')
     parser.add_argument('--N',
-                        type     = int,
-                        default  = 100,
+                        type    = int,
+                        default = 100,
                         help    = 'Used to establish mapping')
 
     return parser.parse_args()
@@ -90,12 +90,9 @@ if __name__ == '__main__':
         fig.suptitle(dynamics.get_title())
         ax   = fig.add_subplot(1,1,1,projection='3d')
 
-        xyz  = section.get_plane(orbit,
-                                 t0 = t0,
-                                 t1 = t1)
-        ax.plot_surface(xyz[0,:], xyz[1,:], xyz[2,:],
-                        color = 'xkcd:blue',
-                        alpha = 0.5)
+        section.plot_surface(ax,orbit,
+                             t0 = t0,
+                             t1 = t1)
         i0 = searchsorted(orbit.t,t0)
         i1 = searchsorted(orbit.t,t1)
         ax.plot(orbit.y[0,i0:i1],orbit.y[1,i0:i1],orbit.y[2,i0:i1],
@@ -112,12 +109,11 @@ if __name__ == '__main__':
                    s     = 25,
                    marker = '+',
                    label = '$X_B$')
-        ax.scatter(ys[:,0], ys[:,1], ys[:,2],
-                   color = 'xkcd:purple',
-                   s     = 1)
+
         ax.scatter(y_recurrence[:,0], y_recurrence[:,1], y_recurrence[:,2],
-                   color = 'xkcd:black',
-                   s     = 1)
+                   color = 'xkcd:purple',
+                   s     = 1,
+                   label = '$Recurrences(X_A,X_B)$')
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
