@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2017-2022 Greenweaves Software Limited
+# Copyright (C) 2017-2023 Simon Crase
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,15 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-'''Kermack & McKendrick model of an epidemic'''
-from matplotlib.pyplot import figure, grid, legend, plot,  show,  title
-from math              import exp
+'''3.7.6 Kermack & McKendrick model of an epidemic'''
 
+from os.path import  basename,splitext
+from matplotlib.pyplot import figure, show
+import numpy as np
 
-aa      = [1,2,3]
-bs      = [0.1,0.2,0.3]
-h       = 0.1
-l       = 10.0
+aa = [1,2,3]
+bs = [0.1,0.2,0.3]
+h  = 0.1
+l  = 10.0
 colours = ['xkcd:purple',
            'xkcd:green',
            'xkcd:blue',
@@ -35,25 +36,27 @@ colours = ['xkcd:purple',
            'xkcd:orange'
            ]
 
+def get_name_for_save():
+    '''Extract name for saving figure'''
+    return splitext(basename(__file__))[0]
 
-us      = [h*u for u in range(0,int(l/h))]
-u2s     = [exp(-u) for u in us]
+us = np.array([h*u for u in range(0,int(l/h))])
 
-figure(figsize = (10,10))
-
-plot(us,u2s,
-     c     = 'xkcd:black',
+fig = figure(figsize = (10,10))
+ax = fig.add_subplot(1,1,1)
+ax.plot(us,np.exp(-us),
+     c = 'xkcd:black',
      label = r'$e^{-u}$')
 
 for i,a in enumerate(aa):
     for j,b in enumerate(bs):
-        u1s = [a - b *u for u in us]
-        plot(us,u1s,
-             c     = colours[len(bs)*i+j],
-             label = 'a={0},b={1}'.format(a,b))
+        u1s = a - b *us
+        ax.plot(us,u1s,
+             c = colours[len(bs)*i+j],
+             label = f'a={a},b={b}')
 
-
-title('Kermack & McKendrick model of an epidemic')
-grid(True)
-legend()
+ax.set_title(__doc__)
+ax.grid(True)
+ax.legend()
+fig.savefig(get_name_for_save())
 show()
