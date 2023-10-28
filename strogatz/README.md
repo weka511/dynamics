@@ -2,6 +2,8 @@
 
 ## [Non Linear Dynamics and Chaos with Applications, 2nd Edition](http://www.stevenstrogatz.com/books/nonlinear-dynamics-and-chaos-with-applications-to-physics-biology-chemistry-and-engineering) by Steve Strogatz.
 
+## Examples
+
 -| Name | Description
 --:|------------------|----------------------------------------------------------
 2|exercise_2_5_3|Showing that X tends to infinity in a finite time
@@ -18,6 +20,8 @@
 8|example_8_7_1|Showlimit cycle of example 8.7.1
 -|exercises_8.tex|Theoretical Exercises from Strogatz
 10|exercise_10_6.py|Bifurcations
+
+## Support
 
  Name | Description
 ------------------|----------------------------------------------------------
