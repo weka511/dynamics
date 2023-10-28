@@ -23,19 +23,23 @@
 from  matplotlib.pyplot import figure,show
 from phase import generate,plot_phase_portrait,plot_stability,right_upper_quadrant
 
-def f(x,y):
+def f3(x,y,rho=1):
     return (x*(1-y),y*(rho-x))
 
-for rho in [0.1,0.25,
+fig = figure(figsize=(20,20))
+
+for i,rho in enumerate([0.1,0.25,
             0.5,1.0,2.0
-            ]:
-    fig = figure(figsize=(20,20))
-    ax = fig.add_subplot(1,1,1)
-    X,Y,U,V,fixed_points=generate(f=f,nx=256,ny=256,xmin=0,xmax=3.5,ymin=0,ymax=3.5)
+            ]):
+    f = lambda x,y:f3(x,y,rho=rho)
+
+    ax = fig.add_subplot(2,3,i+1)
+    X,Y,U,V,fixed_points = generate(f=f,nx=256,ny=256,xmin=0,xmax=3.5,ymin=0,ymax=3.5)
     plot_phase_portrait(X,Y,U,V,fixed_points,
-                        title=r'$\dot{{x}}=x(1-y),\dot{{y}}=y(\rho-x);\rho={0}$'.format(rho),
-                        ax=ax)
+                        title = fr'$\rho=${rho}',
+                        ax = ax)
     plot_stability(f=f,fixed_points=fixed_points,Limit=5,step=0.1,N=5000,accept=right_upper_quadrant,K=10,ax=ax)
-    fig.suptitle('Example 6.4.4')
+
+fig.suptitle(r'Example 6.4.4: $\dot{{x}}=x(1-y),\dot{{y}}=y(\rho-x)$')
 
 show()
