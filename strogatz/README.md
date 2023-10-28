@@ -21,6 +21,6 @@
 
  Name | Description
 ------------------|----------------------------------------------------------
-phase.py|
-rk4.py|
-utilities.py|
+phase.py|Plot phase portrait
+rk4.py|Simple 4th order Runge Kutta
+utilities.py|Generate random points in or on sphere

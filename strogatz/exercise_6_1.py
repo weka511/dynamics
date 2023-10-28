@@ -62,27 +62,27 @@ X,Y,U,V,fixed = phase.generate(f = lambda x,y:(x*x-y,x-y))
 phase.plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x^2-y,\dot{y} = x-y$',ax=ax)
 fig.suptitle('Example 6.1.6')
 
-
-def f(x,y):
-    return -x-np.exp(-y),y
-
-X,Y,U,V,fixed = phase.generate(f = f,nx = 256, ny  =  256,xmin = -11,xmax = 10,ymin = 0,ymax = 20)
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(-x-np.exp(-y),y),nx = 256, ny  =  256,xmin = -11,xmax = 10,ymin = 0,ymax = 20)
 
 phase.plot_phase_portrait(X,Y,U,V,fixed,title = '$\dot{x} = -x-e^{-y},\dot{y} = y$',ax=ax)
 fig.suptitle('Example 6.1.7 showing Stable manifold')
 
-# eps = 1e-6
-# xy0 = [-1,eps]
-# xy = [xy0]
-# for j in range(10000):
-    # xy.append(rk4.rk4(0.01,xy[-1],phase.adapt(f = f)))
-# plot([z[0] for z in xy],
-                # [z[1] for z in xy],
-                # c = 'r',
-                # label = 'Stable manifold',
-                # linewidth = 2)
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+eps = 1e-6
+xy0 = [-1,eps]
+xy = [xy0]
+for j in range(10000):
+    xy.append(rk4.rk4(0.01,xy[-1],phase.adapt(f = lambda x,y:(-x-np.exp(-y),y))))
+ax.plot([z[0] for z in xy],
+                [z[1] for z in xy],
+                c = 'r',
+                label = 'Stable manifold',
+                linewidth = 2)
 
-# leg = legend(loc = 'best')
+leg = ax.legend(loc = 'best')
 
 
 fig = figure()
@@ -114,6 +114,5 @@ phase.plot_phase_portrait(X,Y,U,V,fixed,
                           title = r'$\dot{x} = y+y^2,\dot{y} = -x+\frac{y}{5}-xy+\frac{6}{5}y^2$',
                           ax=ax)
 fig.suptitle('Example 6.1.11 - Parrot')
-
 
 show()
