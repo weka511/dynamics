@@ -10,6 +10,7 @@
 -|exercise_2_7|Exercises 2.7.3 and 2.7.4
 3|exercise_3.7.6.py|Kermack & McKendrick model of an epidemic
 6|exercise_6_1.py|Plot phase portraits for a number of ODEs
+-|exercise_6_1_8.py|Plot phase portrait Van der Pol
 -|exercise_6_2.py|Plot phase portraits for a number of ODEs
 -|exercise_6_3.py|Plot phase portraits for a number of ODEs
 -|exercise_6_3_10.py|Stability of fixed point: saddle or not? (tricky)

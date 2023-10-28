@@ -15,7 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Template for python script for dynamics'''
+'''
+    Exercise 6.1.8 from Strogatz: Van der Pol
+'''
 
 
 from argparse import ArgumentParser
@@ -23,6 +25,7 @@ from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from  phase import generate, plot_phase_portrait, adapt
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -36,8 +39,14 @@ def get_name_for_save(extra=None,sep='-'):
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-
+    fig = figure(figsize=(10,10))
+    ax = fig.add_subplot(1,1,1)
+    X,Y,U,V,fixed = generate(f = lambda x,y:(y,-x+y*(1-x**2)))
+    plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = y,\dot{y} = -x + y(1-x^2)$',ax=ax)
+    fig.suptitle(__doc__)
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
+    show()
