@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2017-2019 Greenweaves Software Limited
+# Copyright (C) 2017-2023 Simon Crase
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,74 +18,102 @@
 # Exercise 6.1 from Strogatz
 # Plot phase portraits for a number of ODEs
 
-import sys
-sys.path.append('../')
-import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-y,1-np.exp(x)))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-y,\dot{y}=1-e^x$',suptitle='Example 6.1.1')
-plt.figure()
+from matplotlib.pyplot import figure, show
+import matplotlib.colors as colors
+import numpy as np
+import phase
+import rk4
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x-x**3,-y))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x-x^3,\dot{y}=-y$',suptitle='Example 6.1.2')
-plt.figure()
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(x-y,1-np.exp(x)))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x-y,\dot{y} = 1-e^x$',ax=ax)
+fig.suptitle('Example 6.1.1')
 
-X,Y,U,V,_=phase.generate(f=lambda x,y:(x*(x-y),y*(2*x-y)))
-phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title=r'$\dot{x}=x(x-y),\dot{y}=y*(2x-y)$',suptitle='Example 6.1.3')
-plt.figure()
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(x-x**3,-y))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x-x^3,\dot{y} = -y$',ax=ax)
+fig.suptitle('Example 6.1.2')
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y,x*(1+y)-1))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=y,\dot{y}=x(1+y)-1$',suptitle='Example 6.1.4')
-plt.figure()
+fig = figure()
+ax = fig.add_subplot(1,1,1)
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*(2-x-y),x-y))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x(2-x-y),\dot{y}=x-y$',suptitle='Example 6.1.5')
-plt.figure()
+X,Y,U,V,_ = phase.generate(f = lambda x,y:(x*(x-y),y*(2*x-y)))
+phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title = r'$\dot{x} = x(x-y),\dot{y} = y*(2x-y)$',ax=ax)
+fig.suptitle('Example 6.1.3')
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x*x-y,x-y))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x^2-y,\dot{y}=x-y$',suptitle='Example 6.1.6')
-plt.figure()
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(y,x*(1+y)-1))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = y,\dot{y} = x(1+y)-1$',ax=ax)
+fig.suptitle('Example 6.1.4')
+
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(x*(2-x-y),x-y))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x(2-x-y),\dot{y} = x-y$',ax=ax)
+fig.suptitle('Example 6.1.5')
+
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(x*x-y,x-y))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x^2-y,\dot{y} = x-y$',ax=ax)
+fig.suptitle('Example 6.1.6')
+
 
 def f(x,y):
     return -x-np.exp(-y),y
 
-X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-11,xmax=10,ymin=0,ymax=20)
+X,Y,U,V,fixed = phase.generate(f = f,nx = 256, ny  =  256,xmin = -11,xmax = 10,ymin = 0,ymax = 20)
 
-phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=-x-e^{-y},\dot{y}=y$',suptitle='Example 6.1.7 showing Stable manifold')
+phase.plot_phase_portrait(X,Y,U,V,fixed,title = '$\dot{x} = -x-e^{-y},\dot{y} = y$',ax=ax)
+fig.suptitle('Example 6.1.7 showing Stable manifold')
 
-eps=1e-6
-xy0=[-1,eps]
-xy=[xy0]
-for j in range(10000):
-    xy.append(rk4.rk4(0.01,xy[-1],phase.adapt(f=f)))
-plt.plot([z[0] for z in xy],
-                [z[1] for z in xy],
-                c='r',
-                label='Stable manifold',
-                linewidth=2)
+# eps = 1e-6
+# xy0 = [-1,eps]
+# xy = [xy0]
+# for j in range(10000):
+    # xy.append(rk4.rk4(0.01,xy[-1],phase.adapt(f = f)))
+# plot([z[0] for z in xy],
+                # [z[1] for z in xy],
+                # c = 'r',
+                # label = 'Stable manifold',
+                # linewidth = 2)
 
-leg=plt.legend(loc='best')
+# leg = legend(loc = 'best')
 
-plt.figure()
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(x,-x+y*(1-x*x)))
-phase.plot_phase_portrait(X,Y,U,V,fixed,title=r'$\dot{x}=x,\dot{y}=-x+y(1-x^2)$',suptitle='Example 6.1.8 - van de Pol')
-plt.figure()
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(x,-x+y*(1-x*x)))
+phase.plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x,\dot{y} = -x+y(1-x^2)$',ax=ax)
+fig.suptitle('Example 6.1.8 - van de Pol')
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y+y*y,y*y-x*x))
-phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title=r'$\dot{x}=2xy,\dot{y}=y^2-x^2$',suptitle='Example 6.1.9 - Dipole fixed point')
-plt.figure()
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(y+y*y,y*y-x*x))
+phase.plot_phase_portrait(X,Y,U,V,[(0,0)],title = r'$\dot{x} = 2xy,\dot{y} = y^2-x^2$',ax=ax)
+fig.suptitle('Example 6.1.9 - Dipole fixed point')
 
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y+y*y,-x/2+y/5-x*y+6*y*y/5))
+
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(y+y*y,-x/2+y/5-x*y+6*y*y/5))
 phase.plot_phase_portrait(X,Y,U,V,fixed,
-                          title=r'$\dot{x}=y+y^2,\dot{y}=-\frac{x}{2}+\frac{y}{5}-xy+\frac{6}{5}y^2$',
-                          suptitle='Example 6.1.10 - Two eyed monster')
-plt.figure()
-X,Y,U,V,fixed=phase.generate(f=lambda x,y:(y+y*y,-x+y/5-x*y+6*y*y/5))
+                          title = r'$\dot{x} = y+y^2,\dot{y} = -\frac{x}{2}+\frac{y}{5}-xy+\frac{6}{5}y^2$',
+                          ax = ax)
+fig.suptitle ('Example 6.1.10 - Two eyed monster')
+
+
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+X,Y,U,V,fixed = phase.generate(f = lambda x,y:(y+y*y,-x+y/5-x*y+6*y*y/5))
 phase.plot_phase_portrait(X,Y,U,V,fixed,
-                          title=r'$\dot{x}=y+y^2,\dot{y}=-x+\frac{y}{5}-xy+\frac{6}{5}y^2$',
-                          suptitle='Example 6.1.11 - Parrot')
+                          title = r'$\dot{x} = y+y^2,\dot{y} = -x+\frac{y}{5}-xy+\frac{6}{5}y^2$',
+                          ax=ax)
+fig.suptitle('Example 6.1.11 - Parrot')
 
 
-
-plt.show()
+show()

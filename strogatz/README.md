@@ -18,3 +18,9 @@
 8|example_8_7_1|Showlimit cycle of example 8.7.1
 -|exercises_8.tex|Theoretical Exercises from Strogatz
 10|exercise_10_6.py|Bifurcations
+
+ Name | Description
+------------------|----------------------------------------------------------
+phase.py|
+rk4.py|
+utilities.py|
