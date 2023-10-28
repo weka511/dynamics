@@ -22,12 +22,11 @@ from matplotlib.pyplot import cm, figure, show
 import matplotlib.colors as colors
 from matplotlib import rc
 from scipy import optimize
-import utilities
+from utilities import direct_surface
 import rk4
 
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
-
 
 def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0.001,tolerance_root_finder=0.00001):
     '''
@@ -172,15 +171,14 @@ def plot_phase_portrait(X,Y,U,V,fixed,title='',xlabel='$x$',ylabel='$y$',ax=None
     ax.scatter([x for (x,_) in fixed],[y for (_,y) in fixed],marker='x',s=60,c='r')
     ax.set_title(title)
 
-# adapt
-
-#  Adapt a 2D function so it is in the form that rk4.rk4 requires, i.e.:
-#  ((x,y)->(dx,dy))->(([x])->[dx])
-#
-#    Parameters:
-#        f     The function to be adapted
 def adapt(f):
+    '''
+    Adapt a 2D function so it is in the form that rk4.rk4 requires, i.e.:
+    ((x,y)->(dx,dy))->(([x])->[dx])
 
+    Parameters:
+        f     The function to be adapted
+    '''
     def adapted(x):
         u,v=f(x[0],x[1])
         return [u]+[v]
@@ -204,14 +202,30 @@ def plot_stability(f            = lambda x,y:(x,y),
                    ax = None):
     '''
      Determins stability of fixed points using a Monte Carlo method
+
+        Parameters:
+            fixed_points
+            R
+            cs
+            linestyles
+            Limit
+            N
+            step
+            S
+            s
+            K
+            legend
+            accept
+            eps
+            ax
     '''
     starts0 = []
     starts1 = []
     for fixed_point in fixed_points:
         for i in  range(K*len(cs)*len(linestyles)):
-            offset = tuple(R*z for z in utilities.direct_surface(d=2))
+            offset = tuple(R*z for z in direct_surface(d=2))
             while not accept(offset):
-                offset = tuple(R*z for z in utilities.direct_surface(d=2))
+                offset = tuple(R*z for z in direct_surface(d=2))
             xys  = [tuple(x + y for x,y in zip(fixed_point, offset))]
 
             for j in range(N):
@@ -234,17 +248,25 @@ def plot_stability(f            = lambda x,y:(x,y),
 
     ax.scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
     ax.scatter([S*x for (x,_) in starts1],[S*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
-    ax.legend(title='Starting points, scaled by {0:3}'.format(S),loc='best').set_draggable(True)
+    if legend:
+        ax.legend(title='Starting points, scaled by {0:3}'.format(S),loc='best').set_draggable(True)
 
 def right_upper_quadrant(pt):
+    '''
+    Used to test whether a point is in the right upper quadrant,
+    including the axes.
+    '''
     return pt[0] >= 0 and pt[1] >= 0
 
 def strict_right_upper_quadrant(pt):
+    '''
+    Used to test whether a point is in the right upper quadrant,
+    excluding the axes.
+    '''
     return pt[0] > 0 and pt[1] > 0
 
 if __name__=='__main__':
     X,Y,U,V,fixed_points = generate(f = lambda x,y:(x+np.exp(-y),-y),nx = 256, ny = 256)
-
     fig = figure()
     ax = fig.add_subplot(1,1,1)
     plot_phase_portrait(X,Y,U,V,fixed_points,title = '$\dot{x}=x+e^{-y},\dot{y}=-y$', ax = ax)

@@ -114,7 +114,7 @@ dynamics.bib.sav.tmp
 
 # Files produced by tex
 
-chaos.pdf
+*.pdf
 
 # Files produced by python programs
 
