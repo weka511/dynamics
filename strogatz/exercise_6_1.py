@@ -20,47 +20,59 @@
     Plot phase portraits for a number of ODEs
 '''
 
+from os.path import  basename,splitext
 from matplotlib.pyplot import figure, show
 import matplotlib.colors as colors
 import numpy as np
 from  phase import generate, plot_phase_portrait, adapt
 from rk4 import rk4
 
+def get_name_for_save(extra=None,sep='-'):
+    '''Extract name for saving figure'''
+    basic = splitext(basename(__file__))[0]
+    return basic if extra==None else f'{basic}{sep}{extra}'
+
 fig = figure()
 ax = fig.add_subplot(1,1,1)
 X,Y,U,V,fixed = generate(f = lambda x,y:(x-y,1-np.exp(x)))
 plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x-y,\dot{y} = 1-e^x$',ax=ax)
 fig.suptitle('Example 6.1.1')
+fig.savefig(get_name_for_save(extra=1))
 
 fig = figure()
 ax = fig.add_subplot(1,1,1)
 X,Y,U,V,fixed = generate(f = lambda x,y:(x-x**3,-y))
 plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x-x^3,\dot{y} = -y$',ax=ax)
 fig.suptitle('Example 6.1.2')
+fig.savefig(get_name_for_save(extra=2))
 
 fig = figure()
 ax = fig.add_subplot(1,1,1)
 X,Y,U,V,_ = generate(f = lambda x,y:(x*(x-y),y*(2*x-y)))
 plot_phase_portrait(X,Y,U,V,[(0,0)],title = r'$\dot{x} = x(x-y),\dot{y} = y*(2x-y)$',ax=ax)
 fig.suptitle('Example 6.1.3')
+fig.savefig(get_name_for_save(extra=3))
 
 fig = figure()
 ax = fig.add_subplot(1,1,1)
 X,Y,U,V,fixed = generate(f = lambda x,y:(y,x*(1+y)-1))
 plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = y,\dot{y} = x(1+y)-1$',ax=ax)
 fig.suptitle('Example 6.1.4')
+fig.savefig(get_name_for_save(extra=4))
 
 fig = figure()
 ax = fig.add_subplot(1,1,1)
 X,Y,U,V,fixed = generate(f = lambda x,y:(x*(2-x-y),x-y))
 plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x(2-x-y),\dot{y} = x-y$',ax=ax)
 fig.suptitle('Example 6.1.5')
+fig.savefig(get_name_for_save(extra=5))
 
 fig = figure()
 ax = fig.add_subplot(1,1,1)
-X,Y,U,V,fixed = generate(f = lambda x,y:(x*x-y,x-y))
+X,Y,U,V,fixed = generate(f = lambda x,y:(x**2-y,x-y))
 plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x^2-y,\dot{y} = x-y$',ax=ax)
 fig.suptitle('Example 6.1.6')
+fig.savefig(get_name_for_save(extra=6))
 
 fig = figure()
 ax = fig.add_subplot(1,1,1)
@@ -81,35 +93,6 @@ ax.plot([z[0] for z in xy],
         linewidth = 2)
 
 ax.legend(loc = 'best')
-
-fig = figure()
-ax = fig.add_subplot(1,1,1)
-X,Y,U,V,fixed = generate(f = lambda x,y:(x,-x+y*(1-x*x)))
-plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x} = x,\dot{y} = -x+y(1-x^2)$',ax=ax)
-fig.suptitle('Example 6.1.8 - van de Pol')
-
-fig = figure()
-ax = fig.add_subplot(1,1,1)
-X,Y,U,V,fixed = generate(f = lambda x,y:(y+y*y,y*y-x*x))
-plot_phase_portrait(X,Y,U,V,[(0,0)],title = r'$\dot{x} = 2xy,\dot{y} = y^2-x^2$',ax=ax)
-fig.suptitle('Example 6.1.9 - Dipole fixed point')
-
-
-fig = figure()
-ax = fig.add_subplot(1,1,1)
-X,Y,U,V,fixed = generate(f = lambda x,y:(y+y*y,-x/2+y/5-x*y+6*y*y/5))
-plot_phase_portrait(X,Y,U,V,fixed,
-                          title = r'$\dot{x} = y+y^2,\dot{y} = -\frac{x}{2}+\frac{y}{5}-xy+\frac{6}{5}y^2$',
-                          ax = ax)
-fig.suptitle ('Example 6.1.10 - Two eyed monster')
-
-
-fig = figure()
-ax = fig.add_subplot(1,1,1)
-X,Y,U,V,fixed = generate(f = lambda x,y:(y+y*y,-x+y/5-x*y+6*y*y/5))
-plot_phase_portrait(X,Y,U,V,fixed,
-                          title = r'$\dot{x} = y+y^2,\dot{y} = -x+\frac{y}{5}-xy+\frac{6}{5}y^2$',
-                          ax=ax)
-fig.suptitle('Example 6.1.11 - Parrot')
+fig.savefig(get_name_for_save(extra=7))
 
 show()

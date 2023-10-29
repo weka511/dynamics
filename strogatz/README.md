@@ -9,8 +9,11 @@
 2|exercise_2_5_3|Showing that X tends to infinity in a finite time
 -|exercise_2_7|Exercises 2.7.3 and 2.7.4
 3|exercise_3.7.6.py|Kermack & McKendrick model of an epidemic
-6|exercise_6_1.py|Plot phase portraits for a number of ODEs
+6|exercise_6_1.py|Plot phase portraits for exercises 6.1.1 through 6.1.6
 -|exercise_6_1_8.py|Plot phase portrait Van der Pol
+-|exercise_6_1_9.py|Exercise 6.1.9 - Dipole fixed point
+-|exercise_6_1_10.py|Exercise 6.1.10 - Two eyed monster
+-|exercise_6_1_11.py|Exercise 6.1.11 - Parrot
 -|exercise_6_2.py|Plot phase portraits for a number of ODEs
 -|exercise_6_3.py|Plot phase portraits for a number of ODEs
 -|exercise_6_3_10.py|Stability of fixed point: saddle or not? (tricky)
