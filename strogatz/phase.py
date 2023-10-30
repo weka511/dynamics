@@ -271,32 +271,30 @@ def plot_stability(f            = lambda x,y:(x,y),
 
     starts_stable = []
     starts_unstable = []
-    is_stable = np.full((K*len(cs)*len(linestyles),2),False)
-    starts = np.zeros((K*len(cs)*len(linestyles),2))
+
     for pt in fixed:
         for i in  range(K*len(cs)*len(linestyles)):
             trajectory = evolve_trajectory(pt)
-            starts[i,:] = pt
-            if abs(trajectory[-1,0]) > Limit or abs(trajectory[-1,1]) > Limit:
-                ax.plot(trajectory[:,0],#[z[0] for z in trajectory],
-                         trajectory[:,1],#z[1] for z in trajectory],
+
+            if np.any(abs(trajectory[-1,:]) > Limit) :
+                ax.plot(trajectory[:,0],
+                         trajectory[:,1],
                          c         = cs[i%len(cs)],
                          linestyle = linestyles[(i//len(cs))%len(linestyles)],
                          linewidth = 3)
-                starts_unstable.append( trajectory[0,:])
+                starts_unstable.append( S*(trajectory[0,:] - pt) + pt)
             else:
-                if abs(trajectory[-1,0]-trajectory[0,0])<eps and abs(trajectory[-1,1]-trajectory[0,1])<eps:
-                    starts_stable.append( trajectory[0,:])
-                    is_stable[i,:] = True
+                if np.all(abs(trajectory[-1,:]-trajectory[0,:])<eps):
+                    starts_stable.append( S*(trajectory[0,:] - pt) + pt)
 
     starts_stable = np.array(starts_stable).reshape(-1,2)
     starts_unstable = np.array(starts_unstable).reshape(-1,2)
-    ax.scatter(S*starts_stable[:,0],S*starts_stable[:,1],#[S*x for (x,_) in starts_stable],[S*y for (_,y) in starts_stable],
+    ax.scatter(starts_stable[:,0],starts_stable[:,1],
                c = c_stable,
                marker = '*',
                s = s,
                label = 'Stable')
-    ax.scatter(S*starts_unstable[:,0],S*starts_unstable[:,1],#[S*x for (x,_) in starts_unstable],[S*y for (_,y) in starts_unstable],
+    ax.scatter(starts_unstable[:,0],starts_unstable[:,1],
                c = c_unstable,
                marker = '+',
                s = s,
