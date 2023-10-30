@@ -23,12 +23,15 @@ import matplotlib.colors as colors
 from matplotlib import rc
 from scipy import optimize
 from utilities import direct_surface
-import rk4
+from rk4 import rk4
 
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
-def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0.001,tolerance_root_finder=0.00001):
+def get_fixed_points(f,xs,ys,
+                     tolerance_near_zero = 0.001,
+                     tolerance_already_found = 0.001,
+                     tolerance_root_finder = 0.00001):
     '''
     Determine fixed points of differential equation
 
@@ -42,13 +45,15 @@ def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0
     '''
     def already_found(candidate,zeroes):
         '''
-        test a candidate fied point to see whether we have already found it
+        test a candidate fixed point to see whether we have already found it
+
         Parameters:
             candidate
             zeroes
         '''
-        return any([abs(x-candidate[0])<tolerance_already_found and
-                            abs(y-candidate[1])<tolerance_already_found for x,y in zeroes])
+        return any([abs(x-candidate[0]) < tolerance_already_found and
+                    abs(y-candidate[1]) < tolerance_already_found
+                    for x,y in zeroes])
 
 
     def crosses(w0,w1):
@@ -56,21 +61,24 @@ def get_fixed_points(f,xs,ys,tolerance_near_zero=0.001,tolerance_already_found=0
         Determine whether a value crosses between +ve and -ve
 
         Parameters:
-            w0
-            w1
+            w0     One value
+            w1     Some other value
+
+        Returns: True iff w0 and w1 have opposite signs
+
         '''
-        return (w0<=0 and w1>=0) or (w0>=0 and w1<=0)
+        return (w0 <= 0 and w1 >= 0) or (w0 >= 0 and w1 <= 0)
 
 
-    def is_near_zero(u,v):
+    def is_near_zero(x,y):
         '''
         Establish whether a point is near the origin
 
         Parameters:
-            u
-            v
+            x
+            y
         '''
-        return abs(u)<tolerance_near_zero and abs(v)<tolerance_near_zero
+        return x**2 + y**2 < tolerance_near_zero**2
 
     def find_crossings():
         '''
@@ -118,6 +126,10 @@ def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-10,xmax=10,ymin=-10,ymax=10
             xmax     Maximum x value
             ymin     Minimum y value
             ymax     Maximum y value
+        Returns:
+            X,Y     Gridpoints
+            U,V     The result of applying f to each gridpoint
+            fixed   Fixed points of differential equation within grid
     '''
     xs = np.linspace(xmin, xmax,nx)
     ys = np.linspace(ymin, ymax, ny)
@@ -139,19 +151,23 @@ def nullclines(u,v):
         return offset if v<0 else offset+1
     return setnum_offset(v) if u<0 else setnum_offset(v,offset=2)
 
-def plot_phase_portrait(X,Y,U,V,fixed,title='',xlabel='$x$',ylabel='$y$',ax=None):
+def plot_phase_portrait(X,Y,U,V,fixed,
+                        title = '',
+                        xlabel = '$x$',
+                        ylabel = '$y$',
+                        ax = None):
     '''
     Plot nullclines, stream lines, and fixed points
         Parameters:
-            X
-            Y
-            U
-            V
-            fixed
-            title
-            suptitle
+            X,Y     Gridpoints
+            U,V     TDErivatives at each gridpoint
+            fixed   Fixed points of differential equation within grid
+            title   Title for plotting
+            xlabel  Label on X axis, for plotting
+            ylabel  Label on Y axis, for plotting
+            ax      Axis for figure
     '''
-    def apply2D(Z,f=min):
+    def apply2D(Z, f=min):
         '''
         Apply a function to every element in a matrix
         Used to find minimum and maximum
@@ -180,15 +196,22 @@ def adapt(f):
         f     The function to be adapted
     '''
     def adapted(x):
-        u,v=f(x[0],x[1])
+        u,v = f(x[0],x[1])
         return [u]+[v]
     return adapted
 
 
 def plot_stability(f            = lambda x,y:(x,y),
-                   fixed_points = [(0,0)],
+                   fixed        = [(0,0)],
                    R            = 1,
-                   cs           = ['r','b','g','m','c','y','k'],
+                   cs           = ['xkcd:purple',
+                                   'xkcd:green',
+                                   'xkcd:pink',
+                                   'xkcd:brown',
+                                   'xkcd:teal',
+                                   'xkcd:orange',
+                                   'xkcd:magenta',
+                                   'xkcd:yellow'],
                    linestyles   = ['-', '--', '-.', ':'],
                    Limit        = 1.0E12,
                    N            = 1000,
@@ -199,37 +222,56 @@ def plot_stability(f            = lambda x,y:(x,y),
                    legend       = True,
                    accept       = lambda _:True,
                    eps          = 0.1,
-                   ax = None):
+                   c_stable     = 'xkcd:blue',
+                   c_unstable   = 'xkcd:red',
+                   ax           = None):
     '''
-     Determins stability of fixed points using a Monte Carlo method
+     Determine stability of fixed points using a Monte Carlo method
 
         Parameters:
-            fixed_points
-            R
-            cs
-            linestyles
-            Limit
-            N
-            step
-            S
-            s
-            K
-            legend
-            accept
-            eps
-            ax
+            fixed       A collection of fixed points
+            R           In order to probe stability, we will generate points that are near to fixed point.
+                        R defines the standard deviation
+            cs          List of colours to be used for plotting
+            linestyles  List of linestyles to be used for plotting
+            Limit       Upper bound: when we integrate, assume unstable if any coordinate exceeds Limit
+            N           Number of steps to integrate differential equation
+            step        Stepsize for integration
+            S           Controls display of starting points: moves them out so they can be distinguished
+            s           Controls size of starting points for display
+            K           Controls number of iterations. For each fixed point, iterate K times for
+                        each combination of a colour with a linestyle
+            legend      Indicates whether legend  pointsis to be shown
+            accept      Function used to constrain the offset
+            eps         Used to determine whether a point is stable
+            ax          Axis for plotting
+            c_stable    Colour to display stable starting points
+            c_unstable  Colour to display unstable starting points
     '''
-    starts0 = []
-    starts1 = []
-    for fixed_point in fixed_points:
-        for i in  range(K*len(cs)*len(linestyles)):
-            offset = tuple(R*z for z in direct_surface(d=2))
-            while not accept(offset):
-                offset = tuple(R*z for z in direct_surface(d=2))
-            xys  = [tuple(x + y for x,y in zip(fixed_point, offset))]
+    def create_offset():
+        '''
+        In order to probe stability, we want to generate points that are near to fixed point.
+        This function is used to define an offset from the fixed point, and, optionally,
+        to constrain the offset in some way
+        '''
+        product = tuple(R*z for z in direct_surface(d=2))
+        while not accept(product):
+            product = tuple(R*z for z in direct_surface(d=2))
+        return product
 
+    def scale(xys):
+        scaled = []
+        for i in len(xys[0]):
+            scaled.append((xys[-1][i]-xys[0][i])*S + xys[0][i])
+        return scaled
+
+    starts_stable = []
+    starts_unstable = []
+    for pt in fixed:
+        for i in  range(K*len(cs)*len(linestyles)):
+            xys = [tuple(x + y for x,y in zip(pt, create_offset()))]
             for j in range(N):
-                (x,y)=rk4.rk4(0.1,xys[-1],adapt(f=f))
+                (x,y) = rk4(step,xys[-1],adapt(f=f))
                 if abs(x) < 1.5*Limit and abs(y) < 1.5*Limit:
                     xys.append((x,y))
                 else:
@@ -241,15 +283,24 @@ def plot_stability(f            = lambda x,y:(x,y),
                          c         = cs[i%len(cs)],
                          linestyle = linestyles[(i//len(cs))%len(linestyles)],
                          linewidth = 3)
-                starts1.append( (xys[0]))
+                starts_unstable.append( (xys[0]))
             else:
                 if abs(xys[-1][0]-xys[0][0])<eps and abs(xys[-1][1]-xys[0][1])<eps:
-                    starts0.append( (xys[0]))
+                    starts_stable.append( (xys[0]))
 
-    ax.scatter([S*x for (x,_) in starts0],[S*y for (_,y) in starts0],c='b',marker='*',s=s,label='Stable')
-    ax.scatter([S*x for (x,_) in starts1],[S*y for (_,y) in starts1],c='r',marker='+',s=s,label='Unstable')
+
+    ax.scatter([S*x for (x,_) in starts_stable],[S*y for (_,y) in starts_stable],
+               c = c_stable,marker='*',
+               s = s,
+               label = 'Stable')
+    ax.scatter([S*x for (x,_) in starts_unstable],[S*y for (_,y) in starts_unstable],
+               c = c_unstable,
+               marker = '+',
+               s = s,
+               label = 'Unstable')
     if legend:
-        ax.legend(title='Starting points, scaled by {0:3}'.format(S),loc='best').set_draggable(True)
+        title='Starting points' if S==1 else f'Starting points, scaled by {S}'
+        ax.legend(title=title,loc='best').set_draggable(True)
 
 def right_upper_quadrant(pt):
     '''
@@ -266,10 +317,10 @@ def strict_right_upper_quadrant(pt):
     return pt[0] > 0 and pt[1] > 0
 
 if __name__=='__main__':
-    X,Y,U,V,fixed_points = generate(f = lambda x,y:(x+np.exp(-y),-y),nx = 256, ny = 256)
+    X,Y,U,V,fixed = generate(f = lambda x,y:(x+np.exp(-y),-y),nx = 256, ny = 256)
     fig = figure()
     ax = fig.add_subplot(1,1,1)
-    plot_phase_portrait(X,Y,U,V,fixed_points,title = '$\dot{x}=x+e^{-y},\dot{y}=-y$', ax = ax)
-    plot_stability(f = lambda x,y:(x+np.exp(-y),-y), fixed_points = fixed_points, ax = ax)
+    plot_phase_portrait(X,Y,U,V,fixed,title = '$\dot{x}=x+e^{-y},\dot{y}=-y$', ax = ax)
+    plot_stability(f = lambda x,y:(x+np.exp(-y),-y), fixed = fixed, ax = ax)
     fig.suptitle('Example 6.1.1')
     show()

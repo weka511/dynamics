@@ -20,11 +20,18 @@
     Plot phase portraits for a number of ODEs
 '''
 
+from os.path import  basename,splitext
 from  matplotlib.pyplot import figure,show
 from phase import generate,plot_phase_portrait,plot_stability,right_upper_quadrant
 
 def f3(x,y,rho=1):
     return (x*(1-y),y*(rho-x))
+
+def get_name_for_save(extra=None,sep='-'):
+    '''Extract name for saving figure'''
+    basic = splitext(basename(__file__))[0]
+    return basic if extra==None else f'{basic}{sep}{extra}'
+
 
 fig = figure(figsize=(20,20))
 
@@ -34,12 +41,25 @@ for i,rho in enumerate([0.1,0.25,
     f = lambda x,y:f3(x,y,rho=rho)
 
     ax = fig.add_subplot(2,3,i+1)
-    X,Y,U,V,fixed_points = generate(f=f,nx=256,ny=256,xmin=0,xmax=3.5,ymin=0,ymax=3.5)
-    plot_phase_portrait(X,Y,U,V,fixed_points,
+    X,Y,U,V,fixed = generate(f = f,
+                                    nx = 256,
+                                    ny = 256,
+                                    xmin = 0,
+                                    xmax = 3.5,
+                                    ymin = 0,
+                                    ymax = 3.5)
+    plot_phase_portrait(X,Y,U,V,fixed,
                         title = fr'$\rho=${rho}',
                         ax = ax)
-    plot_stability(f=f,fixed_points=fixed_points,Limit=5,step=0.1,N=5000,accept=right_upper_quadrant,K=10,ax=ax)
+    plot_stability(f = f,
+                   fixed = fixed,
+                   Limit = 5,
+                   step = 0.1,
+                   N = 5000,
+                   accept = right_upper_quadrant,
+                   K = 10,
+                   ax = ax)
 
 fig.suptitle(r'Example 6.4.4: $\dot{{x}}=x(1-y),\dot{{y}}=y(\rho-x)$')
-
+fig.savefig(get_name_for_save())
 show()
