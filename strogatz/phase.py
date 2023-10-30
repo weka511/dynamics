@@ -259,41 +259,44 @@ def plot_stability(f            = lambda x,y:(x,y),
             product = tuple(R*z for z in direct_surface(d=2))
         return product
 
-    def scale(xys):
-        scaled = []
-        for i in len(xys[0]):
-            scaled.append((xys[-1][i]-xys[0][i])*S + xys[0][i])
-        return scaled
+    def evolve_trajectory(pt):
+        trajectory = [tuple(x + y for x,y in zip(pt, create_offset()))]
+        for j in range(N):
+            (x,y) = rk4(step,trajectory[-1],adapt(f=f))
+            if abs(x) < 1.5*Limit and abs(y) < 1.5*Limit:
+                trajectory.append((x,y))
+            else:
+                break
+        return np.array(trajectory)
 
     starts_stable = []
     starts_unstable = []
+    is_stable = np.full((K*len(cs)*len(linestyles),2),False)
+    starts = np.zeros((K*len(cs)*len(linestyles),2))
     for pt in fixed:
         for i in  range(K*len(cs)*len(linestyles)):
-            xys = [tuple(x + y for x,y in zip(pt, create_offset()))]
-            for j in range(N):
-                (x,y) = rk4(step,xys[-1],adapt(f=f))
-                if abs(x) < 1.5*Limit and abs(y) < 1.5*Limit:
-                    xys.append((x,y))
-                else:
-                    break
-
-            if abs(xys[-1][0]) > Limit or abs(xys[-1][1]) > Limit:
-                ax.plot([z[0] for z in xys],
-                         [z[1] for z in xys],
+            trajectory = evolve_trajectory(pt)
+            starts[i,:] = pt
+            if abs(trajectory[-1,0]) > Limit or abs(trajectory[-1,1]) > Limit:
+                ax.plot(trajectory[:,0],#[z[0] for z in trajectory],
+                         trajectory[:,1],#z[1] for z in trajectory],
                          c         = cs[i%len(cs)],
                          linestyle = linestyles[(i//len(cs))%len(linestyles)],
                          linewidth = 3)
-                starts_unstable.append( (xys[0]))
+                starts_unstable.append( trajectory[0,:])
             else:
-                if abs(xys[-1][0]-xys[0][0])<eps and abs(xys[-1][1]-xys[0][1])<eps:
-                    starts_stable.append( (xys[0]))
+                if abs(trajectory[-1,0]-trajectory[0,0])<eps and abs(trajectory[-1,1]-trajectory[0,1])<eps:
+                    starts_stable.append( trajectory[0,:])
+                    is_stable[i,:] = True
 
-
-    ax.scatter([S*x for (x,_) in starts_stable],[S*y for (_,y) in starts_stable],
-               c = c_stable,marker='*',
+    starts_stable = np.array(starts_stable).reshape(-1,2)
+    starts_unstable = np.array(starts_unstable).reshape(-1,2)
+    ax.scatter(S*starts_stable[:,0],S*starts_stable[:,1],#[S*x for (x,_) in starts_stable],[S*y for (_,y) in starts_stable],
+               c = c_stable,
+               marker = '*',
                s = s,
                label = 'Stable')
-    ax.scatter([S*x for (x,_) in starts_unstable],[S*y for (_,y) in starts_unstable],
+    ax.scatter(S*starts_unstable[:,0],S*starts_unstable[:,1],#[S*x for (x,_) in starts_unstable],[S*y for (_,y) in starts_unstable],
                c = c_unstable,
                marker = '+',
                s = s,
