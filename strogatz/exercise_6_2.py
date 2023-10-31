@@ -15,36 +15,42 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-# Exercise 6.2 from Strogatz
-# Plot phase portraits for a number of ODEs
+'''
+Exercise 6.2 from Strogatz
+Plot phase portraits for a number of ODEs
+'''
 
-import sys
-sys.path.append('../')
-import  matplotlib.pyplot as plt,matplotlib.colors as colors,phase,numpy as np,rk4
+from os.path import  basename,splitext
+from matplotlib.pyplot import figure, show
+import matplotlib.colors as colors
+import numpy as np
+from phase import generate,plot_phase_portrait
+from rk4 import rk4, adapt
 
-
+def get_name_for_save(extra=None,sep='-'):
+    '''Extract name for saving figure'''
+    basic = splitext(basename(__file__))[0]
+    return basic if extra==None else f'{basic}{sep}{extra}'
 
 def f(x,y):
-    return y,-x+(1-x*x-y*y)*y
+    return y,-x + (1 - x**2 -y**2)*y
 
-X,Y,U,V,fixed=phase.generate(f=f,nx=256, ny = 256,xmin=-1,xmax=1,ymin=-1,ymax=1)
-
-phase.plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=y,\dot{y}=x+(1-x^2-y^2)y$',suptitle='Exercise 6.2.1')
-
+X,Y,U,V,fixed=generate(f=f,nx=256, ny = 256,xmin=-1,xmax=1,ymin=-1,ymax=1)
+fig = figure()
+ax = fig.add_subplot(1,1,1)
+plot_phase_portrait(X,Y,U,V,fixed,title='$\dot{x}=y,\dot{y}=x+(1-x^2-y^2)y$',ax=ax)
+fig.suptitle('Exercise 6.2.1')
 cs = ['r','b','g','m','c','y']
 starts=[(0.5,0),(0.6,0),(0.4,0)]
+
 for xy0,i in zip(starts,range(len(starts))):
     xy=[xy0]
     for j in range(100000):
-        xy.append(rk4.rk4(0.01,xy[-1],phase.adapt(f=f)))
-    plt.plot([z[0] for z in xy],
-                    [z[1] for z in xy],
-                    c=cs[i%len(cs)],
-                    linewidth=1)
+        xy.append(rk4(0.01,xy[-1],adapt(f=f)))
+    ax.plot([z[0] for z in xy],
+            [z[1] for z in xy],
+            c = cs[i%len(cs)],
+            linewidth = 1)
 
-leg=plt.legend(loc='best')
-
-
-
-
-plt.show()
+fig.savefig(get_name_for_save())
+show()

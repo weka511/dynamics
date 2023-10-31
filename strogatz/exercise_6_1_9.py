@@ -25,7 +25,8 @@ from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
-from  phase import generate, plot_phase_portrait, adapt
+from  phase import generate, plot_phase_portrait
+from rk4 import adapt
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)

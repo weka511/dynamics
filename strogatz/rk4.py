@@ -32,3 +32,15 @@ def rk4(h,y,f):
     k3 = tuple([h*f_y for f_y in f(tuple([y+k for y,k in zip(y,k2)]))])
     return tuple([yy+(_k0+2*_k1+2*_k2+_k3)/6 for yy,_k0,_k1,_k2,_k3 in zip(y,k0,k1,k2,k3)])
 
+def adapt(f):
+    '''
+    Adapt a 2D function so it is in the form that rk4 requires, i.e.:
+    ((x,y)->(dx,dy))->(([x])->[dx])
+
+    Parameters:
+        f     The function to be adapted
+    '''
+    def adapted(x):
+        u,v = f(x[0],x[1])
+        return [u]+[v]
+    return adapted

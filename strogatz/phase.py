@@ -23,7 +23,7 @@ import matplotlib.colors as colors
 from matplotlib import rc
 from scipy import optimize
 from utilities import direct_surface
-from rk4 import rk4
+from rk4 import rk4, adapt
 
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
@@ -187,18 +187,6 @@ def plot_phase_portrait(X,Y,U,V,fixed,
     ax.scatter([x for (x,_) in fixed],[y for (_,y) in fixed],marker='x',s=60,c='r')
     ax.set_title(title)
 
-def adapt(f):
-    '''
-    Adapt a 2D function so it is in the form that rk4.rk4 requires, i.e.:
-    ((x,y)->(dx,dy))->(([x])->[dx])
-
-    Parameters:
-        f     The function to be adapted
-    '''
-    def adapted(x):
-        u,v = f(x[0],x[1])
-        return [u]+[v]
-    return adapted
 
 
 def plot_stability(f            = lambda x,y:(x,y),

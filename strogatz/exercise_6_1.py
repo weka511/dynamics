@@ -24,8 +24,8 @@ from os.path import  basename,splitext
 from matplotlib.pyplot import figure, show
 import matplotlib.colors as colors
 import numpy as np
-from  phase import generate, plot_phase_portrait, adapt
-from rk4 import rk4
+from  phase import generate, plot_phase_portrait
+from rk4 import rk4, adapt
 
 def get_name_for_save(extra=None,sep='-'):
     '''Extract name for saving figure'''
