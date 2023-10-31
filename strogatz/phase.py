@@ -248,13 +248,12 @@ def plot_stability(f            = lambda x,y:(x,y),
         return product
 
     def evolve_trajectory(pt):
-        trajectory = [tuple(x + y for x,y in zip(pt, create_offset()))]
-        for j in range(N):
-            (x,y) = rk4(step,trajectory[-1],adapt(f=f))
-            if abs(x) < 1.5*Limit and abs(y) < 1.5*Limit:
-                trajectory.append((x,y))
-            else:
-                break
+        trajectory = np.zeros((N,2))
+        trajectory[0,:] = pt + np.array(create_offset())
+        for j in range(1,N):
+            trajectory[j,:] = rk4(step,trajectory[j-1],adapt(f=f))
+            if np.any(abs(trajectory[j,:]) > 1.5*Limit):
+                return np.array(trajectory[0:j+1,:])
         return np.array(trajectory)
 
     starts_stable = []
