@@ -9,7 +9,13 @@
 2|exercise_2_5_3|Showing that X tends to infinity in a finite time
 -|exercise_2_7|Exercises 2.7.3 and 2.7.4
 3|exercise_3.7.6.py|Kermack & McKendrick model of an epidemic
-6|exercise_6_1.py|Plot phase portraits for exercises 6.1.1 through 6.1.6
+6|exercise_6_1_1.py|Plot phase portraits for exercise 6.1.1
+-|exercise_6_1_2.py|Plot phase portraits for exercise 6.1.2
+-|exercise_6_1_3.py|Plot phase portraits for exercise 6.1.3
+-|exercise_6_1_4.py|Plot phase portraits for exercise 6.1.4
+-|exercise_6_1_5.py|Plot phase portraits for exercise 6.1.5
+-|exercise_6_1_6.py|Plot phase portraits for exercise 6.1.6
+-|exercise_6_1_7.py|Plot phase portraits for exercise 6.1.7: Nullcline versus stable manifold
 -|exercise_6_1_8.py|Plot phase portrait Van der Pol
 -|exercise_6_1_9.py|Exercise 6.1.9 - Dipole fixed point
 -|exercise_6_1_10.py|Exercise 6.1.10 - Two eyed monster
