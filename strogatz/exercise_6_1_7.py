@@ -15,10 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-'''
-    Exercise 6.1 from Strogatz
-    Plot phase portraits for a number of ODEs
-'''
+'''Example 6.1.7 showing Stable manifold'''
 
 from os.path import  basename,splitext
 from matplotlib.pyplot import figure, show
@@ -36,7 +33,7 @@ fig = figure()
 ax = fig.add_subplot(1,1,1)
 X,Y,U,V,fixed = generate(f = lambda x,y:(-x-np.exp(-y),y),nx = 256, ny  =  256,xmin = -11,xmax = 10,ymin = 0,ymax = 20)
 plot_phase_portrait(X,Y,U,V,fixed,title = '$\dot{x} = -x-e^{-y},\dot{y} = y$',ax=ax)
-fig.suptitle('Example 6.1.7 showing Stable manifold')
+fig.suptitle(__doc__)
 
 eps = 1e-6
 xy0 = [-1,eps]

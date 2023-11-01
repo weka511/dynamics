@@ -16,8 +16,7 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
 '''
-    Exercise 6.1 from Strogatz
-    Plot phase portraits for a number of ODEs
+    Exercise 6.1.4 from Strogatz
 '''
 
 from os.path import  basename,splitext
