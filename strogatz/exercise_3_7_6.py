@@ -20,43 +20,72 @@
 from os.path import  basename,splitext
 from matplotlib.pyplot import figure, show
 import numpy as np
+from solver import rk4
 
-aa = [1,2,3]
-bs = [0.1,0.2,0.3]
+aa = [0.5, 1,2,3,5]
+bs = [0.9, 0.95, 1.0, 1.1] #[0.1,0.2,0.3]
 h  = 0.1
-l  = 10.0
+l  = 4
+
 colours = ['xkcd:purple',
            'xkcd:green',
            'xkcd:blue',
            'xkcd:pink',
-           'xkcd:brown',
            'xkcd:red',
            'xkcd:light blue',
            'xkcd:teal',
            'xkcd:orange'
            ]
 
+def get_dim(N):
+    m = int(np.sqrt(N))
+    n = N//m
+    if m*n < N:
+        m += 1
+    return m,n
+
 def get_name_for_save():
     '''Extract name for saving figure'''
     return splitext(basename(__file__))[0]
 
-us = np.array([h*u for u in range(0,int(l/h))])
+us = np.arange(0,int(l),h)
+
+fig = figure(figsize = (10,10))
+for j,b in enumerate(bs):
+    ax = fig.add_subplot(*get_dim(len(bs)),j+1)
+    ax.plot(us,np.exp(-us),
+         c = 'xkcd:black',
+         label = r'$e^{-u}$')
+    for i,a in enumerate(aa):
+        ax.plot(us, a - b *us,
+             c = colours[i],
+             label = f'a={a},b={b}')
+    ax.legend()
+    ax.set_xlabel('u')
+    ax.grid(True)
+
+fig.suptitle(__doc__)
+fig.savefig(get_name_for_save())
+
+def f(y,k=0.001,l=0.01):
+    return np.array([
+        -k * y[0] * y[1],
+        k * y[0] * y[1] - l* y[1],
+        l* y[1]
+    ])
+
+m = 10000
+y = np.zeros((m+1,3))
+y[0,0] = 1000
+y[0,1] = 1
+h = 0.01
+for i in range(1,m+1):
+    y[i,:] = rk4(h, y[i-1,:], f)
 
 fig = figure(figsize = (10,10))
 ax = fig.add_subplot(1,1,1)
-ax.plot(us,np.exp(-us),
-     c = 'xkcd:black',
-     label = r'$e^{-u}$')
-
-for i,a in enumerate(aa):
-    for j,b in enumerate(bs):
-        u1s = a - b *us
-        ax.plot(us,u1s,
-             c = colours[len(bs)*i+j],
-             label = f'a={a},b={b}')
-
-ax.set_title(__doc__)
-ax.grid(True)
+ax.plot(y[:,0],label='x')
+ax.plot(y[:,1],label='y')
+ax.plot(y[:,2],label='z')
 ax.legend()
-fig.savefig(get_name_for_save())
 show()
