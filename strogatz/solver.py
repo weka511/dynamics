@@ -36,14 +36,11 @@ def rk4(h,y,f):
     return y + (k1 + 2*k2 + 2*k3 + k4)/6
 
 if __name__ == '__main__':
-    def f(y):
-        return np.array([-y[1],y[0]])
-
     m = 100
     y = np.zeros((m+1,2))
     y[0,1] = 1
     for i in range(1,m+1):
-        y[i,:] = rk4(2*np.pi/m, y[i-1,:], f)
+        y[i,:] = rk4(2*np.pi/m, y[i-1,:], lambda y:np.array([-y[1],y[0]]))
 
     fig = figure()
     ax = fig.add_subplot(1,1,1)
