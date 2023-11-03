@@ -23,6 +23,7 @@ from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from solver import rk4
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -36,20 +37,45 @@ def get_name_for_save(extra=None,sep='-'):
 def f(theta,mu):
     return mu + np.sin(theta) + np.cos(2*theta)
 
+def plot_f(thetas,mu,ax=None):
+    ax.plot(thetas,f(thetas,mu),c='xkcd:blue')
+    # ax.set_xlabel(r'$\theta$')
+    # ax.set_ylabel(r'$\mu +\sin {\theta} + \cos {2 \theta}$')
+    ax.set_title('$\mu=$' f'{mu}')
+    ax.axhline(0,c='xkcd:red',linestyle=':')
+
+def plot_sol(mu,ax=None,N=1000,n=13,rng = np.random.default_rng(),swapped = False):
+    start = 4* np.pi * (rng.random(n)-0.5)
+    for i in range(n):
+        y = np.zeros((N))
+        y[0] = start[i]
+        h = 2* np.pi/N
+        for i in range(N-1):
+            y[i+1] = rk4(h,y[i],lambda theta:f(theta,mu))
+        ax.axhline(2*np.pi,c='xkcd:red',linestyle=':')
+        ax.axhline(0,c='xkcd:red',linestyle=':')
+        while swapped:
+            swapped = False
+            for i in range(N):
+                if y[i] > 2*np.pi:
+                    y[i] -= 2*np.pi
+                    swapped = True
+                elif y[i] < 2*0:
+                        y[i] += 2*np.pi
+                        swapped = True
+        ax.plot(y)
+
 if __name__=='__main__':
     start = time()
     args = parse_args()
-
-    thetas = np.arange(0,2*np.pi,0.01)
-    fig = figure(figsize=(10,10))
-    for i,mu in enumerate([-0.1, 0,1,2,3]):
-        ax = fig.add_subplot(2,4,i+1)
-        ax.plot(thetas,f(thetas,mu),c='xkcd:blue')
-        ax.set_xlabel(r'$\theta$')
-        ax.set_ylabel(r'$\mu +\sin {\theta} + \cos {2 \theta}$')
-        ax.set_title('$\mu=$' f'{mu}')
-        ax.axhline(0,c='xkcd:red',linestyle=':')
-
+    thetas = np.arange(0,2*np.pi,0.1)
+    mus = [-1.2, -1.1, -1, -0.1, 0,0.1, 1,2,2.1]
+    fig = figure(figsize=(10,20))
+    for i,mu in enumerate(mus):
+        plot_f(thetas,mu,
+               ax=fig.add_subplot(2,len(mus),i+1))
+        plot_sol(mu,
+                 ax=fig.add_subplot(2,len(mus),i+len(mus)+1))
     fig.suptitle(__doc__)
     fig.tight_layout()
     fig.savefig(get_name_for_save())
