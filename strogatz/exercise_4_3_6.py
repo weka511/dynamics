@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Exercise 4.3.6'''
+'''Exercise 4.3.6 from Strogatz. Explore dependence of solutions on parameter.'''
 
 from argparse import ArgumentParser
 from os.path import  basename,splitext
@@ -44,7 +44,13 @@ def f(theta,mu):
 
 def plot_f(thetas,mu,ax=None,f=f):
     '''
-    Plot RHS of differential equation
+    Plot RHS of differential equation y' = f(y)
+
+    Parameters:
+        thetas    Values of independent variavle for plotting
+        mu        Parameter for function
+        ax        Axis for plot
+        f         Function for RHS
     '''
     y = f(thetas,mu)
     ax.plot(thetas,y,c='xkcd:blue')
@@ -62,9 +68,20 @@ def plot_f(thetas,mu,ax=None,f=f):
             fixed_stable.append(thetas[i])
     return np.array(fixed_unstable),np.array(fixed_stable)
 
-def plot_fixed(fixed,ax = None,epsilon=0.5,c='xkcd:red'):
+def plot_fixed(fixed,
+               ax = None,
+               epsilon = 0.5,
+               c = 'xkcd:red'):
     '''
-    Plot fixed points
+    Plot hortontal lines, each corresponding to one fixed point. Each point can give rise to multiple lines,
+    separated by 2 * np.pi. The first line, for each point, is represented by a dashed line, and the "echoes"
+    by dotted lines.
+
+    Parameters:
+        fixed   List of fixed points
+        ax      Axis for plotting
+        epsilon
+        c       Colour: used to distinguish stable and unstable
     '''
     ylim0,ylim1 = ax.get_ylim()
     for y0 in fixed:
@@ -82,7 +99,16 @@ def plot_solution(mu,
                   fixed_unstable = None,
                   fixed_stable = None):
     '''
-    Solve ODE and plot solution
+    Solve ODE and plot several trajectories, comparing them with fixed points
+
+    Parameters:
+        T              Time runs from 0 to T
+        ax             Axis for plotting
+        N              Number of steps for integration
+        n              Number of trajectories
+        rng            Random number generator, used the choose starting values
+        fixed_unstable List of unstable fixed points
+        fixed_stable   List of stable fixed points
     '''
     start = 4* np.pi * (rng.random(n)-0.5)
     h = T/N
@@ -90,10 +116,10 @@ def plot_solution(mu,
     for i in range(n):
         y = np.zeros((N))
         y[0] = start[i]
-
         for i in range(N-1):
             y[i+1] = rk4(h,y[i],lambda theta:f(theta,mu))
         ax.plot(ts,y)
+
     plot_fixed(fixed_unstable,ax=ax)
     plot_fixed(fixed_stable,c='xkcd:blue',ax=ax)
 
