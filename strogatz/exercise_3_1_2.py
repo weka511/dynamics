@@ -39,7 +39,16 @@ def plot_f(t,r,x,ax=None):
     ax.axhline(0,c='xkcd:red',linestyle=':')
     ax.set_title(f'r={r}')
 
-def plot_solution(starts,r,N=1000,ax=None,a=0.45):
+def create_fixed(r):
+    if r > 1:
+        s = np.sqrt(r**2-1)
+        return [np.log(r+s),np.log(r-s)]
+    elif r==1:
+        return [0]
+    else:
+        return []
+
+def plot_solution(starts,r,N=1000,ax=None,a=0.5):
     h = a/N
     for start in starts:
         y = np.zeros((N))
@@ -47,6 +56,8 @@ def plot_solution(starts,r,N=1000,ax=None,a=0.45):
         for i in range(1,N):
             y[i] = rk4(h,y[i-1],lambda y:r - np.cosh(y))
         ax.plot (y)
+    for y0 in create_fixed(r):
+        ax.axhline(y0,c='xkcd:red',linestyle='dashed')
 
 if __name__=='__main__':
     start  = time()
