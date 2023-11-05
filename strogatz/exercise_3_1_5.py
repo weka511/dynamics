@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Exercise 3.6.7 - A simple model of a magnet'''
+'''Exercise 3.1.5 Unusual bifurcations'''
 
 
 from argparse import ArgumentParser
@@ -33,20 +33,11 @@ def get_name_for_save(extra=None,sep='-'):
     basic = splitext(basename(__file__))[0]
     return basic if extra==None else f'{basic}{sep}{extra}'
 
-def get_h(m,T=1,J=1,n=1):
-    return T * np.arctan(m) - J * n * m
-
 if __name__=='__main__':
     start  = time()
     args = parse_args()
 
-    fig = figure()
-    ax = fig.add_subplot(1,1,1)
-    xs = np.arange(0,1,0.1)
-    ax.plot(xs,get_h(xs))
-    ax.set_title(__doc__)
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
-    show()

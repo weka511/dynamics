@@ -44,9 +44,10 @@ def get_dim(N):
         m += 1
     return m,n
 
-def get_name_for_save():
+def get_name_for_save(extra=None,sep='-'):
     '''Extract name for saving figure'''
-    return splitext(basename(__file__))[0]
+    basic = splitext(basename(__file__))[0]
+    return basic if extra==None else f'{basic}{sep}{extra}'
 
 us = np.arange(0,int(l),h)
 
@@ -65,16 +66,16 @@ for j,b in enumerate(bs):
     ax.grid(True)
 
 fig.suptitle(__doc__)
-fig.savefig(get_name_for_save())
+fig.savefig(get_name_for_save(extra=1))
 
-def f(y,k=0.001,l=0.01):
+def f(y,k=0.0001,l=0.001):
     return np.array([
         -k * y[0] * y[1],
         k * y[0] * y[1] - l* y[1],
         l* y[1]
     ])
 
-m = 10000
+m = 100000
 y = np.zeros((m+1,3))
 y[0,0] = 1000
 y[0,1] = 1
@@ -88,4 +89,7 @@ ax.plot(y[:,0],label='x')
 ax.plot(y[:,1],label='y')
 ax.plot(y[:,2],label='z')
 ax.legend()
+ax.set_title(__doc__)
+fig.savefig(get_name_for_save(extra=2))
+
 show()

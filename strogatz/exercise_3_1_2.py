@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Template for python script for dynamics'''
+'''Exercise 3.1.2: Saddle Node bifurcations'''
 
 
 from argparse import ArgumentParser

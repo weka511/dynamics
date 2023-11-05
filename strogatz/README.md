@@ -8,7 +8,10 @@
 --:|------------------|----------------------------------------------------------
 2|exercise_2_5_3|Showing that X tends to infinity in a finite time
 -|exercise_2_7|Exercises 2.7.3 and 2.7.4
-3|exercise_3.7.6.py|Kermack & McKendrick model of an epidemic
+3|exercise_3_1_2.py|Exercise 3.1.2 Saddle node bifurcations
+-|exercise_3_1_5.py|Exercise 3.1.5 Unusual bifurcations
+-|exercise_3_6_7.py|Exercise 3.6.7 - A simple model of a magnet
+-|exercise_3_7_6.py|Exertcise 3.7.6 - Kermack & McKendrick model of an epidemic
 6|exercise_6_1_1.py|Plot phase portraits for exercise 6.1.1
 -|exercise_6_1_2.py|Plot phase portraits for exercise 6.1.2
 -|exercise_6_1_3.py|Plot phase portraits for exercise 6.1.3
