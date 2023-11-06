@@ -38,6 +38,8 @@ def get_name_for_save(extra=None,sep='-'):
 def sketch_vector_field(r,
                         f = lambda x,r: x*(r-np.exp(x)),
                         df = lambda x,r: r-np.exp(x)-x*np.exp(x),
+                        fixed_points = [],
+                        x = np.linspace(-1,1,100),
                         ax = None):
     def mark_fixed_point(x):
         if df(x,r) > 0:
@@ -46,10 +48,11 @@ def sketch_vector_field(r,
             facecolors= 'xkcd:black'
         ax.scatter(x,0,s=80, facecolors=facecolors, edgecolors='xkcd:black')
 
-    x = np.linspace(-1,np.log(r)+1,100)
+
     ax.plot(x,f(x,r))
-    mark_fixed_point(np.log(r))
-    mark_fixed_point(0)
+    # mark_fixed_point(np.log(r))
+    for x0 in fixed_points:
+        mark_fixed_point(x0)
     ax.set_title(f'r={r}')
     ax.set_xlabel('x')
     ax.set_ylabel(r'$\dot{x}$')
@@ -65,7 +68,8 @@ if __name__=='__main__':
     fig = figure(figsize=(10,10))
     for i,r in enumerate(args.r):
         sketch_vector_field(r,
-                            ax = fig.add_subplot(len(args.r),1,1+i))
+                            ax = fig.add_subplot(len(args.r),1,1+i),
+                            fixed_points=[0,np.log(r)])
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)

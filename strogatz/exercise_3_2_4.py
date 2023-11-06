@@ -42,7 +42,9 @@ if __name__=='__main__':
     fig = figure(figsize=(10,10))
     for i,r in enumerate(args.r):
         sketch_vector_field(r,
-                            ax = fig.add_subplot(len(args.r),1,1+i))
+                            ax = fig.add_subplot(len(args.r),1,1+i),
+                            fixed_points=[0,np.log(r)],
+                            x = np.linspace(-1,np.log(r)+1,100))
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)

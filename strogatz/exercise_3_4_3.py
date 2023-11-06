@@ -17,7 +17,6 @@
 
 '''3.4.3 Pitchfork Bifurcations'''
 
-
 from argparse import ArgumentParser
 from os.path import  basename,splitext
 from time import time
@@ -47,6 +46,7 @@ if __name__=='__main__':
                             df = lambda x,r:r-12*x**2,
                             fixed_points = fixed_points,
                             ax = fig.add_subplot(len(args.r),1,1+i))
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes

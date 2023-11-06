@@ -11,7 +11,9 @@
 3|exercise_3_1_2.py|Exercise 3.1.2 Saddle node bifurcations
 -|exercise_3_1_5.py|Exercise 3.1.5 Unusual bifurcations
 -|exercise_3_2_4.py|Exercise Exercise 3.2.4 Transcritical bifurcations
--|exercise_3_6_7.py|Exercise 3.6.7 - A simple model of a magnet
+-|exercise_3_4_3.py|Exercise Exercise 3.4.3 Pitchfork Bifurcations
+-|exercise_3_4_8.py|Exercise Exercise 3.4.8 Bifurcations
+-|exercise_3_6_7.py|Exercise 3.6.7 - A s8imple model of a magnet
 -|exercise_3_7_6.py|Exertcise 3.7.6 - Kermack & McKendrick model of an epidemic
 6|exercise_6_1_1.py|Plot phase portraits for exercise 6.1.1
 -|exercise_6_1_2.py|Plot phase portraits for exercise 6.1.2
