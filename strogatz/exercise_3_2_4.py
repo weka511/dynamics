@@ -26,6 +26,8 @@ from matplotlib.pyplot import figure, show
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument('r', default=[1,2,3], type=float,nargs='+')
+    parser.add_argument('--show', default = False, action='store_true')
     return parser.parse_args()
 
 def get_name_for_save(extra=None,sep='-'):
@@ -33,28 +35,39 @@ def get_name_for_save(extra=None,sep='-'):
     basic = splitext(basename(__file__))[0]
     return basic if extra==None else f'{basic}{sep}{extra}'
 
-def sketch_vector_field(r,f = lambda x,r: r**2 - x**2,ax=None):
-    x = np.linspace(-5,4,100)
+def get_marker_info(x,r,df = lambda x,r: r-np.exp(x)-x*np.exp(x),epsilon=0.01):
+    if df(x,r) > 0:
+        return 'none','xkcd:black'
+    else:
+        return 'xkcd:black','xkcd:black'
+
+def sketch_vector_field(r,f = lambda x,r: x*(r-np.exp(x)),ax=None):
+    x = np.linspace(-1,np.log(r)+1,100)
     ax.plot(x,f(x,r))
+    c1,c2 = get_marker_info(0,r)
+    ax.scatter(0,0,s=80, facecolors=c1, edgecolors=c2)
+    c1,c2 = get_marker_info(np.log(r),r)
+    ax.scatter(np.log(r),0,s=80,  facecolors=c1, edgecolors=c2)
     ax.set_title(f'r={r}')
     ax.set_xlabel('x')
     ax.set_ylabel(r'$\dot{x}$')
     ax.axhline(0,c='xkcd:red',linestyle='dashed')
+    ax.axvline(0,c='xkcd:magenta',linestyle='dotted',label='$0$')
+    ax.axvline(np.log(r),c='xkcd:cyan',linestyle='dotted',label=r'$\log {r}$')
+    ax.legend()
 
-def sketch_vector_fields(f = lambda x,r: x*(r-np.exp(x)), rs=[-1,0,1,2,5], fig=None):
-    m = len(rs)
-    for i in range(m):
-        sketch_vector_field(r = rs[i],
-                            f = f,
-                            ax = fig.add_subplot(1,m,i+1))
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
     fig = figure(figsize=(10,10))
-    sketch_vector_fields(fig=fig)
+    for i,r in enumerate(args.r):
+        sketch_vector_field(r,
+                            ax = fig.add_subplot(len(args.r),1,1+i))
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
-    show()
+    if args.show:
+        show()
