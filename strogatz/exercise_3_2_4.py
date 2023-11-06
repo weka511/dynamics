@@ -35,19 +35,21 @@ def get_name_for_save(extra=None,sep='-'):
     basic = splitext(basename(__file__))[0]
     return basic if extra==None else f'{basic}{sep}{extra}'
 
-def get_marker_info(x,r,df = lambda x,r: r-np.exp(x)-x*np.exp(x),epsilon=0.01):
-    if df(x,r) > 0:
-        return 'none','xkcd:black'
-    else:
-        return 'xkcd:black','xkcd:black'
+def sketch_vector_field(r,
+                        f = lambda x,r: x*(r-np.exp(x)),
+                        df = lambda x,r: r-np.exp(x)-x*np.exp(x),
+                        ax = None):
+    def mark_fixed_point(x):
+        if df(x,r) > 0:
+            facecolors= 'none'
+        else:
+            facecolors= 'xkcd:black'
+        ax.scatter(x,0,s=80, facecolors=facecolors, edgecolors='xkcd:black')
 
-def sketch_vector_field(r,f = lambda x,r: x*(r-np.exp(x)),ax=None):
     x = np.linspace(-1,np.log(r)+1,100)
     ax.plot(x,f(x,r))
-    c1,c2 = get_marker_info(0,r)
-    ax.scatter(0,0,s=80, facecolors=c1, edgecolors=c2)
-    c1,c2 = get_marker_info(np.log(r),r)
-    ax.scatter(np.log(r),0,s=80,  facecolors=c1, edgecolors=c2)
+    mark_fixed_point(np.log(r))
+    mark_fixed_point(0)
     ax.set_title(f'r={r}')
     ax.set_xlabel('x')
     ax.set_ylabel(r'$\dot{x}$')
