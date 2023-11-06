@@ -42,13 +42,13 @@ if __name__=='__main__':
     for i,r in enumerate(args.r):
         fixed_points = [0]
         if 0 < r and r<1:
-            fixed_points.append(np.sqrt(1/r-1))
-            fixed_points.append(-np.sqrt(1/r-1))
+            fixed_points = [-np.sqrt(1/r-1),0,np.sqrt(1/r-1)]
+
         sketch_vector_field(r,
                             f = lambda x,r:r*x-x/(1 + x**2),
                             df = lambda x,r:r + (x**2-1)/((1+x**2)**2),
                             fixed_points = fixed_points,
-                            x = np.linspace(-2,2,100),
+                            x = np.linspace(-10,10,1000),
                             ax = fig.add_subplot(len(args.r),1,1+i))
     fig.savefig(get_name_for_save())
     elapsed = time() - start
