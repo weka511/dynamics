@@ -17,15 +17,17 @@
 
 '''3.4.8 Bifurcation'''
 
-
 from argparse import ArgumentParser
 from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from bifurcations import sketch_vector_field
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument('r', default=[-0.25, 0, 0.25], type=float,nargs='*')
+    parser.add_argument('--show', default = False, action='store_true')
     return parser.parse_args()
 
 def get_name_for_save(extra=None,sep='-'):
@@ -36,8 +38,22 @@ def get_name_for_save(extra=None,sep='-'):
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-
+    fig = figure(figsize=(10,10))
+    for i,r in enumerate(args.r):
+        fixed_points = [0]
+        if 0 < r and r<1:
+            fixed_points.append(np.sqrt(1/r-1))
+            fixed_points.append(-np.sqrt(1/r-1))
+        sketch_vector_field(r,
+                            f = lambda x,r:r*x-x/(1 + x**2),
+                            df = lambda x,r:r + (x**2-1)/((1+x**2)**2),
+                            fixed_points = fixed_points,
+                            x = np.linspace(-2,2,100),
+                            ax = fig.add_subplot(len(args.r),1,1+i))
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
+    if args.show:
+        show()
