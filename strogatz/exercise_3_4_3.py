@@ -22,7 +22,7 @@ from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
-from fixed import sketch_vector_field
+from bifurcations import sketch_vector_field
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)

@@ -41,7 +41,7 @@
 
  Name | Description
 ------------------|----------------------------------------------------------
-fixed.py|Plot fixed points
+bifurcations.py|Plotting routines for exploring bifurcations
 phase.py|Plot phase portrait
 rk4.py|Simple 4th order Runge Kutta
 solver.py|Simple 4th order Runge Kutta using numpy
