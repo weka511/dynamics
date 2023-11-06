@@ -39,6 +39,7 @@
 
  Name | Description
 ------------------|----------------------------------------------------------
+fixed.py|Plot fixed points
 phase.py|Plot phase portrait
 rk4.py|Simple 4th order Runge Kutta
 solver.py|Simple 4th order Runge Kutta using numpy
