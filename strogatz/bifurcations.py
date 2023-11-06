@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Exercise 3.2.4 Transcritical bifurcations'''
+'''Model to display fixed points'''
 
 
 from argparse import ArgumentParser
@@ -44,36 +44,28 @@ def sketch_vector_field(r,
     def mark_fixed_point(x):
         if df(x,r) > 0:
             facecolors= 'none'
+            label = 'unstable'
         else:
             facecolors= 'xkcd:black'
-        ax.scatter(x,0,s=80, facecolors=facecolors, edgecolors='xkcd:black')
+            label = 'stable'
+        ax.scatter(x,0,s=80, facecolors=facecolors, edgecolors='xkcd:black',label=label)
 
+    def legend_without_duplicate_labels(ax):
+        '''
+        Suppress duplicate items in legend. Snarfed from
+        https://stackoverflow.com/questions/19385639/duplicate-items-in-legend-in-matplotlib
+        '''
+        handles, labels = ax.get_legend_handles_labels()
+        unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
+        ax.legend(*zip(*unique))
 
     ax.plot(x,f(x,r))
-    # mark_fixed_point(np.log(r))
     for x0 in fixed_points:
         mark_fixed_point(x0)
+        ax.axvline(x0,c='xkcd:magenta',linestyle='dotted')
     ax.set_title(f'r={r}')
     ax.set_xlabel('x')
     ax.set_ylabel(r'$\dot{x}$')
     ax.axhline(0,c='xkcd:red',linestyle='dashed')
-    ax.axvline(0,c='xkcd:magenta',linestyle='dotted',label='$0$')
-    ax.axvline(np.log(r),c='xkcd:cyan',linestyle='dotted',label=r'$\log {r}$')
-    ax.legend()
+    legend_without_duplicate_labels(ax)
 
-
-if __name__=='__main__':
-    start  = time()
-    args = parse_args()
-    fig = figure(figsize=(10,10))
-    for i,r in enumerate(args.r):
-        sketch_vector_field(r,
-                            ax = fig.add_subplot(len(args.r),1,1+i),
-                            fixed_points=[0,np.log(r)])
-    fig.savefig(get_name_for_save())
-    elapsed = time() - start
-    minutes = int(elapsed/60)
-    seconds = elapsed - 60*minutes
-    print (f'Elapsed Time {minutes} m {seconds:.2f} s')
-    if args.show:
-        show()
