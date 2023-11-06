@@ -23,6 +23,7 @@ from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from bifurcations import plot_bifurcation
 from solver import rk4
 
 def parse_args():
@@ -75,37 +76,15 @@ def plot_main(fig = None):
     fig.suptitle(r'3.1.2 $r - \cosh{x}$')
     fig.savefig(get_name_for_save(extra=1))
 
-def plot_bifurcation(fig = None):
-    ax = fig.add_subplot(1,1,1)
-    r = np.concatenate((np.linspace(0.75,1,200), np.linspace(1,2,200))) # Force inclusion of r==1
-    x_stable = np.full((len(r)),np.nan)
-    x_unstable = np.full((len(r)),np.nan)
-    x_null = np.full((len(r)),np.nan)
-    for i in range(len(r)):
-        y = create_fixed(r[i])
-        if len(y) > 1:
-            x_stable[i] = y[0]
-            x_unstable[i] = y[1]
-        elif len(y) == 1:
-            x_stable[i] = y[0]
-            x_unstable[i] = y[0]
-        else:
-            x_null[i] = 0
-    ax.plot(r,x_stable,c='xkcd:blue',label='Stable')
-    ax.plot(r,x_unstable,linestyle='dashed',c='xkcd:red',label='Unstable')
-    ax.plot(r,x_null,linestyle='dotted',c='xkcd:red',label='Null')
-    ax.legend()
-    ax.set_xlabel('r')
-    ax.set_ylabel('x')
-    ax.set_title(r'3.1.2 Bifurcation diagram for $\dot{x} = r - \cosh{x}$')
-    fig.savefig(get_name_for_save(extra=2))
-
 if __name__=='__main__':
     start  = time()
     args = parse_args()
     plot_main(fig=figure(figsize=(20,20)))
-    plot_bifurcation(fig=figure(figsize=(20,20)))
-
+    fig=figure(figsize=(20,20))
+    plot_bifurcation(create_fixed = create_fixed,
+                     fig = fig,
+                     equation = r'$\dot{x} = r - \cosh{x}$')
+    fig.savefig(get_name_for_save(extra=2))
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes

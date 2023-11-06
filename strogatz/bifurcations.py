@@ -69,3 +69,28 @@ def sketch_vector_field(r,
     ax.axhline(0,c='xkcd:red',linestyle='dashed')
     legend_without_duplicate_labels(ax)
 
+def plot_bifurcation(fig = None,
+                     create_fixed = lambda r:0,
+                     equation = ''):
+    ax = fig.add_subplot(1,1,1)
+    r = np.concatenate((np.linspace(0.75,1,200), np.linspace(1,2,200))) # Force inclusion of r==1
+    x_stable = np.full((len(r)),np.nan)
+    x_unstable = np.full((len(r)),np.nan)
+    x_null = np.full((len(r)),np.nan)
+    for i in range(len(r)):
+        y = create_fixed(r[i])
+        if len(y) > 1:
+            x_stable[i] = y[0]
+            x_unstable[i] = y[1]
+        elif len(y) == 1:
+            x_stable[i] = y[0]
+            x_unstable[i] = y[0]
+        else:
+            x_null[i] = 0
+    ax.plot(r,x_stable,c='xkcd:blue',label='Stable')
+    ax.plot(r,x_unstable,linestyle='dashed',c='xkcd:red',label='Unstable')
+    ax.plot(r,x_null,linestyle='dotted',c='xkcd:red',label='Null')
+    ax.legend()
+    ax.set_xlabel('r')
+    ax.set_ylabel('x')
+    ax.set_title( f'3.1.2 Bifurcation diagram for {equation}')
