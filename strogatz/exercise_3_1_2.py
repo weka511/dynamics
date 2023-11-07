@@ -82,8 +82,10 @@ if __name__=='__main__':
     plot_main(fig=figure(figsize=(20,20)))
     fig=figure(figsize=(20,20))
     plot_bifurcation(create_fixed = create_fixed,
+                     r = np.concatenate((np.linspace(0.75,1,200), np.linspace(1,2,200))), # Force inclusion of r==1
                      fig = fig,
-                     equation = r'$\dot{x} = r - \cosh{x}$')
+                     equation = r'$\dot{x} = r - \cosh{x}$',
+                     df = lambda x,r:-np.sinh(x))
     fig.savefig(get_name_for_save(extra=2))
     elapsed = time() - start
     minutes = int(elapsed/60)

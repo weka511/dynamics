@@ -56,14 +56,15 @@ if __name__=='__main__':
                             fixed_points = fixed_points,
                             x = np.linspace(-10,10,1000),
                             ax = fig.add_subplot(len(args.r),1,1+i))
-    fig.savefig(get_name_for_save())
+    fig.savefig(get_name_for_save(extra=1))
 
     fig = figure(figsize=(10,10))
     plot_bifurcation(fig = fig,
                      create_fixed = create_fixed,
                      equation = r'$\dot(x)=rx-\frac{x}{1+x^2}$',
-                     r = np.linspace(-0.25,1.5,200),
+                     r = np.concatenate((np.linspace(-0.25,0,100),np.linspace(0,1.5,100))),
                      df = lambda x,r:r + (x**2-1)/((1+x**2)**2))
+    fig.savefig(get_name_for_save(extra=2))
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes

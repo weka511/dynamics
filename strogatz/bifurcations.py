@@ -69,8 +69,9 @@ def plot_bifurcation(fig = None,
 
     for j in range(m):
         c = ['xkcd:red' if df(x[i,j],r[i])>0 else 'xkcd:blue' if df(x[i,j],r[i])<0 else 'xkcd:green' for i in range(len(r))]
+        s = [25 if df(x[i,j],r[i]) == 0 else 1  for i in range(len(r))]
         ax.scatter(r,x[:,j],
-                   s = 1,
+                   s = s,
                    c = c)
     ax.legend()
     ax.set_xlabel('r')
