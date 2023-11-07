@@ -22,7 +22,7 @@ from os.path import  basename,splitext
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
-from bifurcations import sketch_vector_field
+from bifurcations import  plot_bifurcation, sketch_vector_field
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -34,6 +34,12 @@ def get_name_for_save(extra=None,sep='-'):
     '''Extract name for saving figure'''
     basic = splitext(basename(__file__))[0]
     return basic if extra==None else f'{basic}{sep}{extra}'
+
+def create_fixed(r):
+    if 0 < r and r<1:
+        return [-np.sqrt(1/r-1),0,np.sqrt(1/r-1)]
+    else:
+        return [0]
 
 if __name__=='__main__':
     start  = time()
@@ -51,6 +57,13 @@ if __name__=='__main__':
                             x = np.linspace(-10,10,1000),
                             ax = fig.add_subplot(len(args.r),1,1+i))
     fig.savefig(get_name_for_save())
+
+    fig = figure(figsize=(10,10))
+    plot_bifurcation(fig = fig,
+                     create_fixed = create_fixed,
+                     equation = r'$\dot(x)=rx-\frac{x}{1+x^2}$',
+                     r = np.linspace(-0.25,1.5,200),
+                     df = lambda x,r:r + (x**2-1)/((1+x**2)**2))
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes

@@ -15,25 +15,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Model to display fixed points'''
+'''Module for exploring fixed points'''
 
-
-from argparse import ArgumentParser
-from os.path import  basename,splitext
-from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
 
-def parse_args():
-    parser = ArgumentParser(description=__doc__)
-    parser.add_argument('r', default=[1,2,3], type=float,nargs='+')
-    parser.add_argument('--show', default = False, action='store_true')
-    return parser.parse_args()
-
-def get_name_for_save(extra=None,sep='-'):
-    '''Extract name for saving figure'''
-    basic = splitext(basename(__file__))[0]
-    return basic if extra==None else f'{basic}{sep}{extra}'
 
 def sketch_vector_field(r,
                         f = lambda x,r: x*(r-np.exp(x)),
@@ -71,26 +57,22 @@ def sketch_vector_field(r,
 
 def plot_bifurcation(fig = None,
                      create_fixed = lambda r:0,
-                     equation = ''):
+                     equation = '',
+                     r = np.linspace(0.75,1,200),
+                     df = lambda x,r:None):
     ax = fig.add_subplot(1,1,1)
-    r = np.concatenate((np.linspace(0.75,1,200), np.linspace(1,2,200))) # Force inclusion of r==1
-    x_stable = np.full((len(r)),np.nan)
-    x_unstable = np.full((len(r)),np.nan)
-    x_null = np.full((len(r)),np.nan)
+    m = max(len(create_fixed(r0)) for r0 in r)
+    x = np.full((len(r),m),np.nan)
     for i in range(len(r)):
-        y = create_fixed(r[i])
-        if len(y) > 1:
-            x_stable[i] = y[0]
-            x_unstable[i] = y[1]
-        elif len(y) == 1:
-            x_stable[i] = y[0]
-            x_unstable[i] = y[0]
-        else:
-            x_null[i] = 0
-    ax.plot(r,x_stable,c='xkcd:blue',label='Stable')
-    ax.plot(r,x_unstable,linestyle='dashed',c='xkcd:red',label='Unstable')
-    ax.plot(r,x_null,linestyle='dotted',c='xkcd:red',label='Null')
+        for j,x0 in enumerate(create_fixed(r[i])):
+            x[i,j] = x0
+
+    for j in range(m):
+        c = ['xkcd:red' if df(x[i,j],r[i])>0 else 'xkcd:blue' if df(x[i,j],r[i])<0 else 'xkcd:green' for i in range(len(r))]
+        ax.scatter(r,x[:,j],
+                   s = 1,
+                   c = c)
     ax.legend()
     ax.set_xlabel('r')
     ax.set_ylabel('x')
-    ax.set_title( f'3.1.2 Bifurcation diagram for {equation}')
+    ax.set_title( f'Bifurcation diagram for {equation}')
