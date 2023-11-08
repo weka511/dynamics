@@ -20,17 +20,18 @@
     Plot phase portraits for a number of ODEs
 '''
 
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from  matplotlib.pyplot import figure,show
 from phase import generate,plot_phase_portrait,plot_stability,right_upper_quadrant
 
 def f3(x,y,rho=1):
     return (x*(1-y),y*(rho-x))
 
-def get_name_for_save(extra=None,sep='-'):
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
     basic = splitext(basename(__file__))[0]
-    return basic if extra==None else f'{basic}{sep}{extra}'
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 
 fig = figure(figsize=(20,20))

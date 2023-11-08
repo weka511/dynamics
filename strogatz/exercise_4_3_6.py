@@ -18,7 +18,7 @@
 '''Exercise 4.3.6 from Strogatz. Explore dependence of solutions on parameter.'''
 
 from argparse import ArgumentParser
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
@@ -34,10 +34,11 @@ def parse_args():
                         action='store_true')
     return parser.parse_args()
 
-def get_name_for_save(extra=None,sep='-'):
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
     basic = splitext(basename(__file__))[0]
-    return basic if extra==None else f'{basic}{sep}{extra}'
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 def f(theta,mu):
     return mu + np.sin(theta) + np.cos(2*theta)

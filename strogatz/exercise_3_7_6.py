@@ -17,7 +17,7 @@
 
 '''3.7.6 Kermack & McKendrick model of an epidemic'''
 
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from matplotlib.pyplot import figure, show
 import numpy as np
 from solver import rk4
@@ -44,10 +44,11 @@ def get_dim(N):
         m += 1
     return m,n
 
-def get_name_for_save(extra=None,sep='-'):
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
     basic = splitext(basename(__file__))[0]
-    return basic if extra==None else f'{basic}{sep}{extra}'
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 us = np.arange(0,int(l),h)
 
