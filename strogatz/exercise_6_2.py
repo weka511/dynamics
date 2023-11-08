@@ -20,17 +20,18 @@ Exercise 6.2 from Strogatz
 Plot phase portraits for a number of ODEs
 '''
 
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from matplotlib.pyplot import figure, show
 import matplotlib.colors as colors
 import numpy as np
 from phase import generate,plot_phase_portrait
 from rk4 import rk4, adapt
 
-def get_name_for_save(extra=None,sep='-'):
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
     basic = splitext(basename(__file__))[0]
-    return basic if extra==None else f'{basic}{sep}{extra}'
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 def f(x,y):
     return y,-x + (1 - x**2 -y**2)*y

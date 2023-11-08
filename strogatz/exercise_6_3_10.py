@@ -16,14 +16,15 @@
 
 '''6.3.10 Stability of fixed point'''
 
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from matplotlib.pyplot import figure, show
 from  phase import generate, plot_phase_portrait, plot_stability
 
-def get_name_for_save(extra=None,sep='-'):
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
     basic = splitext(basename(__file__))[0]
-    return basic if extra==None else f'{basic}{sep}{extra}'
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 def f(x,y):
     return (x*y,x*x-y)
