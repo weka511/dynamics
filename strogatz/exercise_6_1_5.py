@@ -19,17 +19,18 @@
     Exercise 6.1.5 from Strogatz
 '''
 
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from matplotlib.pyplot import figure, show
 import matplotlib.colors as colors
 import numpy as np
 from  phase import generate, plot_phase_portrait
 from rk4 import rk4, adapt
 
-def get_name_for_save(extra=None,sep='-'):
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
     basic = splitext(basename(__file__))[0]
-    return basic if extra==None else f'{basic}{sep}{extra}'
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 fig = figure()
 ax = fig.add_subplot(1,1,1)
