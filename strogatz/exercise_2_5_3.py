@@ -19,7 +19,7 @@
 
 
 from argparse import ArgumentParser
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
@@ -33,9 +33,11 @@ def get_T(X,r=1,x0=0.1):
         return (np.log(X) - 0.5 * np.log(r + X**2))/r
     return get_T_helper(X) - get_T_helper(x0)
 
-def get_name_for_save():
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
-    return splitext(basename(__file__))[0]
+    basic = splitext(basename(__file__))[0]
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 if __name__=='__main__':
     start  = time()

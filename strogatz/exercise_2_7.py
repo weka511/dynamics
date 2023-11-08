@@ -19,7 +19,7 @@
 
 
 from argparse import ArgumentParser
-from os.path import  basename,splitext
+from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show, rcParams
@@ -28,9 +28,11 @@ def parse_args():
     parser = ArgumentParser(description=__doc__)
     return parser.parse_args()
 
-def get_name_for_save():
+def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
-    return splitext(basename(__file__))[0]
+    basic = splitext(basename(__file__))[0]
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 if __name__=='__main__':
     rcParams['text.usetex'] = True
