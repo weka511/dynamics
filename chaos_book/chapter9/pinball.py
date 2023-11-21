@@ -15,18 +15,40 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Exercis 9.1 A pinball simulator'''
+'''
+Exercise 9.1 A pinball simulator
+
+Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point,
+and a given R:a = (center-to-center distance):(disk radius) ratio for a 3-disk system.
+'''
 
 
 from argparse import ArgumentParser
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
+from numpy.linalg import norm
 from matplotlib.pyplot import figure, show
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument('-R', '--R', type=float, default=6.0, help='Centre to Centre distance')
+    parser.add_argument('-a', '--a', type=float, default=1.0, help='Radius of each Disk')
+    parser.add_argument('--show', default=False, action='store_true', help='Show plots')
+    parser.add_argument('--pos', type=float, nargs=2,default=[0,0])
+    parser.add_argument('--theta', type=float, nargs=1,default=0)
     return parser.parse_args()
+
+def Create_Centres(R):
+    Centres = R * np.array([
+        [1/np.sqrt(3),0],
+        [-1/(2*np.sqrt(3)),1/2],
+        [-1/(2*np.sqrt(3)),-1/2]
+    ])
+    for i in range(len(Centres)):
+        assert np.isclose(norm(Centres[i]-Centres[(i+1)%len(Centres)]),R, rtol=0.00001)
+
+    return Centres
 
 def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
@@ -37,8 +59,16 @@ def get_name_for_save(extra=None,sep='-',figs='./figs'):
 if __name__=='__main__':
     start  = time()
     args = parse_args()
+    Centres = Create_Centres(args.R)
 
+    fig = figure(figsize=(10,10))
+    ax = fig.add_subplot(1,1,1)
+    ax.scatter(Centres[:,0],Centres[:,1])
+
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
+    if args.show:
+        show()
