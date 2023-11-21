@@ -40,7 +40,8 @@
 -|logisticMap.py|Q10.4|Escape rate in Logistic map (Exercise 20.2)
 12|wk12.py|-|Cycle Expansion
 16|ksSub.py|-|Turbulence
-projects|dynamics.py|-|Common codes for a few ODEs
+chapter9|pinball.py|-|Pinball simulation for exercise 9.1
+projects|dynamics.py|-|Common code for a few ODEs
 -|cycles.py|-|Find cycles in orbit
 -|eqs.py|-|Replicate figure 4.5 for Rossler
 -|eqsL.py|-|Show equilibria for Lorentz
