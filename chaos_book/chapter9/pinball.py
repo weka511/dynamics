@@ -41,16 +41,25 @@ def parse_args():
     return parser.parse_args()
 
 def Create_Centres(R, rtol=1e-12):
-    '''Create the list of centres for a trio of Disks forming an equilateral triangle'''
-    Centres = R * np.array([
+    '''
+    Create centres for a trio of Disks forming an equilateral triangle
+
+    Parameters:
+        R      Distance between centres
+        rtol   Relative tolerance, used to verify that distance is correct
+
+    Returns:
+        The list of centres
+    '''
+    Product = R * np.array([
         [1/np.sqrt(3),0],
         [-1/(2*np.sqrt(3)),1/2],
         [-1/(2*np.sqrt(3)),-1/2]
     ])
-    for i in range(len(Centres)):
-        assert np.isclose(norm(Centres[i]-Centres[(i+1)%len(Centres)]),R, rtol=rtol)
+    for i in range(len(Product)):
+        assert np.isclose(norm(Product[i]-Product[(i+1)%len(Product)]),R, rtol=rtol)
 
-    return Centres
+    return Product
 
 def get_next_collision(pos,velocity,Centres, a, skip=None):
     '''
@@ -65,11 +74,15 @@ def get_next_collision(pos,velocity,Centres, a, skip=None):
     '''
     def get_next_collision(Centre,omit):
         '''
-        Determine time to collide with specified disk (may be infinite)
+        Determine time to collide with some disk (may be infinite)
 
         Parameters:
             Centre    Specifed centre of disk to be checked
             omit      If set to true, disk won't be checked and we assume time is infinite
+
+        Returns:
+           disk   Index of the disk we collide with (meaningless if time==np.inf)
+           time   Time to collision (may be infinite)
         '''
         if omit: return np.inf
 
@@ -134,6 +147,7 @@ if __name__=='__main__':
         radius_collision = get_radius_collision(position_collision,Centres[collision_disk])
 
         reflected_velocity = get_reflected_velocity(radius_collision,v)
+
         ax.arrow(pos[0],pos[1],distance_to_collision[0],distance_to_collision[1],head_width=0.1, head_length=0.1)
         ax.text(position_collision[0],position_collision[1],f'T={T:.3f}')
         ax.scatter(Centres[collision_disk,0],Centres[collision_disk,1])
@@ -143,6 +157,23 @@ if __name__=='__main__':
                  color='xkcd:red')
         ax.arrow(position_collision[0],position_collision[1],reflected_velocity[0],reflected_velocity[1],
                  head_width=0.1, head_length=0.1,linestyle=':')
+        collision_disk2,T2 = get_next_collision(position_collision,reflected_velocity,Centres,args.a,
+                                                skip=collision_disk)
+        if T2<np.inf:
+            distance_to_collision2 = get_distance_to_collision(reflected_velocity,T2)
+            position_collision2 = get_position_collision(position_collision,reflected_velocity,T2)
+            radius_collision2 = get_radius_collision(position_collision2,Centres[collision_disk2])
+
+            reflected_velocity2 = get_reflected_velocity(radius_collision2,reflected_velocity)
+            ax.arrow(position_collision[0],position_collision[1],distance_to_collision2[0],distance_to_collision2[1],head_width=0.1, head_length=0.1)
+            ax.text(position_collision2[0],position_collision2[1],f'T={T2:.3f}')
+            ax.scatter(Centres[collision_disk2,0],Centres[collision_disk2,1])
+            ax.arrow(Centres[collision_disk2,0],Centres[collision_disk2,1],
+                     radius_collision2[0], radius_collision2[1],
+                     head_width=0.1, head_length=0.1,linestyle='--',
+                     color='xkcd:cyan')
+            ax.arrow(position_collision2[0],position_collision2[1],reflected_velocity2[0],reflected_velocity2[1],
+                     head_width=0.1, head_length=0.1,linestyle=':')
     else:
         ax.arrow(pos[0],pos[1],args.R*v[0],args.R*v[1],head_width=0.1, head_length=0.1,linestyle=':')
 
