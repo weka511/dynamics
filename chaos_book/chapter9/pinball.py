@@ -28,7 +28,7 @@ from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from numpy.linalg import norm
-from matplotlib.pyplot import figure, show
+from matplotlib.pyplot import figure, show, Circle
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument('-a', '--a', type=float, default=1.0, help='Radius of each Disk')
     parser.add_argument('--show', default=False, action='store_true', help='Show plots')
     parser.add_argument('--pos', type=float, nargs=2,default=[0,0])
-    parser.add_argument('--theta', type=float, nargs=1,default=0)
+    parser.add_argument('--theta', type=float, default=0)
     return parser.parse_args()
 
 def Create_Centres(R, rtol=1e-12):
@@ -56,6 +56,11 @@ def get_next_collision(pos,velocity,Centres, a, skip=None):
     Determine the next disk with which particle might collide
     '''
     def get_next_collision(Centre,omit):
+        '''
+        Determine time to collide with specified disk (may be infinite)
+        '''
+        if omit: return np.inf
+
         f_k = pos[0] - Centre[0]
         g_k = pos[1] - Centre[1]
         u_0 = velocity[0]
@@ -64,7 +69,7 @@ def get_next_collision(pos,velocity,Centres, a, skip=None):
         if b<0:
             disc = b**2 - f_k**2 - g_k**2 + a**2
             if disc>0:
-                return -b + np.sqrt(disc)
+                return -b - np.sqrt(disc)
         return np.inf
     Times = [get_next_collision(Centres[i],skip==i) for i in range(len(Centres))]
     collision_disk = np.argmin(Times)
@@ -80,12 +85,22 @@ if __name__=='__main__':
     start  = time()
     args = parse_args()
     Centres = Create_Centres(args.R)
-    get_next_collision(np.array(args.pos),np.array([np.cos(args.theta),np.sin(args.theta)]),Centres,args.a)
+    pos = np.array(args.pos)
+    v = np.array([np.cos(args.theta),np.sin(args.theta)])
+    collision,T = get_next_collision(pos,v,Centres,args.a)
     fig = figure(figsize=(10,10))
     ax = fig.add_subplot(1,1,1)
-    ax.scatter(Centres[:,0],Centres[:,1])
-
+    for Centre in Centres:
+        ax.add_patch(Circle(Centre,radius=args.a,fc='xkcd:green'))
+    ax.set_aspect('equal')
+    ax.scatter(pos[0],pos[1],marker='+')
+    if T<np.inf:
+        ax.arrow(pos[0],pos[1],T*v[0],T*v[1],head_width=0.1, head_length=0.1)
+        ax.text(pos[0]+T*v[0],pos[1]+T*v[1],f'T={T}')
+    else:
+        ax.arrow(pos[0],pos[1],args.R*v[0],args.R*v[1],head_width=0.1, head_length=0.1,linestyle=':')
     fig.savefig(get_name_for_save())
+
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
