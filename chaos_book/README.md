@@ -40,7 +40,7 @@
 -|logisticMap.py|Q10.4|Escape rate in Logistic map (Exercise 20.2)
 12|wk12.py|-|Cycle Expansion
 16|ksSub.py|-|Turbulence
-chapter9|pinball.py|-|Pinball simulation for exercise 9.1
+chapter9|pinball.py|-|Exercise 9.1 A pinball simulator. Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point.
 projects|dynamics.py|-|Common code for a few ODEs
 -|cycles.py|-|Find cycles in orbit
 -|eqs.py|-|Replicate figure 4.5 for Rossler
