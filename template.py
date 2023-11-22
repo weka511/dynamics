@@ -26,6 +26,7 @@ from matplotlib.pyplot import figure, show
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument('--show', type=bool, default-False, action='store_true', help='Show plots')
     return parser.parse_args()
 
 def get_name_for_save(extra=None,sep='-',figs='./figs'):
@@ -42,3 +43,5 @@ if __name__=='__main__':
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
+    if args.show:
+        show()
