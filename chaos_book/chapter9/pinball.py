@@ -39,16 +39,36 @@ def parse_args():
     parser.add_argument('--theta', type=float, nargs=1,default=0)
     return parser.parse_args()
 
-def Create_Centres(R):
+def Create_Centres(R, rtol=1e-12):
+    '''Create the list of centres for a trio of Disks forming an equilateral triangle'''
     Centres = R * np.array([
         [1/np.sqrt(3),0],
         [-1/(2*np.sqrt(3)),1/2],
         [-1/(2*np.sqrt(3)),-1/2]
     ])
     for i in range(len(Centres)):
-        assert np.isclose(norm(Centres[i]-Centres[(i+1)%len(Centres)]),R, rtol=0.00001)
+        assert np.isclose(norm(Centres[i]-Centres[(i+1)%len(Centres)]),R, rtol=rtol)
 
     return Centres
+
+def get_next_collision(pos,velocity,Centres, a, skip=None):
+    '''
+    Determine the next disk with which particle might collide
+    '''
+    def get_next_collision(Centre,omit):
+        f_k = pos[0] - Centre[0]
+        g_k = pos[1] - Centre[1]
+        u_0 = velocity[0]
+        v_0 = velocity[1]
+        b = f_k*u_0 + g_k*v_0
+        if b<0:
+            disc = b**2 - f_k**2 - g_k**2 + a**2
+            if disc>0:
+                return -b + np.sqrt(disc)
+        return np.inf
+    Times = [get_next_collision(Centres[i],skip==i) for i in range(len(Centres))]
+    collision_disk = np.argmin(Times)
+    return collision_disk,Times[collision_disk]
 
 def get_name_for_save(extra=None,sep='-',figs='./figs'):
     '''Extract name for saving figure'''
@@ -60,7 +80,7 @@ if __name__=='__main__':
     start  = time()
     args = parse_args()
     Centres = Create_Centres(args.R)
-
+    get_next_collision(np.array(args.pos),np.array([np.cos(args.theta),np.sin(args.theta)]),Centres,args.a)
     fig = figure(figsize=(10,10))
     ax = fig.add_subplot(1,1,1)
     ax.scatter(Centres[:,0],Centres[:,1])
