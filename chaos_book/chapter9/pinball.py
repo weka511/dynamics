@@ -23,7 +23,7 @@ and a given R:a = (center-to-center distance):(disk radius) ratio for a 3-disk s
 '''
 
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
@@ -32,12 +32,22 @@ from matplotlib.pyplot import figure, show, Circle
 from matplotlib import rc
 
 def parse_args():
+    def range_limited_float_type(arg,min=-1,max=+1):
+        '''Type function for argparse - a float within some predefined bounds'''
+        try:
+            f = float(arg)
+        except ValueError:
+            raise ArgumentTypeError('Argument must be a floating point number')
+        if f < min or f > max:
+            raise ArgumentTypeError(f'Argument must be within [{min},{max}]')
+        return f
+
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('-R', '--R', type=float, default=6.0, help='Centre to Centre distance')
     parser.add_argument('-a', '--a', type=float, default=1.0, help='Radius of each Disk')
     parser.add_argument('--show', default=False, action='store_true', help='Show plots')
     parser.add_argument('--pos', type=float, nargs=2,default=[0,0])
-    parser.add_argument('--theta', type=float, default=0)
+    parser.add_argument('--p', type=range_limited_float_type, default=0)
     return parser.parse_args()
 
 def Create_Centres(R, rtol=1e-12):
@@ -101,11 +111,24 @@ def get_next_collision(pos,velocity,Centres, a, skip=None):
     return collision_disk,Times[collision_disk]
 
 def get_distance_to_collision(velocity,T):
-    '''Find distance that particle travels to a collision'''
+    '''
+    Find distance that particle travels to a collision
+
+    Parameters:
+        velocity
+        T
+    '''
     return  T*velocity
 
 def get_position_collision(start,velocity,T):
-    '''Find location of a collision'''
+    '''
+    Find location of a collision
+
+    Parameters:
+        start
+        velocity
+        T
+    '''
     return start + get_distance_to_collision(velocity,T)
 
 
@@ -128,6 +151,11 @@ def get_radial_vector(pos,Centre):
 def get_reflected_velocity(radius_collision,v, rtol=1e-12):
     '''
     Reflect the velocity by reversing the component along the radius
+
+    Parameters:
+        radius_collision
+        v
+        rtol
     '''
     normed_radius_collision = radius_collision / norm(radius_collision)
     reflected_velocity = v - 2 * np.dot(normed_radius_collision,v) * normed_radius_collision
@@ -154,6 +182,9 @@ def generate(pos,v,Centres,a=1.0):
         pos = pos1
         disk,T = get_next_collision(pos,v,Centres,a,skip=disk)
 
+def get_velocity(p):
+    return np.array([p,np.sqrt(1-p**2)])
+
 if __name__=='__main__':
     rc('text', usetex=True)
     start  = time()
@@ -164,8 +195,13 @@ if __name__=='__main__':
     for Centre in Centres:
         ax.add_patch(Circle(Centre,radius=args.a,fc='xkcd:forest green'))
     ax.set_aspect('equal')
+    ax.set_xlim(Centres[:,0].min() - args.a, Centres[:,0].max() + args.a)
+    ax.set_ylim(Centres[:,1].min() - args.a, Centres[:,1].max() + args.a)
 
-    for disk,T,pos,distance_to_collision,radius_collision,v in generate(np.array(args.pos), np.array([np.cos(args.theta),np.sin(args.theta)]),Centres,a=args.a):
+    for disk,T,pos,distance_to_collision,radius_collision,v in generate(np.array(args.pos),
+                                                                        get_velocity(args.p),
+                                                                        Centres,
+                                                                        a=args.a):
         ax.arrow(pos[0],pos[1],distance_to_collision[0],distance_to_collision[1],head_width=0.1, head_length=0.1)
         position_collision = pos + distance_to_collision
         ax.text(position_collision[0],position_collision[1],f'T={T:.3f}')
@@ -176,12 +212,13 @@ if __name__=='__main__':
                  color='xkcd:red')
         ax.arrow(position_collision[0],position_collision[1],v[0],v[1],head_width=0.1, head_length=0.1,linestyle=':')
 
-    ax.set_title(fr'$\theta=${args.theta}, $R/a$={args.R/args.a}')
+    ax.set_title(fr'p={args.p}, R/a={args.R/args.a}')
     fig.savefig(get_name_for_save())
 
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
+
     if args.show:
         show()
