@@ -182,8 +182,21 @@ def generate(pos,v,Centres,a=1.0):
         pos = pos1
         disk,T = get_next_collision(pos,v,Centres,a,skip=disk)
 
-def get_velocity(p):
-    return np.array([p,np.sqrt(1-p**2)])
+def p_to_velocity(p,sgn = +1):
+    return np.array([p,sgn*np.sqrt(1-p**2)])
+
+def draw_vector(pos,vector,
+               ax = None,
+               head_width = 0.1,
+               head_length = 0.1,
+               linestyle = '--',
+               color = 'xkcd:black'):
+    '''A wrapper around matplotlib.pyplot.arrow so we can use vectors'''
+    ax.arrow(pos[0], pos[1], vector[0],vector[1],
+         head_width = head_width,
+         head_length = head_length,
+         linestyle = linestyle,
+         color = color)
 
 if __name__=='__main__':
     rc('text', usetex=True)
@@ -199,20 +212,18 @@ if __name__=='__main__':
     ax.set_ylim(Centres[:,1].min() - args.a, Centres[:,1].max() + args.a)
 
     for disk,T,pos,distance_to_collision,radius_collision,v in generate(np.array(args.pos),
-                                                                        get_velocity(args.p),
+                                                                        p_to_velocity(args.p),
                                                                         Centres,
-                                                                        a=args.a):
-        ax.arrow(pos[0],pos[1],distance_to_collision[0],distance_to_collision[1],head_width=0.1, head_length=0.1)
+                                                                        a = args.a):
+        draw_vector(pos,distance_to_collision,ax=ax,color='xkcd:magenta')
         position_collision = pos + distance_to_collision
         ax.text(position_collision[0],position_collision[1],f'T={T:.3f}')
         ax.scatter(Centres[disk,0],Centres[disk,1])
-        ax.arrow(Centres[disk,0],Centres[disk,1],
-                 radius_collision[0], radius_collision[1],
-                 head_width=0.1, head_length=0.1,linestyle='--',
-                 color='xkcd:red')
-        ax.arrow(position_collision[0],position_collision[1],v[0],v[1],head_width=0.1, head_length=0.1,linestyle=':')
+        draw_vector(Centres[disk,:],radius_collision, ax=ax,color='xkcd:yellow',linestyle=':')
+        draw_vector(position_collision,v,linestyle='-.',ax=ax,color='xkcd:cyan')
 
     ax.set_title(fr'p={args.p}, R/a={args.R/args.a}')
+    fig.tight_layout()
     fig.savefig(get_name_for_save())
 
     elapsed = time() - start
