@@ -41,6 +41,7 @@
 12|wk12.py|-|Cycle Expansion
 16|ksSub.py|-|Turbulence
 chapter9|pinball.py|-|Exercise 9.1 A pinball simulator. Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point.
+-|trapped.py|-|Exercise 9.2 Trapped orbits. Construct figure 1.9 using Monte-Carlo simulation
 projects|dynamics.py|-|Common code for a few ODEs
 -|cycles.py|-|Find cycles in orbit
 -|eqs.py|-|Replicate figure 4.5 for Rossler
