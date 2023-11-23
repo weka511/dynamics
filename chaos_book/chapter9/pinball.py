@@ -115,8 +115,15 @@ def get_name_for_save(extra=None,sep='-',figs='./figs'):
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
-def get_radius_collision(position_collision,Centre):
-    return position_collision - Centre
+def get_radial_vector(pos,Centre):
+    '''
+    Find radius vector relative to specified centre
+
+    Parameters:
+        pos
+        Centre
+    '''
+    return pos - Centre
 
 def get_reflected_velocity(radius_collision,v, rtol=1e-12):
     '''
@@ -127,55 +134,47 @@ def get_reflected_velocity(radius_collision,v, rtol=1e-12):
     assert np.isclose(norm(v),norm(reflected_velocity),rtol=rtol)
     return reflected_velocity
 
+def generate(pos,v,Centres,a=1.0):
+    '''
+    A generator that returns successive points in trajectory
+
+    Parameters:
+        pos
+        v
+        Centres
+        a
+    '''
+    disk,T = get_next_collision(pos,v,Centres,a)
+    while T<np.inf:
+        distance_to_collision = get_distance_to_collision(v,T)
+        pos1 = get_position_collision(pos,v,T)
+        radius_collision = get_radial_vector(pos1,Centres[disk])
+        v = get_reflected_velocity(radius_collision,v)
+        yield  disk,T,pos,distance_to_collision,radius_collision,v
+        pos = pos1
+        disk,T = get_next_collision(pos,v,Centres,a,skip=disk)
+
 if __name__=='__main__':
     rc('text', usetex=True)
     start  = time()
     args = parse_args()
     Centres = Create_Centres(args.R)
-    pos = np.array(args.pos)
-    v = np.array([np.cos(args.theta),np.sin(args.theta)])
-    collision_disk,T = get_next_collision(pos,v,Centres,args.a)
     fig = figure(figsize=(10,10))
     ax = fig.add_subplot(1,1,1)
     for Centre in Centres:
         ax.add_patch(Circle(Centre,radius=args.a,fc='xkcd:forest green'))
     ax.set_aspect('equal')
-    ax.scatter(pos[0],pos[1],marker='+')
-    if T<np.inf:
-        distance_to_collision = get_distance_to_collision(v,T)
-        position_collision = get_position_collision(pos,v,T)
-        radius_collision = get_radius_collision(position_collision,Centres[collision_disk])
 
-        reflected_velocity = get_reflected_velocity(radius_collision,v)
-
+    for disk,T,pos,distance_to_collision,radius_collision,v in generate(np.array(args.pos), np.array([np.cos(args.theta),np.sin(args.theta)]),Centres,a=args.a):
         ax.arrow(pos[0],pos[1],distance_to_collision[0],distance_to_collision[1],head_width=0.1, head_length=0.1)
+        position_collision = pos + distance_to_collision
         ax.text(position_collision[0],position_collision[1],f'T={T:.3f}')
-        ax.scatter(Centres[collision_disk,0],Centres[collision_disk,1])
-        ax.arrow(Centres[collision_disk,0],Centres[collision_disk,1],
+        ax.scatter(Centres[disk,0],Centres[disk,1])
+        ax.arrow(Centres[disk,0],Centres[disk,1],
                  radius_collision[0], radius_collision[1],
                  head_width=0.1, head_length=0.1,linestyle='--',
                  color='xkcd:red')
-        ax.arrow(position_collision[0],position_collision[1],reflected_velocity[0],reflected_velocity[1],
-                 head_width=0.1, head_length=0.1,linestyle=':')
-        collision_disk2,T2 = get_next_collision(position_collision,reflected_velocity,Centres,args.a,
-                                                skip=collision_disk)
-        if T2<np.inf:
-            distance_to_collision2 = get_distance_to_collision(reflected_velocity,T2)
-            position_collision2 = get_position_collision(position_collision,reflected_velocity,T2)
-            radius_collision2 = get_radius_collision(position_collision2,Centres[collision_disk2])
-
-            reflected_velocity2 = get_reflected_velocity(radius_collision2,reflected_velocity)
-            ax.arrow(position_collision[0],position_collision[1],distance_to_collision2[0],distance_to_collision2[1],head_width=0.1, head_length=0.1)
-            ax.text(position_collision2[0],position_collision2[1],f'T={T2:.3f}')
-            ax.scatter(Centres[collision_disk2,0],Centres[collision_disk2,1])
-            ax.arrow(Centres[collision_disk2,0],Centres[collision_disk2,1],
-                     radius_collision2[0], radius_collision2[1],
-                     head_width=0.1, head_length=0.1,linestyle='--',
-                     color='xkcd:cyan')
-            ax.arrow(position_collision2[0],position_collision2[1],reflected_velocity2[0],reflected_velocity2[1],
-                     head_width=0.1, head_length=0.1,linestyle=':')
-    else:
-        ax.arrow(pos[0],pos[1],args.R*v[0],args.R*v[1],head_width=0.1, head_length=0.1,linestyle=':')
+        ax.arrow(position_collision[0],position_collision[1],v[0],v[1],head_width=0.1, head_length=0.1,linestyle=':')
 
     ax.set_title(fr'$\theta=${args.theta}, $R/a$={args.R/args.a}')
     fig.savefig(get_name_for_save())
