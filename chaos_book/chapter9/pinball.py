@@ -23,7 +23,7 @@ and a given R:a = (center-to-center distance):(disk radius) ratio for a 3-disk s
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError
-from os.path import  basename,splitext,join
+from os.path import  basename, splitext, join
 from time import time
 import numpy as np
 from numpy.random import default_rng
@@ -32,7 +32,10 @@ from matplotlib.pyplot import figure, show, Circle
 from matplotlib import rc
 
 def parse_args():
-    def range_limited_float_type(arg,min=-1,max=+1):
+    '''Extract values of command line arguments'''
+    def range_limited_float_type(arg,
+                                 min = -1,
+                                 max = +1):
         '''Type function for argparse - a float within some predefined bounds'''
         try:
             f = float(arg)
@@ -45,7 +48,7 @@ def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('-R', '--R', type=float, default=6.0, help='Centre to Centre distance')
     parser.add_argument('-a', '--a', type=float, default=1.0, help='Radius of each Disk')
-    parser.add_argument('--pad',  type=float, default=0.25, help='Padding for disks')
+    parser.add_argument('--pad',  type=float, default=0.01, help='Used for plot p/s to pad display')
     parser.add_argument('--show', default=False, action='store_true', help='Show plots')
     parser.add_argument('--pos', type=float, nargs=2,default=[0,0])
     parser.add_argument('--p', type=range_limited_float_type, default=0)
@@ -53,7 +56,7 @@ def parse_args():
     parser.add_argument('--seed', default=42, type=int,help='Initialize random number generator')
     return parser.parse_args()
 
-def Create_Centres(R, rtol=1e-12):
+def Create_Centres(R, rtol = 1e-12):
     '''
     Create centres for a trio of Disks forming an equilateral triangle
 
@@ -74,18 +77,23 @@ def Create_Centres(R, rtol=1e-12):
 
     return Product
 
-def get_next_collision(pos,velocity,Centres, a, skip=None):
+def get_next_collision(pos,velocity,Centres, a,
+                       skip = None):
     '''
     Determine the next disk with which particle might collide
 
     Parameters:
-        pos
-        velocity
-        Centres
-        a
-        skip
+        pos        Starting poistion of particle
+        velocity   Veleocty of particle
+        Centres    Centres of disks
+        a          Radius of disks
+        skip       Optional : do not check for collision with this disk
+
+    Returns:
+        disk   Index of the disk we collide with (meaningless if time==np.inf)
+        time   Time to collision (may be infinite)
     '''
-    def get_next_collision(Centre,omit):
+    def get_collision(Centre,omit):
         '''
         Determine time to collide with some disk (may be infinite)
 
@@ -94,7 +102,6 @@ def get_next_collision(pos,velocity,Centres, a, skip=None):
             omit      If set to true, disk won't be checked and we assume time is infinite
 
         Returns:
-           disk   Index of the disk we collide with (meaningless if time==np.inf)
            time   Time to collision (may be infinite)
         '''
         if omit: return np.inf
@@ -109,30 +116,31 @@ def get_next_collision(pos,velocity,Centres, a, skip=None):
             if disc>0:
                 return -b - np.sqrt(disc)
         return np.inf
-    Times = [get_next_collision(Centres[i],skip==i) for i in range(len(Centres))]
+
+    Times = [get_collision(Centres[i],skip==i) for i in range(len(Centres))]
     collision_disk = np.argmin(Times)
     return collision_disk,Times[collision_disk]
 
-def get_distance_to_collision(velocity,T):
+def get_distance_travelled(velocity,T):
     '''
-    Find distance that particle travels to a collision
+    Find distance that particle travels in specified time
 
     Parameters:
-        velocity
-        T
+        velocity   Velocity of particle
+        T          Time travelled
     '''
     return  T*velocity
 
-def get_position_collision(start,velocity,T):
+def get_end_point(start,velocity,T):
     '''
-    Find location of a collision
+    Find end point after travelling some time
 
     Parameters:
-        start
-        velocity
-        T
+        start     Beginning of gravel
+        velocity  Velocity of particle
+        T         Time travelled
     '''
-    return start + get_distance_to_collision(velocity,T)
+    return start + get_distance_travelled(velocity,T)
 
 
 def get_name_for_save(extra=None,sep='-',figs='./figs'):
@@ -146,22 +154,22 @@ def get_radial_vector(pos,Centre):
     Find radius vector relative to specified centre
 
     Parameters:
-        pos
-        Centre
+        pos       Position of particle
+        Centre    Centre of disk
     '''
     return pos - Centre
 
-def get_reflected_velocity(radius_collision,v, rtol=1e-12):
+def get_reflected_velocity(radius,v, rtol=1e-12):
     '''
     Reflect the velocity by reversing the component along the radius
 
     Parameters:
-        radius_collision
-        v
-        rtol
+        radius    Radial vector of potion where we collide
+        v         Veloecty of particle
+        rtol      Used to check that no energy has been lost during collision
     '''
-    normed_radius_collision = radius_collision / norm(radius_collision)
-    reflected_velocity = v - 2 * np.dot(normed_radius_collision,v) * normed_radius_collision
+    normed_radius = radius / norm(radius)
+    reflected_velocity = v - 2 * np.dot(normed_radius,v) * normed_radius
     assert np.isclose(norm(v),norm(reflected_velocity),rtol=rtol)
     return reflected_velocity
 
@@ -170,22 +178,37 @@ def generate(pos,v,Centres,a=1.0):
     A generator that returns successive points in trajectory
 
     Parameters:
-        pos
-        v
-        Centres
-        a
+        pos       Starting position of particle
+        v         Initial velocity of particle
+        Centres   Centres of disks
+        a         Radius of ech disk
+
+    Yields (for each collision):
+        disk      Index of disk that we collide with
+        T         Time to next collision
+        pos       Position at start of flight
+        distance  Distance travelled to collision
+        radius    Radial vector from cenre of disk to collision
+        v         Velocity reflected from collision
     '''
     disk,T = get_next_collision(pos,v,Centres,a)
     while T<np.inf:
-        distance_to_collision = get_distance_to_collision(v,T)
-        pos1 = get_position_collision(pos,v,T)
-        radius_collision = get_radial_vector(pos1,Centres[disk])
-        v = get_reflected_velocity(radius_collision,v)
-        yield  disk,T,pos,distance_to_collision,radius_collision,v
+        distance = get_distance_travelled(v,T)
+        pos1 = get_end_point(pos,v,T)
+        radius = get_radial_vector(pos1,Centres[disk])
+        v = get_reflected_velocity(radius,v)
+        yield  disk,T,pos,distance,radius,v
         pos = pos1
         disk,T = get_next_collision(pos,v,Centres,a,skip=disk)
 
 def p_to_velocity(p,sgn = +1):
+    '''
+    Convert momentum 'p' (as defined in Chaos book) to velocity vector
+
+    Parameters:
+        p        momentum as defined in Chaos book
+        sgn      Controls whther y component will be vertical or horizontal
+    '''
     return np.array([p,sgn*np.sqrt(1-p**2)])
 
 def draw_vector(pos,vector,
@@ -194,7 +217,18 @@ def draw_vector(pos,vector,
                head_length = 0.1,
                linestyle = '--',
                color = 'xkcd:black'):
-    '''A wrapper around matplotlib.pyplot.arrow so we can use vectors'''
+    '''
+    A wrapper around matplotlib.pyplot.arrow so we can use vectors
+
+    Parameters:
+        pos
+        vector
+        ax
+        head_width
+        head_length
+        linestyle
+        color
+    '''
     ax.arrow(pos[0], pos[1], vector[0],vector[1],
          head_width = head_width,
          head_length = head_length,
@@ -202,9 +236,26 @@ def draw_vector(pos,vector,
          color = color)
 
 def create_pt(s,radius=1,Centre=np.array([0,0])):
+    '''
+    Convert arclength 's' (as defined in Chaos book) to position vector
+
+    Parameters:
+        s          arclength as defined in Chaos book
+        radius     Create the point at specified distance from Centre of disk
+        Centre     Centre of disk
+    '''
     return Centre + radius*np.array([np.cos(s),np.sin(s)])
 
-def draw_centres(Centres,a=1,ax=None,pad=0):
+def draw_disks(Centres,a=1,ax=None,pad=0):
+    '''
+    Draw all 3 disks
+
+    Parameters:
+        Centres
+        a=1
+        ax
+        pad
+    '''
     for Centre in Centres:
         ax.add_patch(Circle(Centre,radius=args.a,fc='xkcd:forest green'))
     ax.set_aspect('equal')
@@ -218,28 +269,31 @@ if __name__=='__main__':
     Centres = Create_Centres(args.R)
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,2,1)
-    draw_centres(Centres,a=args.a,ax=ax1)
+    draw_disks(Centres,a=args.a,ax=ax1)
 
-    for disk,T,pos,distance_to_collision,radius_collision,v in generate(np.array(args.pos),
-                                                                        p_to_velocity(args.p),
-                                                                        Centres,
-                                                                        a = args.a):
-        draw_vector(pos,distance_to_collision,ax=ax1,color='xkcd:magenta')
-        position_collision = pos + distance_to_collision
+    for disk,T,pos,distance,radius,v in generate(np.array(args.pos),
+                                                 p_to_velocity(args.p),
+                                                 Centres,
+                                                 a = args.a):
+        draw_vector(pos,distance,ax=ax1,color='xkcd:magenta')
+        position_collision = pos + distance
         ax1.text(position_collision[0],position_collision[1],f'T={T:.3f}')
         ax1.scatter(Centres[disk,0],Centres[disk,1])
-        draw_vector(Centres[disk,:],radius_collision, ax=ax1,color='xkcd:yellow',linestyle=':')
+        draw_vector(Centres[disk,:],radius, ax=ax1,color='xkcd:yellow',linestyle=':')
         draw_vector(position_collision,v,linestyle='-.',ax=ax1,color='xkcd:cyan')
 
     ax1.set_title(fr'p={args.p}, R/a={args.R/args.a}')
 
     rng = default_rng(args.seed)
     ax2 = fig.add_subplot(1,2,2)
-    draw_centres(Centres,a=args.a,ax=ax2,pad=args.pad)
+    draw_disks(Centres,a=args.a,ax=ax2,pad=args.pad)
     for pt in [create_pt(s,radius=args.a + args.pad,Centre=Centres[0]) for s in 2 * np.pi * rng.random(args.N)]:
         ax2.scatter(pt[0],pt[1],marker='+')
         for _,_,pos,distance_to_collision,_,_ in generate(pt, p_to_velocity(2*rng.random() - 1), Centres, a = args.a):
-            draw_vector(pos,distance_to_collision,ax=ax2,color='xkcd:magenta')
+            draw_vector(pos,distance_to_collision,ax=ax2,color=None)
+    ax2.set_title(f'{args.N} starting points')
+
+    fig.suptitle('Pinball simulation')
     fig.tight_layout()
     fig.savefig(get_name_for_save())
 
