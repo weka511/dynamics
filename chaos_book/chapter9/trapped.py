@@ -62,7 +62,7 @@ def monte_carlo(N,a=1,R=6,rng = default_rng()):
     ps = []
     counts = []
     for s,p,count in monte_carlo_generator(N,rng = rng,a=a,Centres = Create_Centres(R)):
-        ss.append(s)
+        ss.append(s*R/(2*np.pi))
         ps.append(p)
         counts.append(count)
     return ss,ps,counts
@@ -80,9 +80,10 @@ if __name__=='__main__':
         if counts[i] > 2:
             sss.append(ss[i])
             pss.append(ps[i])
+
     ax1.scatter(ss,ps,s=1,c=counts)
 
-    ax1.set_xlim(0,2*np.pi*args.a)
+    ax1.set_xlim(0,2*np.pi*args.R/(2*np.pi))
     ax1.set_ylim(-1,1)
     ax1.set_title('At least one bounce')
     ax1.set_xlabel('s')
@@ -90,7 +91,7 @@ if __name__=='__main__':
 
     ax2 = fig.add_subplot(1,2,2)
     ax2.scatter(sss,pss,s=1)
-    ax2.set_xlim(0,2*np.pi*args.a)
+    ax2.set_xlim(0,2*np.pi*args.R/(2*np.pi))
     ax2.set_ylim(-1,1)
     ax2.set_title('At least two bounces')
     ax2.set_xlabel('s')
