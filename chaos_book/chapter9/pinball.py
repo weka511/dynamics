@@ -22,11 +22,11 @@ Implement the disk to disk maps to compute a trajectory of a pinball for a given
 and a given R:a = (center-to-center distance):(disk radius) ratio for a 3-disk system.
 '''
 
-
 from argparse import ArgumentParser, ArgumentTypeError
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
+from numpy.random import default_rng
 from numpy.linalg import norm
 from matplotlib.pyplot import figure, show, Circle
 from matplotlib import rc
@@ -45,9 +45,12 @@ def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('-R', '--R', type=float, default=6.0, help='Centre to Centre distance')
     parser.add_argument('-a', '--a', type=float, default=1.0, help='Radius of each Disk')
+    parser.add_argument('--pad',  type=float, default=0.25, help='Padding for disks')
     parser.add_argument('--show', default=False, action='store_true', help='Show plots')
     parser.add_argument('--pos', type=float, nargs=2,default=[0,0])
     parser.add_argument('--p', type=range_limited_float_type, default=0)
+    parser.add_argument('--N', type=int, default=100)
+    parser.add_argument('--seed', default=42, type=int,help='Initialize random number generator')
     return parser.parse_args()
 
 def Create_Centres(R, rtol=1e-12):
@@ -198,31 +201,45 @@ def draw_vector(pos,vector,
          linestyle = linestyle,
          color = color)
 
+def create_pt(s,radius=1,Centre=np.array([0,0])):
+    return Centre + radius*np.array([np.cos(s),np.sin(s)])
+
+def draw_centres(Centres,a=1,ax=None,pad=0):
+    for Centre in Centres:
+        ax.add_patch(Circle(Centre,radius=args.a,fc='xkcd:forest green'))
+    ax.set_aspect('equal')
+    ax.set_xlim(Centres[:,0].min() - (a+pad), Centres[:,0].max() + (a+pad))
+    ax.set_ylim(Centres[:,1].min() - (a+pad), Centres[:,1].max() + (a+pad))
+
 if __name__=='__main__':
     rc('text', usetex=True)
     start  = time()
     args = parse_args()
     Centres = Create_Centres(args.R)
-    fig = figure(figsize=(10,10))
-    ax = fig.add_subplot(1,1,1)
-    for Centre in Centres:
-        ax.add_patch(Circle(Centre,radius=args.a,fc='xkcd:forest green'))
-    ax.set_aspect('equal')
-    ax.set_xlim(Centres[:,0].min() - args.a, Centres[:,0].max() + args.a)
-    ax.set_ylim(Centres[:,1].min() - args.a, Centres[:,1].max() + args.a)
+    fig = figure(figsize=(12,12))
+    ax1 = fig.add_subplot(1,2,1)
+    draw_centres(Centres,a=args.a,ax=ax1)
 
     for disk,T,pos,distance_to_collision,radius_collision,v in generate(np.array(args.pos),
                                                                         p_to_velocity(args.p),
                                                                         Centres,
                                                                         a = args.a):
-        draw_vector(pos,distance_to_collision,ax=ax,color='xkcd:magenta')
+        draw_vector(pos,distance_to_collision,ax=ax1,color='xkcd:magenta')
         position_collision = pos + distance_to_collision
-        ax.text(position_collision[0],position_collision[1],f'T={T:.3f}')
-        ax.scatter(Centres[disk,0],Centres[disk,1])
-        draw_vector(Centres[disk,:],radius_collision, ax=ax,color='xkcd:yellow',linestyle=':')
-        draw_vector(position_collision,v,linestyle='-.',ax=ax,color='xkcd:cyan')
+        ax1.text(position_collision[0],position_collision[1],f'T={T:.3f}')
+        ax1.scatter(Centres[disk,0],Centres[disk,1])
+        draw_vector(Centres[disk,:],radius_collision, ax=ax1,color='xkcd:yellow',linestyle=':')
+        draw_vector(position_collision,v,linestyle='-.',ax=ax1,color='xkcd:cyan')
 
-    ax.set_title(fr'p={args.p}, R/a={args.R/args.a}')
+    ax1.set_title(fr'p={args.p}, R/a={args.R/args.a}')
+
+    rng = default_rng(args.seed)
+    ax2 = fig.add_subplot(1,2,2)
+    draw_centres(Centres,a=args.a,ax=ax2,pad=args.pad)
+    for pt in [create_pt(s,radius=args.a + args.pad,Centre=Centres[0]) for s in 2 * np.pi * rng.random(args.N)]:
+        ax2.scatter(pt[0],pt[1],marker='+')
+        for _,_,pos,distance_to_collision,_,_ in generate(pt, p_to_velocity(2*rng.random() - 1), Centres, a = args.a):
+            draw_vector(pos,distance_to_collision,ax=ax2,color='xkcd:magenta')
     fig.tight_layout()
     fig.savefig(get_name_for_save())
 
