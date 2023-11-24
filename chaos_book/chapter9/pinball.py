@@ -173,15 +173,18 @@ def get_reflected_velocity(radius,v, rtol=1e-12):
     assert np.isclose(norm(v),norm(reflected_velocity),rtol=rtol)
     return reflected_velocity
 
-def generate(pos,v,Centres,a=1.0):
+def generate(pos,v,Centres,
+             a = 1.0,
+             first_bounce = -1):
     '''
     A generator that returns successive points in trajectory
 
     Parameters:
-        pos       Starting position of particle
-        v         Initial velocity of particle
-        Centres   Centres of disks
-        a         Radius of ech disk
+        pos          Starting position of particle
+        v            Initial velocity of particle
+        Centres      Centres of disks
+        a            Radius of each disk
+        first_bounce Used to discard trajectory if first bounce is not from specified disk
 
     Yields (for each collision):
         disk      Index of disk that we collide with
@@ -192,6 +195,9 @@ def generate(pos,v,Centres,a=1.0):
         v         Velocity reflected from collision
     '''
     disk,T = get_next_collision(pos,v,Centres,a)
+
+    if first_bounce > -1 and disk != first_bounce: return
+
     while T<np.inf:
         distance = get_distance_travelled(v,T)
         pos1 = get_end_point(pos,v,T)
@@ -288,8 +294,9 @@ if __name__=='__main__':
     ax2 = fig.add_subplot(1,2,2)
     draw_disks(Centres,a=args.a,ax=ax2,pad=args.pad)
     for pt in [create_pt(s,radius=args.a + args.pad,Centre=Centres[0]) for s in 2 * np.pi * rng.random(args.N)]:
+        v = p_to_velocity(2*rng.random() - 1)
         ax2.scatter(pt[0],pt[1],marker='+')
-        for _,_,pos,distance_to_collision,_,_ in generate(pt, p_to_velocity(2*rng.random() - 1), Centres, a = args.a):
+        for _,_,pos,distance_to_collision,_,_ in generate(pt,v, Centres, a = args.a, first_bounce=0):
             draw_vector(pos,distance_to_collision,ax=ax2,color=None)
     ax2.set_title(f'{args.N} starting points')
 

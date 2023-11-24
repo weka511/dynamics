@@ -53,7 +53,7 @@ def monte_carlo_generator(N,
     for i in range(N):
         s = 2 * np.pi * rng.random()
         p = 2*rng.random() - 1
-        count = sum([1 for _ in generate(create_pt(s,radius=a,Centre=Centres[0]), p_to_velocity(p), Centres, a = a)])
+        count = sum([1 for _ in generate(create_pt(s,radius=a,Centre=Centres[0]), p_to_velocity(p), Centres, a = a, first_bounce=0)])
         if count > threshold:
             yield s,p,count
 
