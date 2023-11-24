@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument('-R', '--R', type=float, default=6.0, help='Centre to Centre distance')
     parser.add_argument('-a', '--a', type=float, default=1.0, help='Radius of each Disk')
     parser.add_argument('--N', default=100000, type=int,help='Number of trajectories')
-    parser.add_argument('--seed', default=42, type=int,help='Initialize random number generator')
+    parser.add_argument('--seed', default=None, type=int,help='Initialize random number generator')
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
@@ -41,37 +41,62 @@ def get_name_for_save(extra=None,sep='-',figs='./figs'):
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
-def create_starting_values(N,rng = default_rng(),a=1):
-    Starts = rng.random((args.N,2))
-    return Starts*np.array([2*np.pi*a,2]) - np.array([0,1])
-
-def monte_carlo(N,rng = default_rng(),a=1,Centres=None):
+def monte_carlo_generator(N,
+                          rng = default_rng(),
+                          a = 1,
+                          Centres = None,
+                          threshold = 1):
+    '''
+    Generate several starting points and explore trajectory. If more than specified number
+    of bounces, yield value
+    '''
     for i in range(N):
         s = 2 * np.pi * rng.random()
         p = 2*rng.random() - 1
-        count = 0
-        for _,_,_,_,_,_ in generate(create_pt(s,radius=a,Centre=Centres[0]),
-                                    p_to_velocity(p), Centres, a = a):
-            count += 1
-        if count > 0:
+        count = sum([1 for _ in generate(create_pt(s,radius=a,Centre=Centres[0]), p_to_velocity(p), Centres, a = a)])
+        if count > threshold:
             yield s,p,count
+
+def monte_carlo(N,a=1,R=6,rng = default_rng()):
+    ss = []
+    ps = []
+    counts = []
+    for s,p,count in monte_carlo_generator(N,rng = rng,a=a,Centres = Create_Centres(R)):
+        ss.append(s)
+        ps.append(p)
+        counts.append(count)
+    return ss,ps,counts
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-    fig = figure(figsize=(10,10))
-    ax = fig.add_subplot(1,1,1)
+    fig = figure(figsize=(16,8))
+    ax1 = fig.add_subplot(1,2,1)
 
-    ss = []
-    ps = []
-    counts = []
-    for s,p,count in monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,Centres = Create_Centres(args.R)):
-        ss.append(s)
-        ps.append(p)
-        counts.append(count)
-    ax.scatter(ss,ps,s=1,c=counts)
-    ax.set_xlim(0,2*np.pi*args.a)
-    ax.set_ylim(-1,1)
+    ss,ps,counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
+    sss = []
+    pss = []
+    for i in range(len(ss)):
+        if counts[i] > 2:
+            sss.append(ss[i])
+            pss.append(ps[i])
+    ax1.scatter(ss,ps,s=1,c=counts)
+
+    ax1.set_xlim(0,2*np.pi*args.a)
+    ax1.set_ylim(-1,1)
+    ax1.set_title('At least one bounce')
+    ax1.set_xlabel('s')
+    ax1.set_ylabel('p')
+
+    ax2 = fig.add_subplot(1,2,2)
+    ax2.scatter(sss,pss,s=1)
+    ax2.set_xlim(0,2*np.pi*args.a)
+    ax2.set_ylim(-1,1)
+    ax2.set_title('At least two bounces')
+    ax2.set_xlabel('s')
+    ax2.set_ylabel('p')
+
+    fig.suptitle(f'{args.N:,} Iterations')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
