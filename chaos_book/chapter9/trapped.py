@@ -28,7 +28,7 @@ from pinball import Create_Centres, generate, create_pt, get_velocity
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument('-R', '--R', type=float, default=6.0, help='Centre to Centre distance')
+    parser.add_argument('-R', '--R', type=float, default=2.5, help='Centre to Centre distance')
     parser.add_argument('-a', '--a', type=float, default=1.0, help='Radius of each Disk')
     parser.add_argument('--N', default=100000, type=int,help='Number of trajectories')
     parser.add_argument('--seed', default=None, type=int,help='Initialize random number generator')
@@ -77,36 +77,52 @@ def monte_carlo(N,a=1,R=6,rng = default_rng()):
         counts.append(count)
     return ss,ps,counts
 
+def prune(ss,ps,counts,threshold=2):
+    sss = []
+    pss = []
+    css = []
+    for i in range(len(ss)):
+        if counts[i] > threshold:
+            sss.append(ss[i])
+            pss.append(ps[i])
+            css.append(counts[i])
+    return sss,pss, css
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
     fig = figure(figsize=(16,8))
-    ax1 = fig.add_subplot(1,2,1)
+    ax1 = fig.add_subplot(2,2,1)
 
     ss,ps,counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
-    sss = []
-    pss = []
-    for i in range(len(ss)):
-        if counts[i] > 2:
-            sss.append(ss[i])
-            pss.append(ps[i])
+    sss,pss, css = prune(ss,ps,counts)
 
     ax1.scatter(ss,ps,s=1,c=counts)
-
     ax1.set_xlim(-args.R,args.R)
     ax1.set_ylim(-1,1)
-    ax1.set_title('At least one bounce')
+    ax1.set_title(f'At least one bounce: n={len(ss):,}')
     ax1.set_xlabel('s')
     ax1.set_ylabel('p')
 
-    ax2 = fig.add_subplot(1,2,2)
-    ax2.scatter(sss,pss,s=1)
+    ax2 = fig.add_subplot(2,2,2)
+    ax2.scatter(sss,pss,s=1,c=css)
     ax2.set_xlim(-args.R,args.R)
     ax2.set_ylim(-1,1)
-    ax2.set_title('At least two bounces')
+    ax2.set_title(f'At least two bounces: n={len(sss):,}')
     ax2.set_xlabel('s')
     ax2.set_ylabel('p')
 
+    ax3 = fig.add_subplot(2,2,3)
+    n,bins,_ = ax3.hist(counts,bins = max(counts))
+    ax3.set_xlabel('Number of bounces')
+    ax3.set_ylabel('Frequency')
+    nn = np.cumsum(n[::-1])[::-1]
+    ratios = nn[0:-2]/nn[1:-1]
+    gamma = - np.log(ratios)
+    ax4 = fig.add_subplot(2,2,4)
+    ax4.plot(gamma)
+    ax4.set_xlabel('n')
+    ax4.set_ylabel(r'$\gamma_{n}$')
     fig.suptitle(f'{args.N:,} Iterations. R={args.R}, a={args.a}, seed={args.seed}')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
