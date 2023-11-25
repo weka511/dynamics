@@ -24,7 +24,7 @@ from time import time
 import numpy as np
 from numpy.random import default_rng
 from matplotlib.pyplot import figure, show
-from pinball import Create_Centres, generate, create_pt, p_to_velocity
+from pinball import Create_Centres, generate, create_pt, get_velocity
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -49,19 +49,29 @@ def monte_carlo_generator(N,
     '''
     Generate several starting points and explore trajectory. If more than specified number
     of bounces, yield value
+
+    Parameters:
+        N
+        rng
+        a = 1,
+        Centres
+        threshold
     '''
     for i in range(N):
-        s = 2 * np.pi * rng.random()
+        s = np.pi*(2*rng.random() - 1)
         p = 2*rng.random() - 1
-        count = sum([1 for _ in generate(create_pt(s,radius=a,Centre=Centres[0]), p_to_velocity(p), Centres, a = a, first_bounce=0)])
+        v = get_velocity(s,p)#p_to_velocity(p)
+        count = sum([1 for _ in generate(create_pt(s,radius=a,Centre=Centres[0]), v, Centres, a = a, first_bounce=0)])
         if count > threshold:
             yield s,p,count
+
+
 
 def monte_carlo(N,a=1,R=6,rng = default_rng()):
     ss = []
     ps = []
     counts = []
-    for s,p,count in monte_carlo_generator(N,rng = rng,a=a,Centres = Create_Centres(R)):
+    for s,p,count in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R)):
         ss.append(s*R/(2*np.pi))
         ps.append(p)
         counts.append(count)
@@ -83,7 +93,7 @@ if __name__=='__main__':
 
     ax1.scatter(ss,ps,s=1,c=counts)
 
-    ax1.set_xlim(0,2*np.pi*args.R/(2*np.pi))
+    ax1.set_xlim(-args.R,args.R)
     ax1.set_ylim(-1,1)
     ax1.set_title('At least one bounce')
     ax1.set_xlabel('s')
@@ -91,13 +101,13 @@ if __name__=='__main__':
 
     ax2 = fig.add_subplot(1,2,2)
     ax2.scatter(sss,pss,s=1)
-    ax2.set_xlim(0,2*np.pi*args.R/(2*np.pi))
+    ax2.set_xlim(-args.R,args.R)
     ax2.set_ylim(-1,1)
     ax2.set_title('At least two bounces')
     ax2.set_xlabel('s')
     ax2.set_ylabel('p')
 
-    fig.suptitle(f'{args.N:,} Iterations')
+    fig.suptitle(f'{args.N:,} Iterations. R={args.R}, a={args.a}, seed={args.seed}')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)

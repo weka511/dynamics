@@ -207,6 +207,12 @@ def generate(pos,v,Centres,
         pos = pos1
         disk,T = get_next_collision(pos,v,Centres,a,skip=disk)
 
+def get_velocity(s,p):
+    '''Calculate velocity after Figure 9.2'''
+    n = np.array([np.cos(s),np.sin(s)])
+    t = np.array([n[1],-n[0]])
+    return p*t  - np.sqrt(1-p**2)*n
+
 def p_to_velocity(p,sgn = +1):
     '''
     Convert momentum 'p' (as defined in Chaos book) to velocity vector
@@ -215,7 +221,7 @@ def p_to_velocity(p,sgn = +1):
         p        momentum as defined in Chaos book
         sgn      Controls whther y component will be vertical or horizontal
     '''
-    return np.array([p,sgn*np.sqrt(1-p**2)])
+    return np.array([p,sgn*np.sqrt(1-p**2)]) #np.array([p,sgn*np.sqrt(1-p**2)])
 
 def draw_vector(pos,vector,
                ax = None,
