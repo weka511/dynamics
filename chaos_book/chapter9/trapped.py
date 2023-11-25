@@ -66,8 +66,16 @@ def monte_carlo_generator(N,
             yield s,p,count
 
 
-
 def monte_carlo(N,a=1,R=6,rng = default_rng()):
+    '''
+    Perform Monte Carlo simulation
+
+    Parameters:
+        N
+        a
+        R
+        rng
+    '''
     ss = []
     ps = []
     counts = []
@@ -77,54 +85,68 @@ def monte_carlo(N,a=1,R=6,rng = default_rng()):
         counts.append(count)
     return ss,ps,counts
 
-def prune(ss,ps,counts,threshold=2):
-    sss = []
-    pss = []
-    css = []
-    for i in range(len(ss)):
+def prune(s,p,counts,threshold=2):
+    '''
+    Remove starting values whose length of trajectory fails to exceed thrshold
+
+    Parameters:
+        s
+        p
+        counts
+        threshold
+    '''
+    s2 = []
+    p2 = []
+    counts2 = []
+    for i in range(len(s)):
         if counts[i] > threshold:
-            sss.append(ss[i])
-            pss.append(ps[i])
-            css.append(counts[i])
-    return sss,pss, css
+            s2.append(s[i])
+            p2.append(p[i])
+            counts2.append(counts[i])
+    return s2,p2, counts2
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
+
+    s,p,counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
+    s2,p2, counts2 = prune(s,p,counts)
+    n,bins = np.histogram(counts,bins = max(counts))
+    cumulative_counts = np.cumsum(n[::-1])[::-1]
+    survival_ratio = cumulative_counts[1:-1]/cumulative_counts[0:-2]
+    gamma = - np.log(survival_ratio)
+
     fig = figure(figsize=(16,8))
     ax1 = fig.add_subplot(2,2,1)
-
-    ss,ps,counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
-    sss,pss, css = prune(ss,ps,counts)
-
-    ax1.scatter(ss,ps,s=1,c=counts)
+    ax1.scatter(s,p,s=1,c=counts)
     ax1.set_xlim(-args.R,args.R)
     ax1.set_ylim(-1,1)
-    ax1.set_title(f'At least one bounce: n={len(ss):,}')
+    ax1.set_title(f'At least one bounce: n={len(s):,}')
     ax1.set_xlabel('s')
     ax1.set_ylabel('p')
 
     ax2 = fig.add_subplot(2,2,2)
-    ax2.scatter(sss,pss,s=1,c=css)
+    ax2.scatter(s2,p2,s=1,c=counts2)
     ax2.set_xlim(-args.R,args.R)
     ax2.set_ylim(-1,1)
-    ax2.set_title(f'At least two bounces: n={len(sss):,}')
+    ax2.set_title(f'At least two bounces: n={len(s2):,}')
     ax2.set_xlabel('s')
     ax2.set_ylabel('p')
 
     ax3 = fig.add_subplot(2,2,3)
-    n,bins,_ = ax3.hist(counts,bins = max(counts))
-    ax3.set_xlabel('Number of bounces')
+    ax3.bar(bins[:-1],n,width=1)
+    ax3.set_title('Number of bounces')
+    ax3.set_xlabel('n')
     ax3.set_ylabel('Frequency')
-    nn = np.cumsum(n[::-1])[::-1]
-    ratios = nn[0:-2]/nn[1:-1]
-    gamma = - np.log(ratios)
+
     ax4 = fig.add_subplot(2,2,4)
     ax4.plot(gamma)
     ax4.set_xlabel('n')
-    ax4.set_ylabel(r'$\gamma_{n}$')
+    ax4.set_ylabel(r'$\gamma_{n}')
+    ax4.set_title('Escape Rate')
     fig.suptitle(f'{args.N:,} Iterations. R={args.R}, a={args.a}, seed={args.seed}')
     fig.savefig(get_name_for_save())
+
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
