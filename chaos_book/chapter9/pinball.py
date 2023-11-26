@@ -30,6 +30,7 @@ from numpy.random import default_rng
 from numpy.linalg import norm
 from matplotlib.pyplot import figure, show, Circle
 from matplotlib import rc
+from xkcd import generate_colour_names
 
 def parse_args():
     '''Extract values of command line arguments'''
@@ -133,7 +134,7 @@ def get_distance_travelled(velocity,T):
 
 def get_end_point(start,velocity,T):
     '''
-    Find end point after travelling some time
+    Find end point after travelling from specified staing point for a specified time
 
     Parameters:
         start     Beginning of gravel
@@ -143,8 +144,21 @@ def get_end_point(start,velocity,T):
     return start + get_distance_travelled(velocity,T)
 
 
-def get_name_for_save(extra=None,sep='-',figs='./figs'):
-    '''Extract name for saving figure'''
+def get_name_for_save(extra = None,
+                      sep = '-',
+                      figs = './figs'):
+    '''
+    Extract name for saving figure
+
+    Parameters:
+        extra    Used if we want to save more than one figure to distinguish file names
+        sep      Used if we want to save more than one figure to separate extra from basic file name
+        figs     Path name for saving figure
+
+    Returns:
+        A file name composed of pathname for figures, plus the base name for
+        source file, with extra ditinguising information if required
+    '''
     basic = splitext(basename(__file__))[0]
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
@@ -208,10 +222,16 @@ def generate(pos,v,Centres,
         disk,T = get_next_collision(pos,v,Centres,a,skip=disk)
 
 def get_velocity(s,p):
-    '''Calculate velocity after Figure 9.2'''
-    n = np.array([np.cos(s),np.sin(s)])
-    t = np.array([n[1],-n[0]])
-    return p*t  - np.sqrt(1-p**2)*n
+    '''
+    Calculate velocity after Figure 9.2
+
+    Parameters:
+        s     Arc length
+        p     Momentum
+    '''
+    normal = np.array([np.cos(s),np.sin(s)])
+    transverse = np.array([n[1],-n[0]])
+    return p*transverse  - np.sqrt(1-p**2)*normal
 
 def p_to_velocity(p,sgn = +1):
     '''
@@ -258,18 +278,19 @@ def create_pt(s,radius=1,Centre=np.array([0,0])):
     '''
     return Centre + radius*np.array([np.cos(s),np.sin(s)])
 
-def draw_disks(Centres,a=1,ax=None,pad=0):
+def draw_disks(Centres,a=1,ax=None,pad=0,colour='xkcd:cloudy blue'):
     '''
     Draw all 3 disks
 
     Parameters:
-        Centres
-        a=1
-        ax
-        pad
+        Centres   Coordinates of centre of each disk
+        a         Radious of each disk
+        ax        Axis for plotting
+        pad       Used to pad area for display
+        colour    Used to render disks
     '''
     for Centre in Centres:
-        ax.add_patch(Circle(Centre,radius=args.a,fc='xkcd:forest green'))
+        ax.add_patch(Circle(Centre,radius=args.a,fc=colour))
     ax.set_aspect('equal')
     ax.set_xlim(Centres[:,0].min() - (a+pad), Centres[:,0].max() + (a+pad))
     ax.set_ylim(Centres[:,1].min() - (a+pad), Centres[:,1].max() + (a+pad))
@@ -281,7 +302,10 @@ if __name__=='__main__':
     Centres = Create_Centres(args.R)
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,2,1)
-    draw_disks(Centres,a=args.a,ax=ax1)
+    draw_disks(Centres,
+               a = args.a,
+               ax = ax1,
+               pad = args.pad)
 
     for disk,T,pos,distance,radius,v in generate(np.array(args.pos),
                                                  p_to_velocity(args.p),
@@ -297,13 +321,16 @@ if __name__=='__main__':
     ax1.set_title(fr'p={args.p}, R/a={args.R/args.a}')
 
     rng = default_rng(args.seed)
+    colour_name_generator = generate_colour_names()
     ax2 = fig.add_subplot(1,2,2)
     draw_disks(Centres,a=args.a,ax=ax2,pad=args.pad)
     for pt in [create_pt(s,radius=args.a + args.pad,Centre=Centres[0]) for s in 2 * np.pi * rng.random(args.N)]:
         v = p_to_velocity(2*rng.random() - 1)
         ax2.scatter(pt[0],pt[1],marker='+')
         for _,_,pos,distance_to_collision,_,_ in generate(pt,v, Centres, a = args.a, first_bounce=0):
-            draw_vector(pos,distance_to_collision,ax=ax2,color=None)
+            draw_vector(pos,distance_to_collision,
+                        ax = ax2,
+                        color = colour_name_generator.__next__())
     ax2.set_title(f'{args.N} starting points')
 
     fig.suptitle('Pinball simulation')

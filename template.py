@@ -29,8 +29,21 @@ def parse_args():
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
-def get_name_for_save(extra=None,sep='-',figs='./figs'):
-    '''Extract name for saving figure'''
+def get_name_for_save(extra = None,
+                      sep = '-',
+                      figs = './figs'):
+    '''
+    Extract name for saving figure
+
+    Parameters:
+        extra    Used if we want to save more than one figure to distinguish file names
+        sep      Used if we want to save more than one figure to separate extra from basic file name
+        figs     Path name for saving figure
+
+    Returns:
+        A file name composed of pathname for figures, plus the base name for
+        source file, with extra ditinguising information if required
+    '''
     basic = splitext(basename(__file__))[0]
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
