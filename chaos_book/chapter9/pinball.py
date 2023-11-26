@@ -221,17 +221,19 @@ def generate(pos,v,Centres,
         pos = pos1
         disk,T = get_next_collision(pos,v,Centres,a,skip=disk)
 
-def get_velocity(s,p):
+def get_velocity(s,p,nt=False):
     '''
     Calculate velocity after Figure 9.2
 
     Parameters:
-        s     Arc length
+        s     Arc length un units of radius (a), so it is in range(-pi,+pi)
         p     Momentum
+        nt    Used in debugging to return normal and tangent
     '''
     normal = np.array([np.cos(s),np.sin(s)])
-    transverse = np.array([n[1],-n[0]])
-    return p*transverse  - np.sqrt(1-p**2)*normal
+    tangent = np.array([normal[1],-normal[0]])
+    v = p*tangent  - np.sqrt(1-p**2)*normal
+    return (v,normal,tangent) if nt else v
 
 def p_to_velocity(p,sgn = +1):
     '''
@@ -248,7 +250,7 @@ def draw_vector(pos,vector,
                head_width = 0.1,
                head_length = 0.1,
                linestyle = '--',
-               color = 'xkcd:black'):
+               colour = 'xkcd:black'):
     '''
     A wrapper around matplotlib.pyplot.arrow so we can use vectors
 
@@ -265,7 +267,7 @@ def draw_vector(pos,vector,
          head_width = head_width,
          head_length = head_length,
          linestyle = linestyle,
-         color = color)
+         color = colour)
 
 def create_pt(s,radius=1,Centre=np.array([0,0])):
     '''
@@ -300,8 +302,10 @@ if __name__=='__main__':
     start  = time()
     args = parse_args()
     Centres = Create_Centres(args.R)
-    fig = figure(figsize=(12,12))
-    ax1 = fig.add_subplot(1,2,1)
+
+    fig = figure(figsize=(16,16))
+
+    ax1 = fig.add_subplot(2,2,1)
     draw_disks(Centres,
                a = args.a,
                ax = ax1,
@@ -311,18 +315,18 @@ if __name__=='__main__':
                                                  p_to_velocity(args.p),
                                                  Centres,
                                                  a = args.a):
-        draw_vector(pos,distance,ax=ax1,color='xkcd:magenta')
+        draw_vector(pos,distance,ax=ax1,colour='xkcd:magenta')
         position_collision = pos + distance
         ax1.text(position_collision[0],position_collision[1],f'T={T:.3f}')
         ax1.scatter(Centres[disk,0],Centres[disk,1])
-        draw_vector(Centres[disk,:],radius, ax=ax1,color='xkcd:yellow',linestyle=':')
-        draw_vector(position_collision,v,linestyle='-.',ax=ax1,color='xkcd:cyan')
+        draw_vector(Centres[disk,:],radius, ax=ax1,colour='xkcd:yellow',linestyle=':')
+        draw_vector(position_collision,v,linestyle='-.',ax=ax1,colour='xkcd:cyan')
 
     ax1.set_title(fr'p={args.p}, R/a={args.R/args.a}')
 
     rng = default_rng(args.seed)
     colour_name_generator = generate_colour_names()
-    ax2 = fig.add_subplot(1,2,2)
+    ax2 = fig.add_subplot(2,2,2)
     draw_disks(Centres,a=args.a,ax=ax2,pad=args.pad)
     for pt in [create_pt(s,radius=args.a + args.pad,Centre=Centres[0]) for s in 2 * np.pi * rng.random(args.N)]:
         v = p_to_velocity(2*rng.random() - 1)
@@ -330,11 +334,25 @@ if __name__=='__main__':
         for _,_,pos,distance_to_collision,_,_ in generate(pt,v, Centres, a = args.a, first_bounce=0):
             draw_vector(pos,distance_to_collision,
                         ax = ax2,
-                        color = colour_name_generator.__next__())
+                        colour = colour_name_generator.__next__())
     ax2.set_title(f'{args.N} starting points')
 
+    ax3 = fig.add_subplot(2,2,3)
+    colour_name_generator = generate_colour_names()
+    Centres = Create_Centres(2.5)
+    draw_disks(Centres,a=1,ax=ax3,pad=0.125)
+    for i in range(5):
+        colour = colour_name_generator.__next__()
+        s = 2*np.pi*(i - 2)/5
+        p = 2*rng.random() - 1
+        v,normal,tangent = get_velocity(s,p,nt=True)
+        pos = create_pt(s,radius=args.a,Centre=Centres[0])
+        draw_vector(pos,v,ax=ax3,colour=colour)
+        draw_vector(pos,normal,ax=ax3,linestyle=':',colour=colour)
+        draw_vector(pos,tangent,ax=ax3,linestyle='-.',colour=colour)
+
     fig.suptitle('Pinball simulation')
-    fig.tight_layout()
+    fig.tight_layout(pad=1.2)
     fig.savefig(get_name_for_save())
 
     elapsed = time() - start

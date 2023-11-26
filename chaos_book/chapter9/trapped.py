@@ -61,7 +61,7 @@ def monte_carlo_generator(N,
     for i in range(N):
         s = np.pi*(2*rng.random() - 1)
         p = 2*rng.random() - 1
-        v = get_velocity(s,p)#p_to_velocity(p)
+        v = get_velocity(s,p)
         count = sum([1 for _ in generate(create_pt(s,radius=a,Centre=Centres[0]), v, Centres, a = a, first_bounce=0)])
         if count > threshold:
             yield s,p,count
@@ -105,7 +105,7 @@ if __name__=='__main__':
 
     ax1 = fig.add_subplot(2,2,1)
     ax1.scatter(starts_counts[:,0],starts_counts[:,1],s=1,c=colour_names)
-    ax1.set_xlim(-args.R,args.R)
+    ax1.set_xlim(-np.pi, +np.pi)
     ax1.set_ylim(-1,1)
     ax1.set_title(f'At least one bounce: n={starts_counts.shape[0]:,}')
     ax1.set_xlabel('s')
