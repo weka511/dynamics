@@ -25,7 +25,8 @@ import numpy as np
 from numpy.random import default_rng
 from matplotlib.pyplot import figure, show
 from pinball import Create_Centres, generate, create_pt, get_velocity
-from xkcd import generate_colours
+from xkcd import create_colour_names
+
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('-R', '--R', type=float, default=2.5, help='Centre to Centre distance')
@@ -83,88 +84,46 @@ def monte_carlo(N,a=1,R=6,rng = default_rng()):
     '''
     values= np.array([x for x in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R))])
     return values[values[:,2].argsort()]
-    # ss = []
-    # ps = []
-    # orbit_lengths = []
-    # for s,p,count in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R)):
-        # ss.append(s*R/(2*np.pi))
-        # ps.append(p)
-        # orbit_lengths.append(count)
-    # return ss,ps,orbit_lengths
 
-# def prune(s,p,orbit_lengths,threshold=2):
-    # '''
-    # Remove starting values whose length of trajectory fails to exceed thrshold
-
-    # Parameters:
-        # s              List of values for s for starting value
-        # p              List of values for s for starting value
-        # orbit_lengths  List containing length of each orbit
-        # threshold      We discard any orbits for which length doesn't execeed threshold
-
-    # Returns:
-        # List of values for s for starting value (pruned values only)
-        # List of values for p for starting value (pruned values only)
-        # List containing length of each orbit    (pruned values only)
-    # '''
-    # pruned = np.array([(s[i],p[i], orbit_lengths[i]) for i in range(len(s)) if orbit_lengths[i] > threshold])
-    # return pruned[pruned[:,2].argsort()]
-
-# def get_colours(ns):
-    # colours = []
-    # def get_colour(n):
-        # if n==2:
-            # return 'xkcd:green'
-        # if n==3:
-            # return 'xkcd:blue'
-        # return 'xkcd:red'
-    # return [get_colour(n) for n in ns]
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
 
+    padding_colours = ['xkcd:cloudy blue','xkcd:cloudy blue']
     starts_counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
-    # pruned = prune(s,p,orbit_lengths)
     n_colours = int(starts_counts[:,2].max())
-    n,bins = np.histogram(starts_counts[:,2],bins = n_colours)
+    n,bins = np.histogram(starts_counts[:,2],bins = list(range(n_colours+len(padding_colours))))
     cumulative_counts = np.cumsum(n[::-1])[::-1]
     survival_ratio = cumulative_counts[1:-1]/cumulative_counts[0:-2]
     gamma = - np.log(survival_ratio)
 
+    xkcd_colour_names = padding_colours + create_colour_names(n_colours)
+    colour_names = [xkcd_colour_names[int(x)] for x in starts_counts[:,2]]
+
     fig = figure(figsize=(16,8))
+
     ax1 = fig.add_subplot(2,2,1)
-    xkcd = []
-    for i,c in enumerate(generate_colours()):
-        xkcd.append(c)
-        if i>n_colours: break
-    colours = [xkcd[int(x)] for x in starts_counts[:,2]]
-    ax1.scatter(starts_counts[:,0],starts_counts[:,1],s=1,c=colours)
+    ax1.scatter(starts_counts[:,0],starts_counts[:,1],s=1,c=colour_names)
     ax1.set_xlim(-args.R,args.R)
     ax1.set_ylim(-1,1)
     ax1.set_title(f'At least one bounce: n={starts_counts.shape[0]:,}')
     ax1.set_xlabel('s')
     ax1.set_ylabel('p')
 
-    # ax2 = fig.add_subplot(2,2,2)
-    # ax2.scatter(pruned[:,0],pruned[:,1],s=1,c=pruned[:,2])
-    # ax2.set_xlim(-args.R,args.R)
-    # ax2.set_ylim(-1,1)
-    # ax2.set_title(f'At least two bounces: n={pruned.shape[0]:,}')
-    # ax2.set_xlabel('s')
-    # ax2.set_ylabel('p')
+    ax2 = fig.add_subplot(2,2,2)
+    ax2.bar(bins[:-1],n,width=1,color=xkcd_colour_names)
+    ax2.set_title('Number of bounces')
+    ax2.set_xlabel('n')
+    ax2.set_ylabel('Count')
+    ax2.set_xlim(len(padding_colours)-1,n_colours)
+    ax2.set_xticks(range(len(padding_colours),n_colours+1))
 
     ax3 = fig.add_subplot(2,2,3)
-    ax3.bar(bins[:-1],n,width=1)
-    ax3.set_title('Number of bounces')
+    ax3.plot(gamma)
     ax3.set_xlabel('n')
-    ax3.set_ylabel('Frequency')
-
-    ax4 = fig.add_subplot(2,2,4)
-    ax4.plot(gamma)
-    ax4.set_xlabel('n')
-    ax4.set_ylabel(r'$\gamma_{n}')
-    ax4.set_title(f'Escape Rate {np.mean(gamma[2:]):.4f}')
+    ax3.set_ylabel(r'$\gamma_{n}')
+    ax3.set_title(f'Escape Rate {np.mean(gamma[2:]):.4f}')
     fig.suptitle(f'{args.N:,} Iterations. R={args.R}, a={args.a}, seed={args.seed}')
     fig.savefig(get_name_for_save())
 

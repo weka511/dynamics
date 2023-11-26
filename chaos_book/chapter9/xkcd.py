@@ -15,42 +15,33 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Template for python script for dynamics'''
+'''Some functions to faciliate the use ofr XKCD colours'''
 
 
-from argparse import ArgumentParser
-from os.path import  basename,splitext,join
-from time import time
-import numpy as np
-from matplotlib.pyplot import figure, show
+def generate_colour_names(reverse=True):
+    '''
+    Allow iteration through XKCD colours
 
-def parse_args():
-    parser = ArgumentParser(description=__doc__)
-    parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
-    return parser.parse_args()
-
-def get_name_for_save(extra=None,sep='-',figs='./figs'):
-    '''Extract name for saving figure'''
-    basic = splitext(basename(__file__))[0]
-    name = basic if extra==None else f'{basic}{sep}{extra}'
-    return join(figs,name)
-
-def generate_colours():
+    Parameters:
+        reverse If set to true, iteration starts at most frequent colour
+    '''
+    order = reversed if reverse else lambda x: x
     with open('rgb.txt') as xkcd:
-        for line in reversed(list(xkcd)):
+        for line in order(list(xkcd)):
             parts = line.rstrip().split('\t#')
             if len(parts)>1:
                 yield f'xkcd:{parts[0]}'
 
-if __name__=='__main__':
-    start  = time()
-    args = parse_args()
+def create_colour_names(n):
+    Product = []
+    for i,c in enumerate(generate_colour_names()):
+        Product.append(c)
+        if i>n: break
 
-    for c in generate_colours():
+    return Product
+
+if __name__=='__main__':
+
+    for c in generate_colour_names():
         print (c)
-    elapsed = time() - start
-    minutes = int(elapsed/60)
-    seconds = elapsed - 60*minutes
-    print (f'Elapsed Time {minutes} m {seconds:.2f} s')
-    if args.show:
-        show()
+
