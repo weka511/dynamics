@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Some functions to faciliate the use ofr XKCD colours'''
+'''Some functions to faciliate the use of XKCD colours'''
 
 
 def generate_colour_names(reverse=True):
@@ -41,7 +41,5 @@ def create_colour_names(n=None):
     return Product
 
 if __name__=='__main__':
-
     for c in generate_colour_names():
         print (c)
-
