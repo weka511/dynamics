@@ -25,7 +25,7 @@ import numpy as np
 from numpy.random import default_rng
 from matplotlib.pyplot import figure, show
 from pinball import Create_Centres, generate, create_pt, get_velocity
-
+from xkcd import generate_colours
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('-R', '--R', type=float, default=2.5, help='Centre to Centre distance')
@@ -51,9 +51,9 @@ def monte_carlo_generator(N,
     of bounces, yield value
 
     Parameters:
-        N
+        N           Number of trajectories
         rng
-        a = 1,
+        a           Radius of each Disk
         Centres
         threshold
     '''
@@ -68,70 +68,91 @@ def monte_carlo_generator(N,
 
 def monte_carlo(N,a=1,R=6,rng = default_rng()):
     '''
-    Perform Monte Carlo simulation
+    Initialize disks and perform Monte Carlo simulation
 
     Parameters:
-        N
-        a
-        R
-        rng
-    '''
-    ss = []
-    ps = []
-    counts = []
-    for s,p,count in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R)):
-        ss.append(s*R/(2*np.pi))
-        ps.append(p)
-        counts.append(count)
-    return ss,ps,counts
+        N      Number of trajectories
+        a      Radius of each Disk
+        R      Centre to Centre distance
+        rng    Random number generator
 
-def prune(s,p,counts,threshold=2):
+    Returns:
+        List of values for s for starting value
+        List of values for p for starting value
+        List containing length of each orbit
     '''
-    Remove starting values whose length of trajectory fails to exceed thrshold
+    values= np.array([x for x in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R))])
+    return values[values[:,2].argsort()]
+    # ss = []
+    # ps = []
+    # orbit_lengths = []
+    # for s,p,count in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R)):
+        # ss.append(s*R/(2*np.pi))
+        # ps.append(p)
+        # orbit_lengths.append(count)
+    # return ss,ps,orbit_lengths
 
-    Parameters:
-        s
-        p
-        counts
-        threshold
-    '''
-    s2 = []
-    p2 = []
-    counts2 = []
-    for i in range(len(s)):
-        if counts[i] > threshold:
-            s2.append(s[i])
-            p2.append(p[i])
-            counts2.append(counts[i])
-    return s2,p2, counts2
+# def prune(s,p,orbit_lengths,threshold=2):
+    # '''
+    # Remove starting values whose length of trajectory fails to exceed thrshold
+
+    # Parameters:
+        # s              List of values for s for starting value
+        # p              List of values for s for starting value
+        # orbit_lengths  List containing length of each orbit
+        # threshold      We discard any orbits for which length doesn't execeed threshold
+
+    # Returns:
+        # List of values for s for starting value (pruned values only)
+        # List of values for p for starting value (pruned values only)
+        # List containing length of each orbit    (pruned values only)
+    # '''
+    # pruned = np.array([(s[i],p[i], orbit_lengths[i]) for i in range(len(s)) if orbit_lengths[i] > threshold])
+    # return pruned[pruned[:,2].argsort()]
+
+# def get_colours(ns):
+    # colours = []
+    # def get_colour(n):
+        # if n==2:
+            # return 'xkcd:green'
+        # if n==3:
+            # return 'xkcd:blue'
+        # return 'xkcd:red'
+    # return [get_colour(n) for n in ns]
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
 
-    s,p,counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
-    s2,p2, counts2 = prune(s,p,counts)
-    n,bins = np.histogram(counts,bins = max(counts))
+    starts_counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
+    # pruned = prune(s,p,orbit_lengths)
+    n_colours = int(starts_counts[:,2].max())
+    n,bins = np.histogram(starts_counts[:,2],bins = n_colours)
     cumulative_counts = np.cumsum(n[::-1])[::-1]
     survival_ratio = cumulative_counts[1:-1]/cumulative_counts[0:-2]
     gamma = - np.log(survival_ratio)
 
     fig = figure(figsize=(16,8))
     ax1 = fig.add_subplot(2,2,1)
-    ax1.scatter(s,p,s=1,c=counts)
+    xkcd = []
+    for i,c in enumerate(generate_colours()):
+        xkcd.append(c)
+        if i>n_colours: break
+    colours = [xkcd[int(x)] for x in starts_counts[:,2]]
+    ax1.scatter(starts_counts[:,0],starts_counts[:,1],s=1,c=colours)
     ax1.set_xlim(-args.R,args.R)
     ax1.set_ylim(-1,1)
-    ax1.set_title(f'At least one bounce: n={len(s):,}')
+    ax1.set_title(f'At least one bounce: n={starts_counts.shape[0]:,}')
     ax1.set_xlabel('s')
     ax1.set_ylabel('p')
 
-    ax2 = fig.add_subplot(2,2,2)
-    ax2.scatter(s2,p2,s=1,c=counts2)
-    ax2.set_xlim(-args.R,args.R)
-    ax2.set_ylim(-1,1)
-    ax2.set_title(f'At least two bounces: n={len(s2):,}')
-    ax2.set_xlabel('s')
-    ax2.set_ylabel('p')
+    # ax2 = fig.add_subplot(2,2,2)
+    # ax2.scatter(pruned[:,0],pruned[:,1],s=1,c=pruned[:,2])
+    # ax2.set_xlim(-args.R,args.R)
+    # ax2.set_ylim(-1,1)
+    # ax2.set_title(f'At least two bounces: n={pruned.shape[0]:,}')
+    # ax2.set_xlabel('s')
+    # ax2.set_ylabel('p')
 
     ax3 = fig.add_subplot(2,2,3)
     ax3.bar(bins[:-1],n,width=1)
@@ -143,7 +164,7 @@ if __name__=='__main__':
     ax4.plot(gamma)
     ax4.set_xlabel('n')
     ax4.set_ylabel(r'$\gamma_{n}')
-    ax4.set_title('Escape Rate')
+    ax4.set_title(f'Escape Rate {np.mean(gamma[2:]):.4f}')
     fig.suptitle(f'{args.N:,} Iterations. R={args.R}, a={args.a}, seed={args.seed}')
     fig.savefig(get_name_for_save())
 
