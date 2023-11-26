@@ -32,11 +32,11 @@ def generate_colour_names(reverse=True):
             if len(parts)>1:
                 yield f'xkcd:{parts[0]}'
 
-def create_colour_names(n):
+def create_colour_names(n=None):
     Product = []
     for i,c in enumerate(generate_colour_names()):
         Product.append(c)
-        if i>n: break
+        if n != None and i>n: break
 
     return Product
 
