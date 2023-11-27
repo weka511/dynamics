@@ -116,15 +116,15 @@ if __name__=='__main__':
 
     fig = figure(figsize=(16,8))
 
-    ax1 = fig.add_subplot(2,2,1)
+    ax1 = fig.add_subplot(2,2,1)    # Plot Starting points with at least one bounce
     ax1.scatter(starts_counts[:,0],starts_counts[:,1],s=1,c=colour_names)
     ax1.set_xlim(s0,s1)
     ax1.set_ylim(-1,1)
-    ax1.set_title(f'At least one bounce: n={starts_counts.shape[0]:,}')
-    ax1.set_xlabel('s')
-    ax1.set_ylabel('p')
+    ax1.set_title(f'Starting points with at least one bounce: n={starts_counts.shape[0]:,}')
+    ax1.set_xlabel(r'$s=\sin{\phi}$')
+    ax1.set_ylabel('$p=\sin{\psi}$')
 
-    ax2 = fig.add_subplot(2,2,2)
+    ax2 = fig.add_subplot(2,2,2)    # Plot number of bounces
     ax2.bar(bins[:-1],n,width=1,color=xkcd_colour_names)
     ax2.set_title('Number of bounces')
     ax2.set_xlabel('n')
@@ -132,13 +132,15 @@ if __name__=='__main__':
     ax2.set_xlim(len(padding_colours)-1,n_colours)
     ax2.set_xticks(range(len(padding_colours),n_colours+1))
 
-    ax3 = fig.add_subplot(2,2,3)
+    ax3 = fig.add_subplot(2,2,3)   # Plot trend for escape rate
     ax3.plot(gamma)
     ax3.set_xlabel('n')
     ax3.set_ylabel(r'$\gamma_{n}$')
     ax3.set_title(f'Escape Rate {np.mean(gamma[2:]):.4f}')
+
     fig.suptitle(f'{args.N:,} Iterations. R={args.R}, a={args.a}, seed={args.seed}')
-    fig.savefig(get_name_for_save())
+    fig.tight_layout(h_pad=1.0)
+    fig.savefig(get_name_for_save(extra=f'{args.R/args.a}'.replace('.','-')))
 
     elapsed = time() - start
     minutes = int(elapsed/60)
