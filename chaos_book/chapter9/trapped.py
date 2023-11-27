@@ -46,7 +46,9 @@ def monte_carlo_generator(N,
                           rng = default_rng(),
                           a = 1,
                           Centres = None,
-                          threshold = 1):
+                          threshold = 1,
+                          s0 = -np.pi,
+                          s1 = +np.pi):
     '''
     Generate several starting points and explore trajectory. If more than specified number
     of bounces, yield value
@@ -59,7 +61,7 @@ def monte_carlo_generator(N,
         threshold
     '''
     for i in range(N):
-        s = np.pi*(2*rng.random() - 1)
+        s = (s1-s0)*rng.random() + s0
         p = 2*rng.random() - 1
         v = get_velocity(s,p)
         count = sum([1 for _ in generate(create_pt(s,radius=a,Centre=Centres[0]), v, Centres, a = a, first_bounce=0)])
@@ -67,7 +69,12 @@ def monte_carlo_generator(N,
             yield s,p,count
 
 
-def monte_carlo(N,a=1,R=6,rng = default_rng()):
+def monte_carlo(N,
+                a = 1,
+                R = 6,
+                rng = default_rng(),
+                s0 = -np.pi,
+                s1 = +np.pi):
     '''
     Initialize disks and perform Monte Carlo simulation
 
@@ -82,16 +89,22 @@ def monte_carlo(N,a=1,R=6,rng = default_rng()):
         List of values for p for starting value
         List containing length of each orbit
     '''
-    values= np.array([x for x in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R))])
+    values= np.array([x for x in monte_carlo_generator(N,rng = rng,a = a,Centres = Create_Centres(R),s0=s0,s1=s1)])
     return values[values[:,2].argsort()]
 
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-
+    s0 = 0
+    s1 = 2 * np.pi
     padding_colours = ['xkcd:cloudy blue','xkcd:cloudy blue']
-    starts_counts = monte_carlo(args.N,rng = default_rng(args.seed),a=args.a,R=args.R)
+    starts_counts = monte_carlo(args.N,
+                                rng = default_rng(args.seed),
+                                a = args.a,
+                                R = args.R,
+                                s0 = s0,
+                                s1 = s1)
     n_colours = int(starts_counts[:,2].max())
     n,bins = np.histogram(starts_counts[:,2],bins = list(range(n_colours+len(padding_colours))))
     cumulative_counts = np.cumsum(n[::-1])[::-1]
@@ -105,7 +118,7 @@ if __name__=='__main__':
 
     ax1 = fig.add_subplot(2,2,1)
     ax1.scatter(starts_counts[:,0],starts_counts[:,1],s=1,c=colour_names)
-    ax1.set_xlim(-np.pi, +np.pi)
+    ax1.set_xlim(s0,s1)
     ax1.set_ylim(-1,1)
     ax1.set_title(f'At least one bounce: n={starts_counts.shape[0]:,}')
     ax1.set_xlabel('s')
@@ -122,7 +135,7 @@ if __name__=='__main__':
     ax3 = fig.add_subplot(2,2,3)
     ax3.plot(gamma)
     ax3.set_xlabel('n')
-    ax3.set_ylabel(r'$\gamma_{n}')
+    ax3.set_ylabel(r'$\gamma_{n}$')
     ax3.set_title(f'Escape Rate {np.mean(gamma[2:]):.4f}')
     fig.suptitle(f'{args.N:,} Iterations. R={args.R}, a={args.a}, seed={args.seed}')
     fig.savefig(get_name_for_save())

@@ -350,9 +350,10 @@ if __name__=='__main__':
         draw_vector(pos,v,ax=ax3,colour=colour)
         draw_vector(pos,normal,ax=ax3,linestyle=':',colour=colour)
         draw_vector(pos,tangent,ax=ax3,linestyle='-.',colour=colour)
+    ax3.set_title('p/s')
 
     fig.suptitle('Pinball simulation')
-    fig.tight_layout(pad=1.2)
+    fig.tight_layout(w_pad=0.1,h_pad=1.0)
     fig.savefig(get_name_for_save())
 
     elapsed = time() - start
