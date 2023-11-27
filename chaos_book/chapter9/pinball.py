@@ -181,6 +181,9 @@ def get_reflected_velocity(radius,v, rtol=1e-12):
         radius    Radial vector of potion where we collide
         v         Veloecty of particle
         rtol      Used to check that no energy has been lost during collision
+
+    Returns:
+       velocity with radial component reversed
     '''
     normed_radius = radius / norm(radius)
     reflected_velocity = v - 2 * np.dot(normed_radius,v) * normed_radius
@@ -235,15 +238,18 @@ def get_velocity(s,p,nt=False):
     v = p*tangent  - np.sqrt(1-p**2)*normal
     return (v,normal,tangent) if nt else v
 
-def p_to_velocity(p,sgn = +1):
+def _p_to_velocity(p,sgn = +1):
     '''
-    Convert momentum 'p' (as defined in Chaos book) to velocity vector
+    Used for testing only: convert momentum 'p' (as defined in Chaos book) to velocity vector
 
     Parameters:
         p        momentum as defined in Chaos book
-        sgn      Controls whther y component will be vertical or horizontal
+        sgn      Controls whether y component will be vertical or horizontal
+
+    Returns:
+       Velocity
     '''
-    return np.array([p,sgn*np.sqrt(1-p**2)]) #np.array([p,sgn*np.sqrt(1-p**2)])
+    return np.array([p,sgn*np.sqrt(1-p**2)])
 
 def draw_vector(pos,vector,
                ax = None,
@@ -255,13 +261,13 @@ def draw_vector(pos,vector,
     A wrapper around matplotlib.pyplot.arrow so we can use vectors
 
     Parameters:
-        pos
-        vector
-        ax
-        head_width
-        head_length
-        linestyle
-        color
+        pos         Starting position
+        vector      Length and direction of arrow
+        ax          Axis for drawing
+        head_width  Total width of the full arrow head.
+        head_length Total length of the full arrow head.
+        linestyle   Linestyle for arrow
+        color       Colour of arrow
     '''
     ax.arrow(pos[0], pos[1], vector[0],vector[1],
          head_width = head_width,
@@ -303,7 +309,7 @@ if __name__=='__main__':
     args = parse_args()
     Centres = Create_Centres(args.R)
 
-    fig = figure(figsize=(16,16))
+    fig = figure(figsize=(9.6,7.2))
 
     ax1 = fig.add_subplot(2,2,1)
     draw_disks(Centres,
@@ -312,7 +318,7 @@ if __name__=='__main__':
                pad = args.pad)
 
     for disk,T,pos,distance,radius,v in generate(np.array(args.pos),
-                                                 p_to_velocity(args.p),
+                                                 _p_to_velocity(args.p),
                                                  Centres,
                                                  a = args.a):
         draw_vector(pos,distance,ax=ax1,colour='xkcd:magenta')
@@ -329,7 +335,7 @@ if __name__=='__main__':
     ax2 = fig.add_subplot(2,2,2)
     draw_disks(Centres,a=args.a,ax=ax2,pad=args.pad)
     for pt in [create_pt(s,radius=args.a + args.pad,Centre=Centres[0]) for s in 2 * np.pi * rng.random(args.N)]:
-        v = p_to_velocity(2*rng.random() - 1)
+        v = _p_to_velocity(2*rng.random() - 1)
         ax2.scatter(pt[0],pt[1],marker='+')
         for _,_,pos,distance_to_collision,_,_ in generate(pt,v, Centres, a = args.a, first_bounce=0):
             draw_vector(pos,distance_to_collision,
@@ -353,7 +359,7 @@ if __name__=='__main__':
     ax3.set_title('p/s')
 
     fig.suptitle('Pinball simulation')
-    fig.tight_layout(w_pad=0.1,h_pad=1.0)
+    fig.tight_layout(w_pad=0.1,h_pad=1.5)
     fig.savefig(get_name_for_save())
 
     elapsed = time() - start
