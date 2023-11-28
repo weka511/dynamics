@@ -8,6 +8,7 @@
 --:|------------------|----------------------------------------------------------
 2|exercise_2_5_3|Showing that X tends to infinity in a finite time
 -|exercise_2_7|Exercises 2.7.3 and 2.7.4
+-|exercise_2_8_3|Exercises 2.8.3 and 2.8.4 - Calibrate Euler
 3|exercise_3_1_2.py|Exercise 3.1.2 Saddle node bifurcations
 -|exercise_3_1_5.py|Exercise 3.1.5 Unusual bifurcations
 -|exercise_3_2_4.py|Exercise Exercise 3.2.4 Transcritical bifurcations
