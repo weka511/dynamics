@@ -49,22 +49,20 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
+def plot(fig = figure(figsize=(8,8))):
+    for i,mu in enumerate([-0.1,-0.01, 0.0, 0.01, 0.1]):
+        X,Y,U,V,fixed = generate(f = lambda x,y:(y+mu*x,-x+mu*y-x**2*y),nx = 256, ny = 256)
+        ax = fig.add_subplot(3,2,i+1)
+        plot_phase_portrait(X,Y,U,V,fixed,title = r'$\mu=$'+f'{mu}', ax = ax)
+
+    fig.suptitle( r'$\dot{x}=y+\mu x,\dot{y}=-x + \mu y -x^2 y$')
+    fig.tight_layout(h_pad=1.5)
+    fig.savefig(get_name_for_save(extra=1))
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-
-    mu = -0.1
-    X,Y,U,V,fixed = generate(f = lambda x,y:(y+mu*x,-x+mu*y-x**2*y),nx = 256, ny = 256)
-    fig = figure()
-    ax = fig.add_subplot(2,1,1)
-    plot_phase_portrait(X,Y,U,V,fixed,title = r'$\mu = -0.1$', ax = ax)
-    ax = fig.add_subplot(2,1,2)
-    mu = 0.1
-    X,Y,U,V,fixed = generate(f = lambda x,y:(y+mu*x,-x+mu*y-x**2*y),nx = 256, ny = 256)
-    plot_phase_portrait(X,Y,U,V,fixed,title = r'$\mu = 0.1$', ax = ax)
-    fig.suptitle( r'$\dot{x}=y+\mu x,\dot{y}=-x + \mu y -x^2 y$')
-    fig.tight_layout(h_pad=1.5)
-
+    plot()
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
