@@ -187,32 +187,30 @@ def plot_phase_portrait(X,Y,U,V,fixed,
     ax.scatter([x for (x,_) in fixed],[y for (_,y) in fixed],marker='x',s=60,c='r')
     ax.set_title(title)
 
-
-
-def plot_stability(f            = lambda x,y:(x,y),
-                   fixed        = [(0,0)],
-                   R            = 1,
-                   cs           = ['xkcd:purple',
-                                   'xkcd:green',
-                                   'xkcd:pink',
-                                   'xkcd:brown',
-                                   'xkcd:teal',
-                                   'xkcd:orange',
-                                   'xkcd:magenta',
-                                   'xkcd:yellow'],
-                   linestyles   = ['-', '--', '-.', ':'],
-                   Limit        = 1.0E12,
-                   N            = 1000,
-                   step         = 0.1,
-                   S            = 1,
-                   s            = 10,
-                   K            = 1,
-                   legend       = True,
-                   accept       = lambda _:True,
-                   eps          = 0.1,
-                   c_stable     = 'xkcd:blue',
-                   c_unstable   = 'xkcd:red',
-                   ax           = None):
+def plot_stability(f = lambda x,y:(x,y),
+                   fixed = [(0,0)],
+                   R = 1,
+                   cs = ['xkcd:purple',
+                         'xkcd:green',
+                         'xkcd:pink',
+                         'xkcd:brown',
+                         'xkcd:teal',
+                         'xkcd:orange',
+                         'xkcd:magenta',
+                         'xkcd:yellow'],
+                   linestyles = ['-', '--', '-.', ':'],
+                   Limit = 1.0E12,
+                   N = 1000,
+                   step = 0.1,
+                   S = 1,
+                   s = 10,
+                   K = 1,
+                   legend = True,
+                   accept = lambda _:True,
+                   eps = 0.1,
+                   c_stable = 'xkcd:blue',
+                   c_unstable = 'xkcd:red',
+                   ax = None):
     '''
      Determine stability of fixed points using a Monte Carlo method
 
@@ -248,6 +246,9 @@ def plot_stability(f            = lambda x,y:(x,y),
         return product
 
     def evolve_trajectory(pt):
+        '''
+        Evolve trajectory for a point that starts close to fixed point
+        '''
         trajectory = np.zeros((N,2))
         trajectory[0,:] = pt + np.array(create_offset())
         for j in range(1,N):
