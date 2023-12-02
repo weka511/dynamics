@@ -27,8 +27,10 @@ from matplotlib.pyplot import figure, show
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
-    parser.add_argument('--N0',default = 0, type=int)
     parser.add_argument('--N',default = 100000, type=int)
+    parser.add_argument('--N0',default = 1000, type=int)
+    parser.add_argument('--m',default = 11, type=int)
+    parser.add_argument('--epsilon', default= 0.0001, type=float)
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -50,20 +52,30 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
-def henon(x=0,a=1.3,b=0.3):
+def henon(x=0,a=1.4,b=0.3):
     return np.array([1 - a*x[0]**2 + x[1], b*x[0]])
+
+def plot_henon(a=1.4,b=0.3,N=100000,N0=0,ax=None):
+    for i in range(args.m):
+        trajectory=np.zeros((N,2))
+        trajectory[0,:] = args.epsilon * rng.random(2)
+        for j in range(1,N0):
+            trajectory[0,:] = henon( trajectory[0,:],a=a,b=b)
+        for j in range(1,N):
+            trajectory[j,:] = henon( trajectory[j-1,:],a=a,b=b)
+        ax.scatter(trajectory[:,0],trajectory[:,1],s=1)
+        ax.scatter(trajectory[-1,0],trajectory[-1,1],marker='+',s=100)
+    ax.set_title(f'a={a},Burn in = {N0:,}')
 
 if __name__=='__main__':
     start  = time()
+    rng = np.random.default_rng()
     args = parse_args()
-    fig = figure(figsize=(8,8))
-    ax1 = fig.add_subplot(1,1,1)
-    trajectory=np.zeros((args.N,2))
-    for i in range(1,args.N0):
-        trajectory[0,:] = henon( trajectory[0,:])
-    for i in range(1,args.N):
-        trajectory[i,:] = henon( trajectory[i-1,:])
-    ax1.scatter(trajectory[:,0],trajectory[:,1],s=1,c='xkcd:blue')
+    fig = figure(figsize=(12,12))
+    plot_henon(a=1.4,b=0.3,N=args.N,ax=fig.add_subplot(2,2,1))
+    plot_henon(a=1.4,b=0.3,N=args.N,N0=args.N0,ax=fig.add_subplot(2,2,3))
+    plot_henon(a=1.39945219,b=0.3,N=args.N,ax=fig.add_subplot(2,2,2))
+    plot_henon(a=1.39945219,b=0.3,N=args.N,N0=args.N0,ax=fig.add_subplot(2,2,4))
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
