@@ -17,16 +17,14 @@
 
 '''Plot phase portrait'''
 
-import numpy as np
+from os.path import  basename,splitext,join
 from matplotlib.pyplot import cm, figure, show
 import matplotlib.colors as colors
 from matplotlib import rc
+import numpy as np
 from scipy import optimize
+from solver import rk4
 from utilities import direct_surface
-from rk4 import rk4, adapt
-
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-rc('text', usetex=True)
 
 def get_fixed_points(f,xs,ys,
                      tolerance_near_zero = 0.001,
@@ -87,8 +85,8 @@ def get_fixed_points(f,xs,ys,
         crossings = []
         for x0,x1 in zip(xs[:-1],xs[1:]):
             for y0,y1 in zip(ys[:-1],ys[1:]):
-                u0,v0=f(x0,y0)
-                u1,v1=f(x1,y1)
+                u0,v0=f(np.array([x0,y0]))
+                u1,v1=f(np.array([x1,y1]))
                 if crosses(u0,u1) or crosses(v0,v1):
                     crossings.append(((x0+x1)/2,(y0+y1)/2))
                 elif is_near_zero(u0,v0):
@@ -106,7 +104,7 @@ def get_fixed_points(f,xs,ys,
     #  Levenberg-Marquardt gives the best results for strogatz_6_1
     #  Still having problems with exercise 6.1.3, though.
 
-    for result in [optimize.root(adapt(f),crossing,
+    for result in [optimize.root(f,crossing,
                                  tol = tolerance_root_finder,
                                  method = 'lm') for crossing in find_crossings()]:
         if result.success:
@@ -134,7 +132,7 @@ def generate(f=lambda x,y:(x,y),nx=64, ny = 64,xmin=-10,xmax=10,ymin=-10,ymax=10
     xs = np.linspace(xmin, xmax,nx)
     ys = np.linspace(ymin, ymax, ny)
     X,Y = np.meshgrid(xs, ys)
-    U,V = f(X,Y)
+    U,V = f(np.array([X,Y]))
     return X,Y,U,V,get_fixed_points(f,xs,ys)
 
 
@@ -240,9 +238,9 @@ def plot_stability(f = lambda x,y:(x,y),
         This function is used to define an offset from the fixed point, and, optionally,
         to constrain the offset in some way
         '''
-        product = tuple(R*z for z in direct_surface(d=2))
+        product = R* direct_surface(d=2)
         while not accept(product):
-            product = tuple(R*z for z in direct_surface(d=2))
+            product = R* direct_surface(d=2)
         return product
 
     def evolve_trajectory(pt):
@@ -252,7 +250,7 @@ def plot_stability(f = lambda x,y:(x,y),
         trajectory = np.zeros((N,2))
         trajectory[0,:] = pt + np.array(create_offset())
         for j in range(1,N):
-            trajectory[j,:] = rk4(step,trajectory[j-1],adapt(f=f))
+            trajectory[j,:] = rk4(step,trajectory[j-1],f)
             if np.any(abs(trajectory[j,:]) > 1.5*Limit):
                 return np.array(trajectory[0:j+1,:])
         return np.array(trajectory)
@@ -305,11 +303,37 @@ def strict_right_upper_quadrant(pt):
     '''
     return pt[0] > 0 and pt[1] > 0
 
+def get_name_for_save(extra = None,
+                      sep = '-',
+                      figs = './figs'):
+    '''
+    Extract name for saving figure
+
+    Parameters:
+        extra    Used if we want to save more than one figure to distinguish file names
+        sep      Used if we want to save more than one figure to separate extra from basic file name
+        figs     Path name for saving figure
+
+    Returns:
+        A file name composed of pathname for figures, plus the base name for
+        source file, with extra ditinguising information if required
+    '''
+    basic = splitext(basename(__file__))[0]
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
+
 if __name__=='__main__':
-    X,Y,U,V,fixed = generate(f = lambda x,y:(x+np.exp(-y),-y),nx = 256, ny = 256)
+    rc('font',**{
+        'family':'sans-serif',
+        'sans-serif':['Helvetica']
+    })
+    rc('text', usetex=True)
+    f = lambda x:np.array([x[0]+np.exp(-x[1]),-x[1]])
+    X,Y,U,V,fixed = generate(f = f,nx = 256, ny = 256)
     fig = figure()
     ax = fig.add_subplot(1,1,1)
-    plot_phase_portrait(X,Y,U,V,fixed,title = '$\dot{x}=x+e^{-y},\dot{y}=-y$', ax = ax)
-    plot_stability(f = lambda x,y:(x+np.exp(-y),-y), fixed = fixed, ax = ax)
+    plot_phase_portrait(X,Y,U,V,fixed,title = r'$\dot{x}=x+e^{-y},\dot{y}=-y$', ax = ax)
+    plot_stability(f = f, fixed = fixed, ax = ax)
     fig.suptitle('Example 6.1.1')
+    fig.savefig(get_name_for_save())
     show()

@@ -15,65 +15,61 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>
 
-'''Generate random points in or on sphere'''
+'''
+Generate random points in or on sphere, using algorithm from
+Statistical Mechanics: Algorithms and Computations by Werner Krauth
+'''
 
 import random
-import math
-from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 from matplotlib.pyplot import figure, show
 
 
-def direct_sphere(d=3,sigma=1,R=1):
+def direct_sphere(d = 3,
+                  n = 1,
+                  sigma = 1,
+                  R = 1,
+                  rng = np.random.default_rng()):
     '''
-    Generate uniform random vector inside sphere, using algorithm from
-    Statistical Mechanics: Algorithms and Computations by Werner Krauth
+    Generate uniform random vector inside sphere
 
     Parameters:
         d       Dimensionality
+        n       Number of points
         sigma   Standard deviation
         R       Radius
+        rng     Random number generator
     '''
-    xs = [random.gauss(0,sigma) for k in range(d)]
-    Sigma = sum([x*x for x in xs])
-    upsilon = random.uniform(0,1)**(1/d)
-    return [R * upsilon * x/math.sqrt(Sigma) for x in xs]
+    x = rng.normal(loc=0,scale=sigma,size=(n,d))
+    Sigma = (x**2).sum(axis=-1)
+    upsilon = rng.uniform(0,1,size=n)**(1/d)
+    return R * np.expand_dims(upsilon/np.sqrt(Sigma),axis=1) * x
 
 
-def direct_surface(d=3):
+def direct_surface(d = 3,
+                   n = 1,
+                   rng = np.random.default_rng()):
     '''
-     Generate uniform random vector on surface of sphere, using algorithm from
-     Statistical Mechanics: Algorithms and Computations by Werner Krauth
+     Generate uniform random vector on surface of sphere
 
     Parameters:
         d       Dimensionality
+        n       Number of points
+        rng     Random number generator
     '''
-    sigma = 1/math.sqrt(d)
-    xs = [random.gauss(0,sigma) for k in range(d)]
-    Sigma = sum([x*x for x in xs])
-    return [x/math.sqrt(Sigma) for x in xs]
+    sigma = 1/np.sqrt(d)
+    x = rng.normal(loc=0,scale=sigma,size=(n,d))
+    Sigma =  (x**2).sum(axis=-1)
+    return x/np.expand_dims(np.sqrt(Sigma),axis=1)
 
 if __name__=='__main__':
     fig = figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    xs=[]
-    ys=[]
-    zs=[]
-    for i in range(1000):
-        pt = direct_sphere()
-        xs.append(pt[0])
-        ys.append(pt[1])
-        zs.append(pt[2])
-    ax.scatter(xs,ys,zs,color='xkcd:blue', label='Sphere')
+    pt1 = direct_sphere(n=1000)
+    ax.scatter(pt1[:,0],pt1[:,1],pt1[:,2],color='xkcd:blue', label='Sphere')
 
-    xs=[]
-    ys=[]
-    zs=[]
-    for i in range(1000):
-        pt = direct_surface()
-        xs.append(pt[0])
-        ys.append(pt[1])
-        zs.append(pt[2])
-    ax.scatter(xs,ys,zs,color='xkcd:red',alpha=0.5,label='Surface')
+    pt2 = direct_surface(n=100)
+    ax.scatter(pt2[:,0],pt2[:,1],pt2[:,2],color='xkcd:red',alpha=0.5, label='Surface')
     ax.legend()
     show()
