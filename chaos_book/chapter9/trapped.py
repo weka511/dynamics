@@ -122,7 +122,7 @@ if __name__=='__main__':
     ax1.set_ylim(-1,1)
     ax1.set_title(f'Starting points with at least one bounce: n={starts_counts.shape[0]:,}')
     ax1.set_xlabel(r'$s=\sin{\phi}$')
-    ax1.set_ylabel('$p=\sin{\psi}$')
+    ax1.set_ylabel(r'$p=\sin{\psi}$')
 
     ax2 = fig.add_subplot(2,2,2)    # Plot number of bounces
     ax2.bar(bins[:-1],n,width=1,color=xkcd_colour_names)
