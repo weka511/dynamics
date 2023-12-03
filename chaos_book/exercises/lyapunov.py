@@ -23,31 +23,38 @@ from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from scipy.stats import linregress
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
-def create_trajectory(m = 2,
-                      N = 16,
-                      delta = 0.1):
+def create_trajectory(N = 128,
+                      delta = 0.1,
+                      x0 = np.array([[1,1],[1.1,1.1]]),
+                      exponents = np.array([1.0,2.0]),
+                      rng = np.random.default_rng(),
+                      sigma = 0.001):
+    m,d = x0.shape
+    assert len(exponents)==d
     ts = delta*np.array(range(N))
-    trajectory = np.zeros((m,N,1))
-    trajectory[0,0,0] = 1
-    trajectory[1,0,0] = 1.1
+    trajectory = np.zeros((m,N,d))
     for i in range(m):
-        for j in range(1,N):
-            trajectory[i,j,0] = trajectory[i,0,0] * np.exp(delta * j)
+        for j in range(N):
+            for k in range(d):
+                trajectory[i,j,k] = x0[i,k] * np.exp(exponents[k]*ts[j]) * rng.normal(loc=1,scale=sigma)
+
     return ts,trajectory
 
-def get_lyapunov(trajectory):
+def get_lyapunov(ts,trajectory):
     '''Used to calculate Lyaponov exponnent'''
     differences_from_reference = trajectory[1:,:,:] - trajectory[0,:,:]
     normed_differences = np.linalg.norm(differences_from_reference,axis=-1)
     normed_differences /= normed_differences[:,0]
     log_normed_diffs = np.log(normed_differences)
-    return log_normed_diffs
+    regression = linregress(ts,log_normed_diffs)
+    return log_normed_diffs,regression
 
 def get_name_for_save(extra = None,
                       sep = '-',
@@ -73,15 +80,16 @@ if __name__=='__main__':
     args = parse_args()
 
     ts,trajectory = create_trajectory()
-    lyapunov = get_lyapunov(trajectory)
+    lyapunov,regression = get_lyapunov(ts,trajectory)
 
     fig = figure(figsize=(10,10))
-    ax1 = fig.add_subplot(2,1,1)
-    ax1.scatter(ts,trajectory[0,:,0])
-    ax1.scatter(ts,trajectory[1,:,0])
-    ax2 = fig.add_subplot(2,1,2)
-    ax2.scatter(ts,lyapunov)
+
+    ax = fig.add_subplot(1,1,1)
+    ax.scatter(ts,lyapunov,c='xkcd:blue',label='Lyapunov')
+    ax.plot(ts,regression.intercept+regression.slope*ts,c='xkcd:red',label=f'Slope={regression.slope:.4f}')
+    ax.legend()
     fig.savefig(get_name_for_save())
+
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
