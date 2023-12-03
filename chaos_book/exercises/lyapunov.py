@@ -29,6 +29,18 @@ def parse_args():
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
+def create_trajectory(m = 2,
+                      N = 16,
+                      delta = 0.1):
+    ts = delta*np.array(range(N))
+    trajectory = np.zeros((m,N,1))
+    trajectory[0,0,0] = 1
+    trajectory[1,0,0] = 1.1
+    for i in range(m):
+        for j in range(1,N):
+            trajectory[i,j,0] = trajectory[i,0,0] * np.exp(delta * j)
+    return ts,trajectory
+
 def get_lyapunov(trajectory):
     '''Used to calculate Lyaponov exponnent'''
     differences_from_reference = trajectory[1:,:,:] - trajectory[0,:,:]
@@ -60,6 +72,16 @@ if __name__=='__main__':
     start  = time()
     args = parse_args()
 
+    ts,trajectory = create_trajectory()
+    lyapunov = get_lyapunov(trajectory)
+
+    fig = figure(figsize=(10,10))
+    ax1 = fig.add_subplot(2,1,1)
+    ax1.scatter(ts,trajectory[0,:,0])
+    ax1.scatter(ts,trajectory[1,:,0])
+    ax2 = fig.add_subplot(2,1,2)
+    ax2.scatter(ts,lyapunov)
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
