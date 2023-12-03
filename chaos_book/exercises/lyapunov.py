@@ -35,7 +35,7 @@ def create_trajectory(N = 128,
                       x0 = np.array([[1,1],[1.1,1.1]]),
                       exponents = np.array([1.0,2.0]),
                       rng = np.random.default_rng(),
-                      sigma = 0.001):
+                      sigma = 0.01):
     m,d = x0.shape
     assert len(exponents)==d
     ts = delta*np.array(range(N))
@@ -48,7 +48,17 @@ def create_trajectory(N = 128,
     return ts,trajectory
 
 def get_lyapunov(ts,trajectory):
-    '''Used to calculate Lyaponov exponnent'''
+    '''
+    Used to calculate Lyaponov exponnent
+
+    Parameters:
+        ts          Times at which tranjctory calculated
+        trajectory
+    Returns:
+        log_normed_diffs
+        regression
+
+    '''
     differences_from_reference = trajectory[1:,:,:] - trajectory[0,:,:]
     normed_differences = np.linalg.norm(differences_from_reference,axis=-1)
     normed_differences /= normed_differences[:,0]
@@ -86,7 +96,7 @@ if __name__=='__main__':
 
     ax = fig.add_subplot(1,1,1)
     ax.scatter(ts,lyapunov,c='xkcd:blue',label='Lyapunov')
-    ax.plot(ts,regression.intercept+regression.slope*ts,c='xkcd:red',label=f'Slope={regression.slope:.4f}')
+    ax.plot(ts,regression.intercept+regression.slope*ts,c='xkcd:red',label=f'Slope={regression.slope:.4f},r={regression.rvalue:.4f}')
     ax.legend()
     fig.savefig(get_name_for_save())
 
