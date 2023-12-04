@@ -28,7 +28,7 @@ def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--N', default = 100000, type=int)
-    parser.add_argument('--N0', default =0, type=int)
+    parser.add_argument('--N0', default = 0, type=int)
     parser.add_argument('--m', default = 2, type=int)
     parser.add_argument('--epsilon', default = 0.000001, type=float)
     parser.add_argument('--a', default= 1.4, type=float)
@@ -60,7 +60,6 @@ def henon(x=0,a=1.4,b=0.3):
 def get_trajectory(a = 1.4,
                    b = 0.3,
                    N = 100000,
-                   N0 = 0,
                    m = 2,
                    rng = np.random.default_rng(),
                    epsilon = 0.000001,
@@ -69,11 +68,7 @@ def get_trajectory(a = 1.4,
     ts = delta * np.array(range(N))
     for i in range(m):
         trajectory[i,0,:] = epsilon * rng.random(2)
-        k = 0
-        for j in range(1,N0):
-            trajectory[i,1,:] = henon( trajectory[i,k,:],a=a,b=b)
-            k = 1
-        for j in range(k+1,N):
+        for j in range(1,N):
             trajectory[i,j,:] = henon( trajectory[i,j-1,:],a=a,b=b)
 
     return ts,trajectory
@@ -81,14 +76,13 @@ def get_trajectory(a = 1.4,
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-
+    N0 = args.N0
     ts,trajectory = get_trajectory(a = args.a,
                                    b = args.b,
-                                   N = args.N,
-                                   N0 = args.N0,
+                                   N = args.N + N0,
                                    m = args.m,
                                    epsilon = args.epsilon)
-    log_normed_diffs,regression = get_lyapunov(ts,trajectory)
+    log_normed_diffs,regression = get_lyapunov(ts[N0:],trajectory[:,N0:,:])
 
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,2,1)
@@ -98,16 +92,17 @@ if __name__=='__main__':
 
     ax2 = fig.add_subplot(1,2,2)
     m,n = log_normed_diffs.shape
+
     for i in range(m):
-        ax2.scatter(ts,log_normed_diffs[i,:],
+        ax2.scatter(ts[N0:],log_normed_diffs[i,:],
                     s = 1,
                     c = 'xkcd:blue',
                     label = 'Lyapunov')
-    ax2.plot(ts,regression.intercept+regression.slope*ts,
+    ax2.plot(ts[N0:],regression.intercept+regression.slope*ts[N0:],
              c = 'xkcd:red',
              label = f'Slope={regression.slope:.4f},r={regression.rvalue:.4f}')
     ax2.legend()
-    fig.suptitle(f'a={args.a}, b=args.b, Burn in = {args.N0:,}')
+    fig.suptitle(f'a={args.a}, b={args.b}')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
