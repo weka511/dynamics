@@ -27,13 +27,13 @@ from matplotlib.pyplot import figure, show
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--N', default = 100000, type=int)
-    parser.add_argument('--N0', default = 0, type=int)
-    parser.add_argument('--m', default = 2, type=int)
+    parser.add_argument('--N0', default = None, type=int)
     parser.add_argument('--epsilon', default = 0.000001, type=float)
     parser.add_argument('--a', default= 1.4, type=float)
     parser.add_argument('--b', default= 0.3, type=float)
     parser.add_argument('--xtol', default= 1.0, type=float)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
+    parser.add_argument('--seed', default = None, type=int)
     return parser.parse_args()
 
 def henon(x = 0,
@@ -42,7 +42,11 @@ def henon(x = 0,
     '''Get next point for Hénon map'''
     return np.array([1 - a*x[0]**2 + x[1], b*x[0]])
 
-def evolve(x0,near,mapping=lambda x:henon(x),N=100000,xtol=1.0,delta_t =1.0):
+def evolve(x0,near,
+           mapping = lambda x:henon(x),
+           N = 100000,
+           xtol = 1.0,
+           delta_t = 1.0):
     trajectory1 = np.empty((N,2))
     trajectory1[0,:] = x0
     trajectory2 = np.empty((N,2))
@@ -86,19 +90,39 @@ def get_name_for_save(extra = None,
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(args.seed)
     x0 = np.array([0,0])
     x1 = x0 + rng.uniform(0.0,args.epsilon,size=2)
-    trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(x0,x1,
-                                                              mapping = lambda x:henon(x,a=args.a,b=args.b),
-                                                              N = args.N,
-                                                              xtol = args.xtol)
+    mapping = lambda x:henon(x,a=args.a,b=args.b)
+    if args.N0==None:
+        trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(x0,x1,
+                                                                  mapping = mapping,
+                                                                  N = args.N,
+                                                                  xtol = args.xtol)
+    else:
+        trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(x0,x1,
+                                                                  mapping = mapping,
+                                                                  N = args.N0,
+                                                                  xtol = args.xtol)
+        trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(trajectory1[-1,:],trajectory2[-1,:],
+                                                                  mapping = mapping,
+                                                                  N = args.N,
+                                                                  xtol = args.xtol)
     lambdas = list(zip(*lyapunov))
     fig = figure(figsize=(10,10))
     ax1 = fig.add_subplot(2,1,1)
-    ax1.scatter(trajectory1[:,0],trajectory1[:,1], c='xkcd:blue', s=1)
-    ax1.scatter(trajectory2[:,0],trajectory2[:,1], c='xkcd:red', s=1)
-    ax1.set_title(f'Hénon attractor a={args.a} b={args.b}')
+    ax1.scatter(trajectory1[:,0],trajectory1[:,1],
+                c = 'xkcd:blue',
+                s = 1,
+                label = 'Unperturbed',
+                alpha = 0.5)
+    ax1.scatter(trajectory2[:,0],trajectory2[:,1],
+                c = 'xkcd:red',
+                s = 1,
+                label = r'Perturbed $\epsilon=$'+f'{args.epsilon}',
+                alpha = 0.5)
+    ax1.set_title(f'Hénon attractor a={args.a}, b={args.b}')
+    ax1.legend()
     ax2 = fig.add_subplot(2,1,2)
     ax2.hist(lambdas[0],
              weights = lambdas[1],
@@ -114,7 +138,9 @@ if __name__=='__main__':
     ax2.legend(loc='upper left')
     ax3.legend(loc='upper right')
 
-    fig.suptitle(f'N={args.N}, epsilon={args.epsilon}, xtol={args.xtol}')
+    suptitle = (f'N={args.N:,}, epsilon={args.epsilon}, xtol={args.xtol}' if args.N0==None
+                else  f'N={args.N:,}(burn in: {args.N0:,}), epsilon={args.epsilon}, xtol={args.xtol}')
+    fig.suptitle(suptitle)
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
