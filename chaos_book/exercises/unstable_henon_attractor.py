@@ -26,6 +26,13 @@ from matplotlib.pyplot import figure, show
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument('--N', default = 100000, type=int)
+    parser.add_argument('--N0', default = 0, type=int)
+    parser.add_argument('--m', default = 2, type=int)
+    parser.add_argument('--epsilon', default = 0.000001, type=float)
+    parser.add_argument('--a', default= 1.4, type=float)
+    parser.add_argument('--b', default= 0.3, type=float)
+    parser.add_argument('--xtol', default= 1.0, type=float)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
@@ -38,7 +45,7 @@ def henon(x = 0,
 def evolve(x0,near,mapping=lambda x:henon(x),N=100000,xtol=1.0,delta_t =1.0):
     trajectory1 = np.empty((N,2))
     trajectory1[0,:] = x0
-    trajectory2 = np.zeros((N,2))
+    trajectory2 = np.empty((N,2))
     trajectory2[0,:] = x0 + near
     lyapunov = []
     lyapunov_lambda = 0
@@ -79,17 +86,36 @@ def get_name_for_save(extra = None,
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-    trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(np.array([0,0]),np.array([0,0.1]))
+    rng = np.random.default_rng()
+    x0 = np.array([0,0])
+    x1 = x0 + rng.uniform(0.0,args.epsilon,size=2)
+    trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(x0,x1,
+                                                              mapping = lambda x:henon(x,a=args.a,b=args.b),
+                                                              N = args.N,
+                                                              xtol = args.xtol)
     lambdas = list(zip(*lyapunov))
     fig = figure(figsize=(10,10))
     ax1 = fig.add_subplot(2,1,1)
     ax1.scatter(trajectory1[:,0],trajectory1[:,1], c='xkcd:blue', s=1)
     ax1.scatter(trajectory2[:,0],trajectory2[:,1], c='xkcd:red', s=1)
-    ax1.set_title(f'Hénon attractor a={1.4} b={0.3}')
+    ax1.set_title(f'Hénon attractor a={args.a} b={args.b}')
     ax2 = fig.add_subplot(2,1,2)
-    ax2.hist(lambdas[0],weights=lambdas[1])
-    ax2.set_xlabel(r'$\lambda_i$')
-    ax2.set_title(r'$\lambda=$' + f'{lyapunov_lambda:.04}')
+    ax2.hist(lambdas[0],
+             weights = lambdas[1],
+             bins = 25,
+             color = 'xkcd:blue',
+             label = r'$\lambda_i$, mean=' + f'{lyapunov_lambda:.04}')
+
+    ax3 = ax2.twinx()
+    ax3.hist(lambdas[1],
+             bins = 25,
+             color = 'xkcd:red',
+             label = 'T')
+    ax2.legend(loc='upper left')
+    ax3.legend(loc='upper right')
+
+    fig.suptitle(f'N={args.N}, epsilon={args.epsilon}, xtol={args.xtol}')
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
