@@ -17,23 +17,52 @@
 
 '''Exercise 6.3 How unstable is the Hénon attractor?'''
 
+
 from argparse import ArgumentParser
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
-from lyapunov import get_lyapunov
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--N', default = 100000, type=int)
     parser.add_argument('--N0', default = 0, type=int)
     parser.add_argument('--m', default = 2, type=int)
     parser.add_argument('--epsilon', default = 0.000001, type=float)
     parser.add_argument('--a', default= 1.4, type=float)
     parser.add_argument('--b', default= 0.3, type=float)
+    parser.add_argument('--xtol', default= 1.0, type=float)
+    parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
+
+def henon(x = 0,
+          a = 1.4,
+          b = 0.3):
+    '''Get next point for Hénon map'''
+    return np.array([1 - a*x[0]**2 + x[1], b*x[0]])
+
+def evolve(x0,near,mapping=lambda x:henon(x),N=100000,xtol=1.0,delta_t =1.0):
+    trajectory1 = np.empty((N,2))
+    trajectory1[0,:] = x0
+    trajectory2 = np.empty((N,2))
+    trajectory2[0,:] = x0 + near
+    lyapunov = []
+    lyapunov_lambda = 0
+    i0 = 0
+    dx0 = np.linalg.norm(near)
+    for i in range(1,N):
+        trajectory1[i,:] = mapping(trajectory1[i-1,:])
+        trajectory2[i,:] = mapping(trajectory2[i-1,:])
+        dx = np.linalg.norm(trajectory1[i,:] - trajectory2[i,:])
+        if dx>xtol:
+            t = delta_t * (i - i0)
+            factor = dx/dx0
+            lyapunov.append(( np.log(factor)/t,t))
+            trajectory2[i,:] = trajectory1[i,:]  + (trajectory2[i,:]-trajectory1[i,:] )/factor
+            i0 = i
+            lyapunov_lambda +=  np.log(factor)
+    return trajectory1,trajectory2,lyapunov_lambda/(N*delta_t),lyapunov
 
 def get_name_for_save(extra = None,
                       sep = '-',
@@ -54,55 +83,38 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
-def henon(x=0,a=1.4,b=0.3):
-    return np.array([1 - a*x[0]**2 + x[1], b*x[0]])
-
-def get_trajectory(a = 1.4,
-                   b = 0.3,
-                   N = 100000,
-                   m = 2,
-                   rng = np.random.default_rng(),
-                   epsilon = 0.000001,
-                   delta = 1.0):
-    trajectory = np.zeros((m,N,2))
-    ts = delta * np.array(range(N))
-    for i in range(m):
-        trajectory[i,0,:] = epsilon * rng.random(2)
-        for j in range(1,N):
-            trajectory[i,j,:] = henon( trajectory[i,j-1,:],a=a,b=b)
-
-    return ts,trajectory
-
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-    N0 = args.N0
-    ts,trajectory = get_trajectory(a = args.a,
-                                   b = args.b,
-                                   N = args.N + N0,
-                                   m = args.m,
-                                   epsilon = args.epsilon)
-    log_normed_diffs,regression = get_lyapunov(ts[N0:],trajectory[:,N0:,:])
+    rng = np.random.default_rng()
+    x0 = np.array([0,0])
+    x1 = x0 + rng.uniform(0.0,args.epsilon,size=2)
+    trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(x0,x1,
+                                                              mapping = lambda x:henon(x,a=args.a,b=args.b),
+                                                              N = args.N,
+                                                              xtol = args.xtol)
+    lambdas = list(zip(*lyapunov))
+    fig = figure(figsize=(10,10))
+    ax1 = fig.add_subplot(2,1,1)
+    ax1.scatter(trajectory1[:,0],trajectory1[:,1], c='xkcd:blue', s=1)
+    ax1.scatter(trajectory2[:,0],trajectory2[:,1], c='xkcd:red', s=1)
+    ax1.set_title(f'Hénon attractor a={args.a} b={args.b}')
+    ax2 = fig.add_subplot(2,1,2)
+    ax2.hist(lambdas[0],
+             weights = lambdas[1],
+             bins = 25,
+             color = 'xkcd:blue',
+             label = r'$\lambda_i$, mean=' + f'{lyapunov_lambda:.04}')
 
-    fig = figure(figsize=(12,12))
-    ax1 = fig.add_subplot(1,2,1)
-    for i in range(args.m):
-        ax1.scatter(trajectory[i,:,0],trajectory[i,:,1],s=1)
-        ax1.scatter(trajectory[i,-1,0],trajectory[i,-1,1],marker='+',s=100)
+    ax3 = ax2.twinx()
+    ax3.hist(lambdas[1],
+             bins = 25,
+             color = 'xkcd:red',
+             label = 'T')
+    ax2.legend(loc='upper left')
+    ax3.legend(loc='upper right')
 
-    ax2 = fig.add_subplot(1,2,2)
-    m,n = log_normed_diffs.shape
-
-    for i in range(m):
-        ax2.scatter(ts[N0:],log_normed_diffs[i,:],
-                    s = 1,
-                    c = 'xkcd:blue',
-                    label = 'Lyapunov')
-    ax2.plot(ts[N0:],regression.intercept+regression.slope*ts[N0:],
-             c = 'xkcd:red',
-             label = f'Slope={regression.slope:.4f},r={regression.rvalue:.4f}')
-    ax2.legend()
-    fig.suptitle(f'a={args.a}, b={args.b}')
+    fig.suptitle(f'N={args.N}, epsilon={args.epsilon}, xtol={args.xtol}')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
