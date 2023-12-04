@@ -143,7 +143,7 @@ if __name__ == '__main__':
     print((xt[-1], yt[-1], zt[-1]))  # Print final point
 
     fig = figure()
-    ax  = fig.gca(projection='3d')
+    ax  = fig.add_subplot(1,1,1,projection='3d')
     ax.plot(xt, yt, zt)
     ax.set_xlabel('x')
     ax.set_ylabel('y')

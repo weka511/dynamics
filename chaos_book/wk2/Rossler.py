@@ -1,17 +1,15 @@
+'''Rossler Flow Example from Week 2'''
+
 from matplotlib.pyplot import figure, show
 from numpy             import array, dot, linspace, reshape, size, zeros
 from scipy.integrate   import odeint
 
-#Define Rossler flow velocity function:
-
-#Parameters:
 a = 0.2
 b = 0.2
 c = 5.7
 
-
 def Velocity(ssp, t):
-    """
+    '''
     Velocity function for the Rossler flow
 
     Inputs:
@@ -22,7 +20,7 @@ def Velocity(ssp, t):
 
     Outputs:
     vel: velocity at ssp. dx1 NumPy array: vel = [dx/dt, dy/dt, dz/dt]
-    """
+    '''
 
     x, y, z = ssp  # Read state space points
     # Rossler flow equations:
@@ -35,7 +33,7 @@ def Velocity(ssp, t):
 
 
 def Flow(ssp0, deltat):
-    """
+    '''
     Lagrangian description of the flow:
     This function integrates Rossler equation starting at ssp0 for deltat, and
     returns the final state space point.
@@ -44,7 +42,7 @@ def Flow(ssp0, deltat):
     deltat: Integration time
     Outputs:
     sspdeltat: Final state space point
-    """
+    '''
     #Following numerical integration will return a 2 by 3(=d) solution array
     #where first row contains initial point ssp0, and the last row contains
     #final point
@@ -54,7 +52,7 @@ def Flow(ssp0, deltat):
 
 
 def StabilityMatrix(ssp):
-    """
+    '''
     Stability matrix for the Rossler flow
 
     Inputs:
@@ -62,7 +60,7 @@ def StabilityMatrix(ssp):
     Outputs:
     A: Stability matrix evaluated at ssp. dxd NumPy array
        A[i, j] = del Velocity[i] / del ssp[j]
-    """
+    '''
 
     x, y, z = ssp  # Read state space points
 
@@ -74,7 +72,7 @@ def StabilityMatrix(ssp):
 
 
 def JacobianVelocity(sspJacobian, t):
-    """
+    '''
     Velocity function for the Jacobian integration
 
     Inputs:
@@ -86,7 +84,7 @@ def JacobianVelocity(sspJacobian, t):
 
     Outputs:
     velJ = (d+d^2)x1 dimensional velocity vector
-    """
+    '''
 
     ssp = sspJacobian[0:3]  # First three elements form the original state
                             # space vector
@@ -112,7 +110,7 @@ def JacobianVelocity(sspJacobian, t):
 
 
 def Jacobian(ssp, t):
-    """
+    '''
     Jacobian function for the trajectory started on ssp, evolved for time t
 
     Inputs:
@@ -120,14 +118,14 @@ def Jacobian(ssp, t):
     t: Integration time
     Outputs:
     J: Jacobian of trajectory f^t(ssp). dxd NumPy array
-    """
+    '''
     #CONSTRUCT THIS FUNCTION
     #Hint: See the Jacobian calculation in CycleStability.py
     J = None
 
     return J
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     tInitial = 0
     tFinal   = 100
     Nt       = 10000
@@ -146,11 +144,10 @@ if __name__ == "__main__":
 
     print((xt[-1], yt[-1], zt[-1]))  # Print final point
 
-
     fig = figure()
-    ax  = fig.gca(projection='3d')
-    ax.plot(xt, yt, zt)  # Plot the solution
-    ax.set_xlabel('x')  # Set x label
-    ax.set_ylabel('y')  # Set y label
-    ax.set_zlabel('z')  # Set z label
-    show()  # Show the figure
+    ax  = fig.add_subplot(projection='3d')
+    ax.plot(xt, yt, zt)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    show()
