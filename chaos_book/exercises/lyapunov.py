@@ -22,6 +22,7 @@ from argparse import ArgumentParser
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
+from matplotlib import rc
 from matplotlib.pyplot import figure, show
 from scipy.stats import linregress
 
@@ -36,28 +37,38 @@ def create_trajectory(N = 128,
                       exponents = np.array([1.0,2.0]),
                       rng = np.random.default_rng(),
                       sigma = 0.01):
+    '''
+    Create a trajectory for testing get_lyapunov(...)
+
+    Parameters:
+         N          Number of steps
+         delta      Time increment for each step
+         x0         Starting values
+         exponents  Growth for exponential
+         rng        Random number generator, used to superimpose Gaussian noise
+         sigma      Standard deviation for Gaussian noise
+    '''
     m,d = x0.shape
     assert len(exponents)==d
-    ts = delta*np.array(range(N))
-    trajectory = np.zeros((m,N,d))
+    ts = np.linspace(0,N*delta,num=N)
+    trajectory = np.empty((m,N,d))
     for i in range(m):
         for j in range(N):
             for k in range(d):
-                trajectory[i,j,k] = x0[i,k] * np.exp(exponents[k]*ts[j]) * rng.normal(loc=1,scale=sigma)
-
+                trajectory[i,j,k] = x0[i,k] * np.exp(exponents[k]*ts[j]) * rng.normal(loc = 1,
+                                                                                      scale = sigma)
     return ts,trajectory
 
 def get_lyapunov(ts,trajectory):
     '''
-    Used to calculate Lyaponov exponnent
+    Used to calculate Lyapunov exponnent
 
     Parameters:
-        ts          Times at which tranjctory calculated
-        trajectory
+        ts          Times at which trajectory calculated
+        trajectory  Trajectory for dynamical system
     Returns:
-        log_normed_diffs
-        regression
-
+        log_normed_diffs Lyapunov curve: log of normed differences
+        regression       Linear regression for log_normed_diffs against time (slope is estimated Lyapunov exponent)
     '''
     differences_from_reference = trajectory[1:,:,:] - trajectory[0,:,:]
     normed_differences = np.linalg.norm(differences_from_reference,axis=-1)
@@ -86,6 +97,11 @@ def get_name_for_save(extra = None,
     return join(figs,name)
 
 if __name__=='__main__':
+    rc('font',**{
+        'family':'sans-serif',
+        'sans-serif':['Helvetica']
+    })
+    rc('text', usetex=True)
     start  = time()
     args = parse_args()
 
@@ -95,9 +111,16 @@ if __name__=='__main__':
     fig = figure(figsize=(10,10))
 
     ax = fig.add_subplot(1,1,1)
-    ax.scatter(ts,lyapunov,c='xkcd:blue',label='Lyapunov')
-    ax.plot(ts,regression.intercept+regression.slope*ts,c='xkcd:red',label=f'Slope={regression.slope:.4f},r={regression.rvalue:.4f}')
+    ax.scatter(ts,lyapunov,
+               c = 'xkcd:blue',
+               label = 'Lyapunov distance')
+    ax.plot(ts,regression.intercept+regression.slope*ts,
+            c = 'xkcd:red',
+            label = f'Slope={regression.slope:.4f}, r={regression.rvalue:.4f}')
     ax.legend()
+    ax.set_title('Calculation of Lyapunov exponent')
+    ax.set_xlabel('t')
+    ax.set_ylabel(r'$\delta x/\delta x_0$')
     fig.savefig(get_name_for_save())
 
     elapsed = time() - start
