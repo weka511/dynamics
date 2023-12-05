@@ -47,9 +47,10 @@ def evolve(x0,near,
            N = 100000,
            xtol = 1.0,
            delta_t = 1.0):
-    trajectory1 = np.empty((N,2))
+    m, = x0.shape
+    trajectory1 = np.empty((N,m))
     trajectory1[0,:] = x0
-    trajectory2 = np.empty((N,2))
+    trajectory2 = np.empty((N,m))
     trajectory2[0,:] = x0 + near
     lyapunov = []
     lyapunov_lambda = 0
