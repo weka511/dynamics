@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Template for python script for dynamics'''
+'''6.3 Rössler attractor Lyapunov Exponents'''
 
 
 from argparse import ArgumentParser
@@ -25,7 +25,6 @@ import numpy as np
 from matplotlib.pyplot import figure, show
 from henon import evolve
 from solver import rk4
-
 
 
 def Velocity(ssp,
@@ -54,11 +53,12 @@ def Velocity(ssp,
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--N', default = 100000, type=int)
-    parser.add_argument('--N0', default = None, type=int)
     parser.add_argument('--epsilon', default = 0.000001, type=float)
-    parser.add_argument('--a', default= 1.4, type=float)
-    parser.add_argument('--b', default= 0.3, type=float)
+    parser.add_argument('--a', default= 0.2, type=float)
+    parser.add_argument('--b', default= 0.2, type=float)
+    parser.add_argument('--c', default= 5.0, type=float)
     parser.add_argument('--xtol', default= 1.0, type=float)
+    parser.add_argument('--delta_t', default= 0.1, type=float)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--seed', default = None, type=int)
     return parser.parse_args()
@@ -85,40 +85,39 @@ def get_name_for_save(extra = None,
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-    delta_t = 0.1
     rng = np.random.default_rng(args.seed)
     x0 = np.array([1,1,1])
     x1 = x0 + rng.uniform(0.0,args.epsilon,size=3)
     trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(x0,x1,
-                                                              mapping = lambda x:rk4(delta_t,x,Velocity),
-                                                              N = 10000,
-                                                              xtol = 1.0,
-                                                              delta_t = delta_t)
+                                                              mapping = lambda x:rk4(args.delta_t,x,
+                                                                                     f = lambda y:Velocity(y,
+                                                                                                           a = args.a,
+                                                                                                           b = args.b,
+                                                                                                           c = args.c)),
+                                                              N = args.N,
+                                                              xtol = args.xtol,
+                                                              delta_t = args.delta_t)
     lambdas = list(zip(*lyapunov))
-    fig = figure()
-    ax1  = fig.add_subplot(2,1,1,projection='3d')
+
+    fig = figure(figsize=(12,12))
+    ax1  = fig.add_subplot(2,2,1,projection='3d')
     ax1.plot(trajectory1[:,0],trajectory1[:,1],trajectory1[:,2])
     ax1.plot(trajectory2[:,0],trajectory2[:,1],trajectory2[:,2])
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
-    ax1.set_title('Rossler')
+    ax1.set_title('Rössler attractor')
 
-
-    ax2 = fig.add_subplot(2,1,2)
+    ax2 = fig.add_subplot(2,2,2)
     ax2.hist(lambdas[0],
              weights = lambdas[1],
              bins = 25,
              color = 'xkcd:blue',
              label = r'$\lambda_i$, mean=' + f'{lyapunov_lambda:.04}')
+    ax2.legend(loc='lower right')
 
-    ax3 = ax2.twinx()
-    ax3.hist(lambdas[1],
-             bins = 25,
-             color = 'xkcd:red',
-             label = 'T')
-    ax2.legend(loc='upper left')
-    ax3.legend(loc='upper right')
+    ax3 = fig.add_subplot(2,2,3)
+    ax3.scatter(list(range(len(lambdas[0]))),lambdas[0],s=1,c='xkcd:blue')
 
     fig.savefig(get_name_for_save())
     elapsed = time() - start
