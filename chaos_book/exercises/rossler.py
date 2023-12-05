@@ -26,7 +26,6 @@ from matplotlib.pyplot import figure, show
 from henon import evolve
 from solver import rk4
 
-
 def Velocity(ssp,
              a = 0.2,
              b = 0.2,
