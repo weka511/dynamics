@@ -101,12 +101,17 @@ if __name__=='__main__':
 
     fig = figure(figsize=(12,12))
     ax1  = fig.add_subplot(2,2,1,projection='3d')
-    ax1.plot(trajectory1[:,0],trajectory1[:,1],trajectory1[:,2])
-    ax1.plot(trajectory2[:,0],trajectory2[:,1],trajectory2[:,2])
+    ax1.plot(trajectory1[:,0],trajectory1[:,1],trajectory1[:,2],
+             c = 'xkcd:green',
+             label = 'Original')
+    ax1.plot(trajectory2[:,0],trajectory2[:,1],trajectory2[:,2],
+             c = 'xkcd:purple',
+             label = r'Perturbed $\epsilon=$'+f'{args.epsilon}')
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
-    ax1.set_title('Rössler attractor')
+    ax1.legend()
+    ax1.set_title(f'Rössler attractor: a={args.a},b={args.b},c={args.c},')
 
     ax2 = fig.add_subplot(2,2,2)
     ax2.hist(lambdas[0],
@@ -115,11 +120,14 @@ if __name__=='__main__':
              color = 'xkcd:blue',
              label = r'$\lambda_i$, mean=' + f'{lyapunov_lambda:.04}')
     ax2.legend(loc='lower right')
+    ax2.set_title('Lyapunov Exponents')
 
     ax3 = fig.add_subplot(2,2,3)
     ax3.scatter(list(range(len(lambdas[0]))),lambdas[0],s=1,c='xkcd:blue')
 
+    fig.suptitle(f'Lyapunov Exponents for Rössler attractor: N={args.N},xtol={args.xtol},' + r'$\delta t=$' + f'{args.delta_t}')
     fig.savefig(get_name_for_save())
+
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
