@@ -15,13 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-'''Runge Kutta Library'''
+'''Runge Kutta using numpy'''
 
 import numpy as np
 from matplotlib.pyplot import figure, show
 
-
-def rk4(h,y,f):
+def rk4(h,y,f=lambda y:y):
     '''
     Traditional 4th order Runge Kutta
 
@@ -48,5 +47,5 @@ if __name__ == '__main__':
     ax.plot(y[:,0],y[:,1])
     ax.set_xlabel('x')
     ax.set_ylabel('y')
-    ax.set_title(f'{y[-1,0]},{y[-1,1]},{y[-1,0]**2 +y[-1,1]**2}')
+    ax.set_title(f'{y[-1,0]:04f},{y[-1,1]:04f},{y[-1,0]**2 +y[-1,1]**2:04f}')
     show()
