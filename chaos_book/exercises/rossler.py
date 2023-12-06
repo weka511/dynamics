@@ -23,7 +23,6 @@ from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
-from henon import evolve
 from solver import rk4
 
 class Rossler:
@@ -125,6 +124,7 @@ def create_jacobian(ssp, N, delta_t, rossler,d=3):
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--N', default = 100000, type=int)
+    parser.add_argument('--N0', default = 10, type=int)
     parser.add_argument('--epsilon', default = 0.000001, type=float)
     parser.add_argument('--a', default= 0.2, type=float)
     parser.add_argument('--b', default= 0.2, type=float)
@@ -158,7 +158,7 @@ if __name__=='__main__':
     start  = time()
     args = parse_args()
     rng = np.random.default_rng(args.seed)
-    x0 = np.array([1,1,1])
+    x0 = rng.random(3)
     n = x0/np.linalg.norm(x0)
 
     rossler = Rossler(a = args.a,
@@ -170,34 +170,22 @@ if __name__=='__main__':
         Jn = np.dot(Jacobian[i+1,:,:],n)
         lambdas[i] = np.log(np.dot(Jn,Jn))/(2*(i+1))
     fig = figure(figsize=(12,12))
-    ax1  = fig.add_subplot(2,2,1,projection='3d')
+    ax1  = fig.add_subplot(1,2,1,projection='3d')
     ax1.plot(Orbit[:,0],Orbit[:,1],Orbit[:,2],
-             c = 'xkcd:green',
-             label = 'Original')
-    # ax1.plot(trajectory2[:,0],trajectory2[:,1],trajectory2[:,2],
-             # c = 'xkcd:purple',
-             # label = r'Perturbed $\epsilon=$'+f'{args.epsilon}')
-    # ax1.set_xlabel('x')
-    # ax1.set_ylabel('y')
-    # ax1.set_zlabel('z')
-    # ax1.legend()
-    # ax1.set_title(f'Rössler attractor: a={args.a},b={args.b},c={args.c},')
+             c = 'xkcd:green')
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_zlabel('z')
+    ax1.set_title(f'Rössler attractor: a={args.a},b={args.b},c={args.c},')
 
-    ax2 = fig.add_subplot(2,2,2)
-    ax2.plot(lambdas[1000:])
-    # ax2.hist(lambdas[0],
-             # weights = lambdas[1],
-             # bins = 25,
-             # color = 'xkcd:blue',
-             # label = r'$\lambda_i$, mean=' + f'{lyapunov_lambda:.04}')
-    # ax2.legend(loc='lower right')
+    ax2 = fig.add_subplot(1,2,2)
+    ax2.plot(lambdas[args.N0:])
     ax2.set_title('Lyapunov Exponents')
 
-    # ax3 = fig.add_subplot(2,2,3)
-    # ax3.scatter(list(range(len(lambdas[0]))),lambdas[0],s=1,c='xkcd:blue')
 
-    # fig.suptitle(f'Lyapunov Exponents for Rössler attractor: N={args.N},xtol={args.xtol},' + r'$\delta t=$' + f'{args.delta_t}')
-    # fig.savefig(get_name_for_save())
+    fig.suptitle(f'Lyapunov Exponents for Rössler attractor: N={args.N}, xtol={args.xtol}, '
+                 + r'$\delta t=$' + f'{args.delta_t}' + ('' if args.seed==None else f', seed={args.seed}'))
+    fig.savefig(get_name_for_save())
 
     elapsed = time() - start
     minutes = int(elapsed/60)
