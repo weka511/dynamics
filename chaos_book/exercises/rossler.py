@@ -26,28 +26,101 @@ from matplotlib.pyplot import figure, show
 from henon import evolve
 from solver import rk4
 
-def Velocity(ssp,
-             a = 0.2,
-             b = 0.2,
-             c = 5.7):
+class Rossler:
+    def __init__(self,
+                 a = 0.2,
+                 b = 0.2,
+                 c = 5.7):
+        self.a = a
+        self.b = b
+        self.c = c
+
+    def Velocity(self,ssp):
+        '''
+        Velocity function for the Rossler flow
+
+        Inputs:
+        ssp: State space vector. dx1 NumPy array: ssp=[x, y, z]
+
+        Outputs:
+            vel: velocity at ssp. dx1 NumPy array: vel = [dx/dt, dy/dt, dz/dt]
+        '''
+
+        x, y, z = ssp
+
+        dxdt = - y - z
+        dydt = x + self.a * y
+        dzdt = self.b + z * (x - self.c)
+
+        return np.array([dxdt, dydt, dzdt], float)
+
+    def StabilityMatrix(self,ssp):
+        '''
+        Stability matrix for the Rossler flow
+
+        Inputs:
+            ssp: State space vector. dx1 NumPy array: ssp = [x, y, z]
+        Outputs:
+            A: Stability matrix evaluated at ssp. dxd NumPy array
+               A[i, j] = del Velocity[i] / del ssp[j]
+        '''
+
+        x, y, z = ssp  # Read state space points
+
+
+        return np.array([[0, -1,     -1],
+                      [1,  self.a, 0],
+                      [z,  0,      x-self.c]],
+                     float)
+
+
+    def JacobianVelocity(self,sspJacobian):
+        '''
+        Velocity function for the Jacobian integration
+
+        Inputs:
+            sspJacobian: (d+d^2)x1 dimensional state space vector including both the
+                         state space itself and the tangent space
+
+
+        Outputs:
+            velJ = (d+d^2)x1 dimensional velocity vector
+        '''
+
+        ssp        = sspJacobian[0:3]
+        J          = sspJacobian[3:].reshape((3, 3))
+        velJ       = np.empty_like(sspJacobian)
+        velJ[0:3]  = self.Velocity(ssp)
+        velTangent = np.dot(self.StabilityMatrix(ssp), J)
+        velJ[3:]   = np.reshape(velTangent, 9)
+        return velJ
+
+
+def create_jacobian(ssp, N, delta_t, rossler,d=3):
     '''
-    Velocity function for the Rossler flow
+    Jacobian function for the trajectory started on ssp, evolved for time t
 
     Inputs:
-    ssp: State space vector. dx1 NumPy array: ssp=[x, y, z]
-
+        ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
+        t: Integration time
     Outputs:
-        vel: velocity at ssp. dx1 NumPy array: vel = [dx/dt, dy/dt, dz/dt]
+        J: Jacobian of trajectory f^t(ssp). dxd NumPy array
     '''
+    Orbit = np.empty((N+1,d))
+    Jacobian = np.empty((N+1,d,d))
+    Jacobian0 = np.identity(d)
+    sspJacobian0  = np.zeros(d + d ** 2)
+    sspJacobian0[0:d] = ssp
+    sspJacobian0[d:] = np.reshape(Jacobian0, d**2)
 
-    x, y, z = ssp
-
-    dxdt = - y - z
-    dydt = x + a * y
-    dzdt = b + z * (x - c)
-
-    return np.array([dxdt, dydt, dzdt], float)
-
+    Jacobian[0,:,:] = sspJacobian0[d:].reshape((d, d))
+    Orbit[0,:] = ssp
+    sspJacobianSolution = sspJacobian0
+    for i in range(N):
+        sspJacobianSolution = rk4(delta_t,sspJacobianSolution,rossler.JacobianVelocity)
+        Jacobian[i+1,:,:] = sspJacobianSolution[d:].reshape((d, d))
+        Orbit[i+1,:] = sspJacobianSolution[0:d]
+    return Jacobian,Orbit
 
 def parse_args():
     parser = ArgumentParser(description=__doc__)
@@ -86,46 +159,45 @@ if __name__=='__main__':
     args = parse_args()
     rng = np.random.default_rng(args.seed)
     x0 = np.array([1,1,1])
-    x1 = x0 + rng.uniform(0.0,args.epsilon,size=3)
-    trajectory1,trajectory2,lyapunov_lambda,lyapunov = evolve(x0,x1,
-                                                              mapping = lambda x:rk4(args.delta_t,x,
-                                                                                     f = lambda y:Velocity(y,
-                                                                                                           a = args.a,
-                                                                                                           b = args.b,
-                                                                                                           c = args.c)),
-                                                              N = args.N,
-                                                              xtol = args.xtol,
-                                                              delta_t = args.delta_t)
-    lambdas = list(zip(*lyapunov))
+    n = x0/np.linalg.norm(x0)
 
+    rossler = Rossler(a = args.a,
+                      b = args.b,
+                      c = args.c)
+    Jacobian,Orbit = create_jacobian(x0, args.N, args.delta_t, rossler)
+    lambdas = np.empty((args.N))
+    for i in range(args.N):
+        Jn = np.dot(Jacobian[i+1,:,:],n)
+        lambdas[i] = np.log(np.dot(Jn,Jn))/(2*(i+1))
     fig = figure(figsize=(12,12))
     ax1  = fig.add_subplot(2,2,1,projection='3d')
-    ax1.plot(trajectory1[:,0],trajectory1[:,1],trajectory1[:,2],
+    ax1.plot(Orbit[:,0],Orbit[:,1],Orbit[:,2],
              c = 'xkcd:green',
              label = 'Original')
-    ax1.plot(trajectory2[:,0],trajectory2[:,1],trajectory2[:,2],
-             c = 'xkcd:purple',
-             label = r'Perturbed $\epsilon=$'+f'{args.epsilon}')
-    ax1.set_xlabel('x')
-    ax1.set_ylabel('y')
-    ax1.set_zlabel('z')
-    ax1.legend()
-    ax1.set_title(f'Rössler attractor: a={args.a},b={args.b},c={args.c},')
+    # ax1.plot(trajectory2[:,0],trajectory2[:,1],trajectory2[:,2],
+             # c = 'xkcd:purple',
+             # label = r'Perturbed $\epsilon=$'+f'{args.epsilon}')
+    # ax1.set_xlabel('x')
+    # ax1.set_ylabel('y')
+    # ax1.set_zlabel('z')
+    # ax1.legend()
+    # ax1.set_title(f'Rössler attractor: a={args.a},b={args.b},c={args.c},')
 
     ax2 = fig.add_subplot(2,2,2)
-    ax2.hist(lambdas[0],
-             weights = lambdas[1],
-             bins = 25,
-             color = 'xkcd:blue',
-             label = r'$\lambda_i$, mean=' + f'{lyapunov_lambda:.04}')
-    ax2.legend(loc='lower right')
+    ax2.plot(lambdas[1000:])
+    # ax2.hist(lambdas[0],
+             # weights = lambdas[1],
+             # bins = 25,
+             # color = 'xkcd:blue',
+             # label = r'$\lambda_i$, mean=' + f'{lyapunov_lambda:.04}')
+    # ax2.legend(loc='lower right')
     ax2.set_title('Lyapunov Exponents')
 
-    ax3 = fig.add_subplot(2,2,3)
-    ax3.scatter(list(range(len(lambdas[0]))),lambdas[0],s=1,c='xkcd:blue')
+    # ax3 = fig.add_subplot(2,2,3)
+    # ax3.scatter(list(range(len(lambdas[0]))),lambdas[0],s=1,c='xkcd:blue')
 
-    fig.suptitle(f'Lyapunov Exponents for Rössler attractor: N={args.N},xtol={args.xtol},' + r'$\delta t=$' + f'{args.delta_t}')
-    fig.savefig(get_name_for_save())
+    # fig.suptitle(f'Lyapunov Exponents for Rössler attractor: N={args.N},xtol={args.xtol},' + r'$\delta t=$' + f'{args.delta_t}')
+    # fig.savefig(get_name_for_save())
 
     elapsed = time() - start
     minutes = int(elapsed/60)
