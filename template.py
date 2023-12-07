@@ -25,6 +25,7 @@ import numpy as np
 from matplotlib.pyplot import figure, show
 
 def parse_args():
+    '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
@@ -51,6 +52,8 @@ def get_name_for_save(extra = None,
 if __name__=='__main__':
     start  = time()
     args = parse_args()
+    fig = figure(figsize=(12,12))
+    ax1 = fig.add_subplot(1,1,1)
 
     elapsed = time() - start
     minutes = int(elapsed/60)
