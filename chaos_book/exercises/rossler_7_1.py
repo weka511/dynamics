@@ -94,10 +94,22 @@ class Template:
     def get_projection(self,sspSolutionPoincare):
         return np.dot(self.ProjPoincare, sspSolutionPoincare.transpose()).transpose()
 
-def get_intersections(orientation):
-    index_zero_crossings = np.where(np.diff(np.sign(orientation)))[0]
+def get_index_zero_crossings(orientation):
+    '''
+    Locate the positions where the orientation changes from -ve to +ve
+    '''
+    signs = np.sign(orientation)
+    diffs = np.diff(signs)
+    return np.where(diffs>0)[0]
+
+def get_intersections(orientation,Orbit):
+    '''
+    Find points where Orbit intersects Poincaré section
+    '''
+    _,d = Orbit.shape
+    index_zero_crossings = get_index_zero_crossings(orientation)
     m, = index_zero_crossings.shape
-    intersections = np.empty((m,3))
+    intersections = np.empty((m,d))
     for i in range(m):
         a0 = np.linalg.norm(Orbit[index_zero_crossings[i],:])
         a1 = np.linalg.norm(Orbit[index_zero_crossings[i]+1,:])
@@ -116,8 +128,7 @@ if __name__=='__main__':
 
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = template.get_orientation(Orbit)
-
-    intersections = get_intersections(orientation)
+    intersections = get_intersections(orientation,Orbit)
     projection = template.get_projection(intersections)
 
     fig = figure(figsize=(12,12))
@@ -131,13 +142,18 @@ if __name__=='__main__':
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
     fig.colorbar(sc,ax=ax1)
-    ax1.set_title(fr'Rössler Orbit N={args.N:,}, $\delta T=${args.delta_t}')
+    ax1.set_title(fr'Orbit N={args.N:,}, $\delta T=${args.delta_t}')
 
     ax2 = fig.add_subplot(2,2,2)
     ax2.scatter(projection[:,0],projection[:,1],s=1)
-    ax2.set_title(fr'Intersections with Poincaré section for $\theta=${args.theta}'+r'$^{\circ}$')
-    fig.tight_layout(h_pad=1)
+    ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
+    ax2.set_xlabel('Label')
+    ax2.set_ylabel('$e_z$')
+
+    fig.suptitle('Rössler Attractor')
+    fig.tight_layout(pad=2,h_pad=1)
     fig.savefig(get_name_for_save(extra=f'{args.theta}'))
+
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
