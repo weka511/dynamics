@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument('--b', default= 0.2, type=float)
     parser.add_argument('--c', default= 5.0, type=float)
     parser.add_argument('--delta_t', default= 0.01, type=float)
+    parser.add_argument('--theta', default = 120, type=int, help='Angle in degrees')
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -98,7 +99,9 @@ def get_intersections(orientation):
     m, = index_zero_crossings.shape
     intersections = np.empty((m,3))
     for i in range(m):
-        intersections[i,:] = 0.5*(Orbit[index_zero_crossings[i],:] + Orbit[index_zero_crossings[i]+1,:])
+        a0 = np.linalg.norm(Orbit[index_zero_crossings[i],:])
+        a1 = np.linalg.norm(Orbit[index_zero_crossings[i]+1,:])
+        intersections[i,:] = (a1*Orbit[index_zero_crossings[i],:] + a0*Orbit[index_zero_crossings[i]+1,:])/(a0+a1)
     return intersections
 
 if __name__=='__main__':
@@ -111,38 +114,34 @@ if __name__=='__main__':
     for i in range(1,args.N):
         Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],rossler.Velocity)
 
-    template = Template.create()
+    template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = template.get_orientation(Orbit)
 
     intersections = get_intersections(orientation)
     projection = template.get_projection(intersections)
 
     fig = figure(figsize=(12,12))
-    ax1 = fig.add_subplot(2,1,1,projection='3d')
+    ax1 = fig.add_subplot(2,2,1,projection='3d')
     sc = ax1.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
                 c = np.sign(orientation),
                 s = 1,
                 cmap = 'bwr')
-    labels = [r'$x\prime$',r'$y\prime$',r'$z\prime$']
-    for i in range(3):
-        ax1.plot([0,20*template.ProjPoincare[i,0]],
-                 [0,20*template.ProjPoincare[i,1]],
-                 [0,20*template.ProjPoincare[i,2]],
-                 label=labels[i])
+
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
     fig.colorbar(sc,ax=ax1)
-    ax1.legend()
-    ax1.set_title('Rössler Orbit')
+    ax1.set_title(fr'Rössler Orbit N={args.N:,}, $\delta T=${args.delta_t}')
 
-    ax2 = fig.add_subplot(2,1,2)
-    ax2.scatter(projection[:,0],projection[:,1],marker='+')
-
+    ax2 = fig.add_subplot(2,2,2)
+    ax2.scatter(projection[:,0],projection[:,1],s=1)
+    ax2.set_title(fr'Intersections with Poincaré section for $\theta=${args.theta}'+r'$^{\circ}$')
+    fig.tight_layout(h_pad=1)
+    fig.savefig(get_name_for_save(extra=f'{args.theta}'))
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
-    fig.savefig(get_name_for_save())
+
     if args.show:
         show()
