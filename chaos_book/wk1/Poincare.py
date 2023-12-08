@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
-# Q1.5 Poincaré sections and return maps of the Rössler system
+'''Q1.5 Poincaré sections and return maps of the Rössler system'''
 
 from matplotlib.pyplot import figure, show
 from numpy             import append, argsort, array, cos, dot, linspace, max, min, pi, sin, size
@@ -159,9 +160,9 @@ if __name__ == "__main__":
     rfixed = fsolve(ReturnMap, 8.3871)
     print(rfixed)  #  8.38094142
 
-    fig1 = figure(1)  # Create a figure instance
-    ax = fig1.gca(projection='3d')  # Get current axes in 3D projection
-    #Plot the solution:
+    fig1 = figure(1)
+    ax = fig1.add_subplot(1,1,1,projection='3d')
+
     ax.plot(sspSolution[:, 0], sspSolution[:, 1], sspSolution[:, 2])
     ax.set_xlabel('$x$')  # Set x label
     ax.set_ylabel('$y$')  # Set y label
@@ -171,8 +172,8 @@ if __name__ == "__main__":
             sspSolutionPoincare[:, 1],
             sspSolutionPoincare[:, 2], '.r', markersize=4)
 
-    fig2 = figure(2)  # Create another figure instance
-    ax = fig2.gca()  # Get current axes
+    fig2 = figure(2)
+    ax = fig2.add_subplot(1,1,1)
     ax.plot(PoincareSection[:, 0], PoincareSection[:, 1], '.r', markersize=3)
     ax.set_xlabel('$\\hat{x}\'$')  # Set x label
     ax.set_ylabel('$z$')  # Set y label

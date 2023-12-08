@@ -1,10 +1,10 @@
-# Q1.4  Integrating Roessler system
-from numpy             import array, linspace
+#!/usr/bin/env python
+
+'''Q1.4  Integrating Rössler system'''
+import numpy as np
 from scipy.integrate   import odeint
 from matplotlib.pyplot import figure, show
 from RungeKutta        import RK4
-
-
 
 #Parameters:
 A = 0.2
@@ -17,7 +17,7 @@ def Velocity(ssp, t,
              b = B,
              c = C):
     """
-    Velocity function for the Rossler flow
+    Velocity function for the Rössler flow
 
     Inputs:
     ssp: State space vector. dx1 NumPy array: ssp=[x, y, z]
@@ -35,7 +35,7 @@ def Velocity(ssp, t,
     dydt = x + a * y
     dzdt = b + z * (x - c)
     # Collect Rossler flow equations in a single NumPy array:
-    vel = array([dxdt, dydt, dzdt], float)  # Velocity vector
+    vel = np.array([dxdt, dydt, dzdt], float)  # Velocity vector
     return vel
 
 
@@ -53,7 +53,7 @@ def Flow(ssp0, deltat):
     #Following numerical integration will return a 2 by 3(=d) solution array
     #where first row contains initial point ssp0, and the last row contains
     #final point
-    sspSolution = odeint(Velocity, ssp0, [0.0, deltat])
+    sspSolution = odeint(Velocity, ssp0, [0.0, deltat[0]])   #FIXME
     sspdeltat = sspSolution[-1, :]  # Read the final point to sspdeltat
     return sspdeltat
 
@@ -74,7 +74,7 @@ def StabilityMatrix(ssp,
 
     x, y, z = ssp
 
-    return array([[0, -1, -1],
+    return np.array([[0, -1, -1],
                   [1, a, 0],
                   [z, 0, x-c]],
                  float)
@@ -150,8 +150,8 @@ if __name__ == "__main__":
     tFinal   = 5.881088455554846384  # Final time
     Nt       = 10000  # Number of time points to be used in the integration
 
-    tArray   = linspace(tInitial, tFinal, Nt)  # Time array for solution
-    ssp0     = array([9.269083709793489945,
+    tArray   = np.linspace(tInitial, tFinal, Nt)  # Time array for solution
+    ssp0     = np.array([9.269083709793489945,
                       0.0,
                       2.581592405683282632], float)  # Initial condition for the solution
 
@@ -163,12 +163,10 @@ if __name__ == "__main__":
 
     print((xt[-1], yt[-1], zt[-1]))  # Print final point
 
-
-
-    fig = figure()  # Create a figure instance
-    ax  = fig.gca(projection='3d')  # Get current axes in 3D projection
-    ax.plot(xt, yt, zt)  # Plot the solution
-    ax.set_xlabel('x')  # Set x label
-    ax.set_ylabel('y')  # Set y label
-    ax.set_zlabel('z')  # Set z label
-    show()  # Show the figure
+    fig = figure()
+    ax  = fig.add_subplot(1,1,1,projection='3d')
+    ax.plot(xt, yt, zt)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    show()

@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 from matplotlib.pyplot import figure, show
-from math              import sqrt
-from numpy             import array, linspace
-from Rossler           import Velocity, StabilityMatrix
+from math import sqrt
+import numpy  as np
 from scipy.integrate   import odeint
 from scipy.linalg      import eig
+from Rossler           import Velocity, StabilityMatrix
 
 def get_equilibrium(a = 0.2,
                     b = 0.2,
@@ -23,7 +25,7 @@ def plot_solution(s,
                   c    = 'xkcd:blue',
                   step = 1):
     fig       = figure()
-    ax        = fig.gca(projection='3d')
+    ax        = fig.add_subplot(1,1,1,projection='3d')
     xt        = subset(s,0,step=step)
     yt        = subset(s,1,step=step)
     zt        = subset(s,2,step=step)
@@ -36,8 +38,8 @@ def plot_solution(s,
 
 u1,u2  = get_equilibrium()
 
-plot_solution(odeint(Velocity, u1,  linspace(0, 600.0, 10000)))
-plot_solution(odeint(Velocity, u2,  linspace(0, 600.0, 10000)),
+plot_solution(odeint(Velocity, u1,  np.linspace(0, 600.0, 10000)))
+plot_solution(odeint(Velocity, u2,  np.linspace(0, 600.0, 10000)),
               c    = 'xkcd:red',
               step = 100)
 
