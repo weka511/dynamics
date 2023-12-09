@@ -23,6 +23,8 @@ from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from scipy.interpolate import splrep, splev
+from scipy.optimize import fsolve
 from rossler import Rossler
 from solver import rk4
 
@@ -88,15 +90,34 @@ class Template:
         self.nTemplate = nTemplate
         self.ProjPoincare = ProjPoincare
 
-    def get_orientation(self,x):
-        return np.dot(x-self.sspTemplate,self.nTemplate)
+    def get_orientation(self,ssp):
+        '''
+        Calculate the U(x) using Chaosbook eq (3.14).
 
-    def get_projection(self,sspSolutionPoincare):
-        return np.dot(self.ProjPoincare, sspSolutionPoincare.transpose()).transpose()
+        Parameters:
+            ssp   A 3 vectopr representing the point
+
+        Returns:
+            Zero if x is on the Poincaré Section;
+            it will be negative on one side, posive on the other
+        '''
+        return np.dot(ssp - self.sspTemplate,self.nTemplate)
+
+    def get_projection(self,ssp):
+        '''
+        Project a state space point onto the Poincaré Section
+
+        Parameters:
+            ssp     State Space Point
+        '''
+        return np.dot(self.ProjPoincare, ssp.transpose()).transpose()
 
 def get_index_zero_crossings(orientation):
     '''
     Locate the positions where the orientation changes from -ve to +ve
+
+    Parameters:
+        orientation
     '''
     signs = np.sign(orientation)
     diffs = np.diff(signs)
@@ -116,6 +137,12 @@ def get_intersections(orientation,Orbit):
         intersections[i,:] = (a1*Orbit[index_zero_crossings[i],:] + a0*Orbit[index_zero_crossings[i]+1,:])/(a0+a1)
     return intersections
 
+def create_radial(PoincareSection):
+    radii1 = PoincareSection[:-1, 0]
+    radii2 = PoincareSection[1:, 0]
+    isort = np.argsort(radii1)
+    return radii1[isort], radii2[isort]
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
@@ -130,6 +157,8 @@ if __name__=='__main__':
     orientation = template.get_orientation(Orbit)
     intersections = get_intersections(orientation,Orbit)
     projection = template.get_projection(intersections)
+    radii1,radii2 = create_radial(projection)
+
 
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(2,2,1,projection='3d')
@@ -147,8 +176,25 @@ if __name__=='__main__':
     ax2 = fig.add_subplot(2,2,2)
     ax2.scatter(projection[:,0],projection[:,1],s=1)
     ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
-    ax2.set_xlabel('Label')
-    ax2.set_ylabel('$e_z$')
+    ax2.set_xlabel('r')
+    ax2.set_ylabel('z')
+
+    r10 = radii1.min()
+    r20 = radii2.min()
+    r11 = radii1.max()
+    r21 = radii2.max()
+    # r_start = [0.5*(r10+r11),0.5*(r20+r21)]
+    tck = splrep(radii1,radii2)
+    ReturnMap = lambda r: splev(r, tck) - r
+    rfixed = fsolve(ReturnMap, r11)#r_start[0])
+    ax3 = fig.add_subplot(2,2,3)
+    ax3.scatter(radii1,radii2,s=1)
+    ax3.plot([min(r10,r20),max(r11,r21)],[min(r10,r21),max(r11,r21)],linestyle='--')
+    # ax3.scatter(r_start[0],r_start[1])
+    ax3.scatter(rfixed,rfixed)
+    ax3.set_title('Return map')
+    ax3.set_xlabel('$r_n$')
+    ax3.set_ylabel('$r_{n+1}$')
 
     fig.suptitle('Rössler Attractor')
     fig.tight_layout(pad=2,h_pad=1)
