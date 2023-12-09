@@ -183,18 +183,19 @@ if __name__=='__main__':
     r20 = radii2.min()
     r11 = radii1.max()
     r21 = radii2.max()
-    # r_start = [0.5*(r10+r11),0.5*(r20+r21)]
     tck = splrep(radii1,radii2)
     ReturnMap = lambda r: splev(r, tck) - r
-    rfixed = fsolve(ReturnMap, r11)#r_start[0])
+    rfixed = fsolve(ReturnMap, r11)[0]
+    rlims = [min(r10,r20),max(r11,r21)]
     ax3 = fig.add_subplot(2,2,3)
-    ax3.scatter(radii1,radii2,s=1)
-    ax3.plot([min(r10,r20),max(r11,r21)],[min(r10,r21),max(r11,r21)],linestyle='--')
-    # ax3.scatter(r_start[0],r_start[1])
-    ax3.scatter(rfixed,rfixed)
+    ax3.scatter(radii1,radii2,s=1,label='Return Map',c='xkcd:blue')
+    ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
+    ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
+                label=f'Fixed r={rfixed}',c='xkcd:olive')
     ax3.set_title('Return map')
     ax3.set_xlabel('$r_n$')
     ax3.set_ylabel('$r_{n+1}$')
+    ax3.legend()
 
     fig.suptitle('Rössler Attractor')
     fig.tight_layout(pad=2,h_pad=1)
