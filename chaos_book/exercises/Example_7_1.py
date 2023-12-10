@@ -137,11 +137,35 @@ def get_intersections(orientation,Orbit):
         intersections[i,:] = (a1*Orbit[index_zero_crossings[i],:] + a0*Orbit[index_zero_crossings[i]+1,:])/(a0+a1)
     return intersections
 
-def create_radial(PoincareSection):
-    radii1 = PoincareSection[:-1, 0]
-    radii2 = PoincareSection[1:, 0]
+def create_radial(PoincareSection, seq=0):
+    radii1 = PoincareSection[:-1, seq]
+    radii2 = PoincareSection[1:, seq]
     isort = np.argsort(radii1)
     return radii1[isort], radii2[isort]
+
+def fPoincare(s,tckPoincare):
+    """
+    Parametric interpolation to the Poincare section
+    Inputs:
+    s: Arc length which parametrizes the curve, a float or dx1-dim numpy
+       array
+    Outputs:
+    xy = x and y coordinates on the Poincare section, 2-dim numpy array
+       or (dx2)-dim numpy array
+    """
+    interpolation = splev(s, tckPoincare)
+    xy = np.array([interpolation[0], interpolation[1]], float).transpose()
+    return xy
+
+def get_fp(radii1,radii2):
+    r10 = radii1.min()
+    r20 = radii2.min()
+    r11 = radii1.max()
+    r21 = radii2.max()
+    tck = splrep(radii1,radii2)
+    ReturnMap = lambda r: splev(r, tck) - r
+    rfixed = fsolve(ReturnMap, r11)[0]
+    return rfixed, r10,r20,r11,r21
 
 if __name__=='__main__':
     start  = time()
@@ -159,6 +183,11 @@ if __name__=='__main__':
     projection = template.get_projection(intersections)
     radii1,radii2 = create_radial(projection)
 
+    rfixed, r10,r20,r11,r21 = get_fp(radii1,radii2)
+    rlims = [min(r10,r20),max(r11,r21)]
+    zs1,zs2 = create_radial(projection,seq=1)
+    zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
+    zlims = [min(z10,z20),max(z11,z21)]
 
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(2,2,1,projection='3d')
@@ -173,20 +202,20 @@ if __name__=='__main__':
     fig.colorbar(sc,ax=ax1)
     ax1.set_title(fr'Orbit N={args.N:,}, $\delta T=${args.delta_t}')
 
+
     ax2 = fig.add_subplot(2,2,2)
-    ax2.scatter(projection[:,0],projection[:,1],s=1)
+    ax2.scatter(projection[:,0],projection[:,1],s=1,label='Crossings',c='xkcd:blue')
     ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
+    ax2.axvline(rfixed,
+                linestyle=':',
+                label=f'Fixed r={rfixed}',c='xkcd:olive')
+    ax2.axhline(zfixed,
+                linestyle=':',
+                label=f'Fixed r={zfixed}',c='xkcd:forest green')
     ax2.set_xlabel('r')
     ax2.set_ylabel('z')
+    ax2.legend()
 
-    r10 = radii1.min()
-    r20 = radii2.min()
-    r11 = radii1.max()
-    r21 = radii2.max()
-    tck = splrep(radii1,radii2)
-    ReturnMap = lambda r: splev(r, tck) - r
-    rfixed = fsolve(ReturnMap, r11)[0]
-    rlims = [min(r10,r20),max(r11,r21)]
     ax3 = fig.add_subplot(2,2,3)
     ax3.scatter(radii1,radii2,s=1,label='Return Map',c='xkcd:blue')
     ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
@@ -196,6 +225,16 @@ if __name__=='__main__':
     ax3.set_xlabel('$r_n$')
     ax3.set_ylabel('$r_{n+1}$')
     ax3.legend()
+
+    ax4 = fig.add_subplot(2,2,4)
+    ax4.scatter(zs1,zs2,s=1,label='Return Map',c='xkcd:blue')
+    ax4.set_title('Return map (z)')
+    ax4.set_xlabel('$z_n$')
+    ax4.set_ylabel('$z_{n+1}$')
+    ax4.plot(zlims,zlims,linestyle='--',label='$z_{n+1}=z_n$',c='xkcd:aqua')
+    ax4.axvline(zfixed,linestyle=':',
+                label=f'Fixed z={zfixed}',c='xkcd:olive')
+    ax4.legend()
 
     fig.suptitle('Rössler Attractor')
     fig.tight_layout(pad=2,h_pad=1)
