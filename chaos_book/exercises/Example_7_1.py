@@ -112,6 +112,15 @@ class Template:
         '''
         return np.dot(self.ProjPoincare, ssp.transpose()).transpose()
 
+    def get_projectionT(self,ssp):
+        '''
+        Project a state space point onto the Poincaré Section
+
+        Parameters:
+            ssp     State Space Point
+        '''
+        return np.dot(ssp,self.ProjPoincare)
+
 def get_index_zero_crossings(orientation):
     '''
     Locate the positions where the orientation changes from -ve to +ve
@@ -189,10 +198,16 @@ if __name__=='__main__':
     zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
     zlims = [min(z10,z20),max(z11,z21)]
 
-    sspfixed = np.dot(np.array(rfixed,zfixed,0), ProjPoincare)
-    print (sspFixed)
+    sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
+
+    Orbit1 = np.empty((1000,rossler.d))
+    Orbit1[0,:] = sspfixed
+    for i in range(1,1000):
+        Orbit1[i,:] = rk4(args.delta_t,Orbit1[i-1],rossler.Velocity)
+
     fig = figure(figsize=(12,12))
-    ax1 = fig.add_subplot(2,2,1,projection='3d')
+
+    ax1 = fig.add_subplot(2,3,1,projection='3d')
     sc = ax1.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
                 c = np.sign(orientation),
                 s = 1,
@@ -204,8 +219,7 @@ if __name__=='__main__':
     fig.colorbar(sc,ax=ax1)
     ax1.set_title(fr'Orbit N={args.N:,}, $\delta T=${args.delta_t}')
 
-
-    ax2 = fig.add_subplot(2,2,2)
+    ax2 = fig.add_subplot(2,3,2)
     ax2.scatter(projection[:,0],projection[:,1],s=1,label='Crossings',c='xkcd:blue')
     ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
     ax2.axvline(rfixed,
@@ -218,7 +232,7 @@ if __name__=='__main__':
     ax2.set_ylabel('z')
     ax2.legend()
 
-    ax3 = fig.add_subplot(2,2,3)
+    ax3 = fig.add_subplot(2,3,3)
     ax3.scatter(radii1,radii2,s=1,label='Return Map',c='xkcd:blue')
     ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
     ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
@@ -228,7 +242,7 @@ if __name__=='__main__':
     ax3.set_ylabel('$r_{n+1}$')
     ax3.legend()
 
-    ax4 = fig.add_subplot(2,2,4)
+    ax4 = fig.add_subplot(2,3,4)
     ax4.scatter(zs1,zs2,s=1,label='Return Map',c='xkcd:blue')
     ax4.set_title('Return map (z)')
     ax4.set_xlabel('$z_n$')
@@ -237,6 +251,14 @@ if __name__=='__main__':
     ax4.axvline(zfixed,linestyle=':',
                 label=f'Fixed z={zfixed}',c='xkcd:olive')
     ax4.legend()
+
+    ax5 = fig.add_subplot(2,3,5,projection='3d')
+    ax5.scatter(Orbit1[:,0], Orbit1[:,1], Orbit1[:,2],
+                c = 'xkcd:green',
+                s = 1,
+                label = f'({sspfixed[0]:3f},{sspfixed[1]:3f},{sspfixed[2]:3})')
+    ax5.set_title('Fixed point')
+    ax5.legend()
 
     fig.suptitle('Rössler Attractor')
     fig.tight_layout(pad=2,h_pad=1)
