@@ -189,6 +189,8 @@ if __name__=='__main__':
     zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
     zlims = [min(z10,z20),max(z11,z21)]
 
+    sspfixed = np.dot(np.array(rfixed,zfixed,0), ProjPoincare)
+    print (sspFixed)
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(2,2,1,projection='3d')
     sc = ax1.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
