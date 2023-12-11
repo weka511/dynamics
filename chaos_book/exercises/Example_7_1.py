@@ -22,6 +22,7 @@ from argparse import ArgumentParser
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
+import matplotlib.patches as mpatches
 from matplotlib.pyplot import figure, show
 from scipy.interpolate import splrep, splev
 from scipy.optimize import fsolve
@@ -32,7 +33,8 @@ def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
-    parser.add_argument('--N', default=10000, type=int)
+    parser.add_argument('--N', default=100000, type=int)
+    parser.add_argument('--N1', default=1000, type=int)
     parser.add_argument('--a', default= 0.2, type=float)
     parser.add_argument('--b', default= 0.2, type=float)
     parser.add_argument('--c', default= 5.0, type=float)
@@ -200,15 +202,15 @@ if __name__=='__main__':
 
     sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
 
-    Orbit1 = np.empty((1000,rossler.d))
+    Orbit1 = np.empty((args.N1,rossler.d))
     Orbit1[0,:] = sspfixed
-    for i in range(1,1000):
+    for i in range(1,args.N1):
         Orbit1[i,:] = rk4(args.delta_t,Orbit1[i-1],rossler.Velocity)
 
     fig = figure(figsize=(12,12))
 
     ax1 = fig.add_subplot(2,3,1,projection='3d')
-    sc = ax1.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
+    ax1.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
                 c = np.sign(orientation),
                 s = 1,
                 cmap = 'bwr')
@@ -216,31 +218,37 @@ if __name__=='__main__':
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
-    fig.colorbar(sc,ax=ax1)
     ax1.set_title(fr'Orbit N={args.N:,}, $\delta T=${args.delta_t}')
+    ax1.legend(loc='upper left',
+               title='Orientation',
+               handles=[mpatches.Patch(color='xkcd:blue',
+                                       label='Negative'),
+                        mpatches.Patch(color='xkcd:red',
+                                       label='Positive')])
 
     ax2 = fig.add_subplot(2,3,2)
     ax2.scatter(projection[:,0],projection[:,1],s=1,label='Crossings',c='xkcd:blue')
     ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
     ax2.axvline(rfixed,
                 linestyle=':',
-                label=f'Fixed r={rfixed}',c='xkcd:olive')
+                label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
     ax2.axhline(zfixed,
                 linestyle=':',
-                label=f'Fixed r={zfixed}',c='xkcd:forest green')
+                label=f'Fixed z={zfixed:.06f}',c='xkcd:forest green')
     ax2.set_xlabel('r')
     ax2.set_ylabel('z')
-    ax2.legend()
+    ax2.legend(loc='upper left')
 
     ax3 = fig.add_subplot(2,3,3)
     ax3.scatter(radii1,radii2,s=1,label='Return Map',c='xkcd:blue')
     ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
     ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
-                label=f'Fixed r={rfixed}',c='xkcd:olive')
+                label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
     ax3.set_title('Return map')
     ax3.set_xlabel('$r_n$')
     ax3.set_ylabel('$r_{n+1}$')
-    ax3.legend()
+    ax3.legend(loc='upper left')
+    ax3.set_aspect('equal')
 
     ax4 = fig.add_subplot(2,3,4)
     ax4.scatter(zs1,zs2,s=1,label='Return Map',c='xkcd:blue')
@@ -249,19 +257,25 @@ if __name__=='__main__':
     ax4.set_ylabel('$z_{n+1}$')
     ax4.plot(zlims,zlims,linestyle='--',label='$z_{n+1}=z_n$',c='xkcd:aqua')
     ax4.axvline(zfixed,linestyle=':',
-                label=f'Fixed z={zfixed}',c='xkcd:olive')
-    ax4.legend()
+                label=f'Fixed z={zfixed:.06f}',c='xkcd:olive')
+    ax4.legend(loc='upper left')
+    ax4.set_aspect('equal')
 
     ax5 = fig.add_subplot(2,3,5,projection='3d')
+    ax5.scatter(sspfixed[0], sspfixed[1],sspfixed[2],
+                c = 'xkcd:terracotta',
+                s = 50,
+                marker = 'x',
+                label = f'({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
     ax5.scatter(Orbit1[:,0], Orbit1[:,1], Orbit1[:,2],
                 c = 'xkcd:green',
                 s = 1,
-                label = f'({sspfixed[0]:3f},{sspfixed[1]:3f},{sspfixed[2]:3})')
-    ax5.set_title('Fixed point')
-    ax5.legend()
+                label = 'Orbit')
+    ax5.set_title(f'Fixed point {args.N1} iterations')
+    ax5.legend(loc='upper left')
 
     fig.suptitle('Rössler Attractor')
-    fig.tight_layout(pad=2,h_pad=1)
+    fig.tight_layout(pad=2,h_pad=2,w_pad=1)
     fig.savefig(get_name_for_save(extra=f'{args.theta}'))
 
     elapsed = time() - start
