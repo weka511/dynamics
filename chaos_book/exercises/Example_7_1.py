@@ -27,7 +27,7 @@ from matplotlib.pyplot import figure, show
 from scipy.interpolate import splrep, splev
 from scipy.optimize import fsolve, minimize
 from scipy.signal import argrelmin
-from rossler import Rossler
+from rossler import Rossler, create_jacobian
 from solver import rk4
 
 def parse_args():
@@ -186,11 +186,11 @@ def get_fp(radii1,radii2):
     rfixed = fsolve(ReturnMap, r11)[0]
     return rfixed, r10,r20,r11,r21
 
-def create_orbit(sspfixed,N=1000,delta_t=0.01):
-    Orbit = np.empty((N,rossler.d))
+def create_orbit(sspfixed,N=1000,delta_t=0.01,dynamics=None):
+    Orbit = np.empty((N,dynamics.d))
     Orbit[0,:] = sspfixed
     for i in range(1,N):
-        Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],rossler.Velocity)
+        Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],dynamics.Velocity)
     return Orbit
 
 def get_T1(Orbit1,N=1000,delta_t=0.01,irange=12):
@@ -209,7 +209,7 @@ def get_T1(Orbit1,N=1000,delta_t=0.01,irange=12):
     fun = splrep(delta_t * np.array(indices_nearby), np.array([distances[i] for i in indices_nearby]))
     res = minimize(lambda t: splev(t,fun),delta_t*index_min)
     if res.success:
-        return res.x[0]
+        return res.x[0],index_min
     else:
         raise Exception('Could not find minimum')
 
@@ -219,7 +219,7 @@ if __name__=='__main__':
     args = parse_args()
 
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
-    Orbit = create_orbit(np.zeros((3)),N=args.N,delta_t=args.delta_t)
+    Orbit = create_orbit(np.zeros((3)),N=args.N,delta_t=args.delta_t,dynamics=rossler)
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = template.get_orientation(Orbit)
     intersections = get_intersections(orientation,Orbit)
@@ -233,12 +233,17 @@ if __name__=='__main__':
     zlims = [min(z10,z20),max(z11,z21)]
 
     sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
-    Orbit1 = create_orbit(sspfixed, N=args.N1, delta_t=args.delta_t)
+    Orbit1 = create_orbit(sspfixed, N=args.N1, delta_t=args.delta_t,dynamics=rossler)
 
     Orbit2 = create_orbit(np.array([0,6.09176832,1.2997319]),
                           N = args.N1,
-                          delta_t = args.delta_t)
+                          delta_t = args.delta_t,
+                          dynamics = rossler)
 
+    T1,Index_t1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
+    Jacobian,_ = create_jacobian(sspfixed, Index_t1, args.delta_t, rossler)
+    eigenValues, _ = np.linalg.eig(Jacobian[-1,:,:])
+    print (eigenValues)
     fig = figure(figsize=(12,12))
 
     ax1 = fig.add_subplot(2,3,1,projection='3d')
@@ -312,7 +317,7 @@ if __name__=='__main__':
                 c = 'xkcd:purple',
                 s = 1,
                 label = 'Orbit2 (Chaos book)')
-    ax5.set_title(f'Fixed point {args.N1} iterations. T1 = {get_T1(Orbit1,N=args.N1,delta_t=args.delta_t):.4f}')
+    ax5.set_title(f'Fixed point {args.N1} iterations. T1 = {T1:.4f}')
     ax5.legend(loc='upper left')
 
     fig.suptitle('Rössler Attractor')
