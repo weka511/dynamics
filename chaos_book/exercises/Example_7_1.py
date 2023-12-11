@@ -192,6 +192,16 @@ def create_orbit(sspfixed,N=1000,delta_t=0.01):
         Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],rossler.Velocity)
     return Orbit
 
+def get_T1(N1,Orbit1,delta_t):
+    distances = np.empty((N1))
+    for i in range(N1):
+        distances[i] = np.linalg.norm(sspfixed - Orbit1[i,:])
+    diffs = np.diff(distances)
+    crossings1 = np.where(diffs<0)[0]
+    crossings2 = np.where(diffs>0)[0]
+    candidates = [c for c in crossings2 if c>crossings1[0]]
+    return delta_t * candidates[0]
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
@@ -211,9 +221,8 @@ if __name__=='__main__':
     zlims = [min(z10,z20),max(z11,z21)]
 
     sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
-
-
     Orbit1 = create_orbit(sspfixed, N=args.N1, delta_t=args.delta_t)
+
     Orbit2 = create_orbit(np.array([0,6.09176832,1.2997319]),
                           N = args.N1,
                           delta_t = args.delta_t)
@@ -291,7 +300,7 @@ if __name__=='__main__':
                 c = 'xkcd:purple',
                 s = 1,
                 label = 'Orbit2 (Chaos book)')
-    ax5.set_title(f'Fixed point {args.N1} iterations')
+    ax5.set_title(f'Fixed point {args.N1} iterations. T1 = {get_T1(args.N1,Orbit1,args.delta_t)}')
     ax5.legend(loc='upper left')
 
     fig.suptitle('Rössler Attractor')
