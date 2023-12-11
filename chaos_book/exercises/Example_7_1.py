@@ -32,14 +32,21 @@ from solver import rk4
 def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
-    parser.add_argument('--N', default=100000, type=int)
-    parser.add_argument('--N1', default=1000, type=int)
-    parser.add_argument('--a', default= 0.2, type=float)
-    parser.add_argument('--b', default= 0.2, type=float)
-    parser.add_argument('--c', default= 5.0, type=float)
-    parser.add_argument('--delta_t', default= 0.01, type=float)
-    parser.add_argument('--theta', default = 120, type=int, help='Angle in degrees')
+    N =100000
+    N1 = 1000
+    a = 0.2
+    b = 0.2
+    c = 5.0
+    delta_t = 0.01
+    theta = 120
+    parser.add_argument('--show',  default=False, action='store_true', help='Show plots [False]')
+    parser.add_argument('--N', default=N, type=int, help = f'Number of iterations for Orbit [{N:,}]')
+    parser.add_argument('--N1', default=N1, type=int, help = f'Number of iterations for fixed point Orbit [{N1:,}]')
+    parser.add_argument('--a', default= a, type=float, help = f'Parameter for Roessler equation [{a}]')
+    parser.add_argument('--b', default= b, type=float, help = f'Parameter for Roessler equation [{b}]')
+    parser.add_argument('--c', default= c, type=float, help = f'Parameter for Roessler equation [{c}]')
+    parser.add_argument('--delta_t', default= delta_t, type=float, help=f'Stepsize for integrating Orbit [{delta_t}]')
+    parser.add_argument('--theta', default = theta, type=int, help=f'Angle in degrees for Poincare Section [{theta}]')
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -240,25 +247,25 @@ if __name__=='__main__':
     ax2.legend(loc='upper left')
 
     ax3 = fig.add_subplot(2,3,3)
-    ax3.scatter(radii1,radii2,s=1,label='Return Map',c='xkcd:blue')
+    ax3.scatter(radii1,radii2,s=1,label='$r_{n+1}$ vs. $r_n$',c='xkcd:blue')
     ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
     ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
                 label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
-    ax3.set_title('Return map')
+    ax3.set_title('Return map (r)')
     ax3.set_xlabel('$r_n$')
     ax3.set_ylabel('$r_{n+1}$')
-    ax3.legend(loc='upper left')
+    ax3.legend(loc='lower right')
     ax3.set_aspect('equal')
 
     ax4 = fig.add_subplot(2,3,4)
-    ax4.scatter(zs1,zs2,s=1,label='Return Map',c='xkcd:blue')
-    ax4.set_title('Return map (z)')
-    ax4.set_xlabel('$z_n$')
-    ax4.set_ylabel('$z_{n+1}$')
+    ax4.scatter(zs1,zs2,s=1,label='$z_{n+1}$ vs. $z_n$',c='xkcd:blue')
     ax4.plot(zlims,zlims,linestyle='--',label='$z_{n+1}=z_n$',c='xkcd:aqua')
     ax4.axvline(zfixed,linestyle=':',
                 label=f'Fixed z={zfixed:.06f}',c='xkcd:olive')
-    ax4.legend(loc='upper left')
+    ax4.set_title('Return map (z)')
+    ax4.set_xlabel('$z_n$')
+    ax4.set_ylabel('$z_{n+1}$')
+    ax4.legend(loc='lower right')
     ax4.set_aspect('equal')
 
     ax5 = fig.add_subplot(2,3,5,projection='3d')
@@ -275,7 +282,7 @@ if __name__=='__main__':
     ax5.legend(loc='upper left')
 
     fig.suptitle('Rössler Attractor')
-    fig.tight_layout(pad=2,h_pad=2,w_pad=1)
+    fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
     fig.savefig(get_name_for_save(extra=f'{args.theta}'))
 
     elapsed = time() - start
