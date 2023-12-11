@@ -185,16 +185,19 @@ def get_fp(radii1,radii2):
     rfixed = fsolve(ReturnMap, r11)[0]
     return rfixed, r10,r20,r11,r21
 
+def create_orbit(sspfixed,N=1000,delta_t=0.01):
+    Orbit = np.empty((N,rossler.d))
+    Orbit[0,:] = sspfixed
+    for i in range(1,N):
+        Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],rossler.Velocity)
+    return Orbit
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
 
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
-    Orbit = np.empty((args.N,rossler.d))
-    Orbit[0,:] = np.zeros((3))
-    for i in range(1,args.N):
-        Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],rossler.Velocity)
-
+    Orbit = create_orbit(np.zeros((3)),N=args.N,delta_t=args.delta_t)
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = template.get_orientation(Orbit)
     intersections = get_intersections(orientation,Orbit)
@@ -209,10 +212,11 @@ if __name__=='__main__':
 
     sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
 
-    Orbit1 = np.empty((args.N1,rossler.d))
-    Orbit1[0,:] = sspfixed
-    for i in range(1,args.N1):
-        Orbit1[i,:] = rk4(args.delta_t,Orbit1[i-1],rossler.Velocity)
+
+    Orbit1 = create_orbit(sspfixed, N=args.N1, delta_t=args.delta_t)
+    Orbit2 = create_orbit(np.array([0,6.09176832,1.2997319]),
+                          N = args.N1,
+                          delta_t = args.delta_t)
 
     fig = figure(figsize=(12,12))
 
@@ -278,6 +282,15 @@ if __name__=='__main__':
                 c = 'xkcd:green',
                 s = 1,
                 label = 'Orbit')
+    ax5.scatter(Orbit2[0,0], Orbit2[0,1], Orbit2[0,2],
+                c = 'xkcd:purple',
+                s = 50,
+                marker = '+',
+                label = f'({Orbit2[0,0]:.4f},{Orbit2[0,1]:.4f},{Orbit2[0,2]:.4f})')
+    ax5.scatter(Orbit2[:,0], Orbit2[:,1], Orbit2[:,2],
+                c = 'xkcd:purple',
+                s = 1,
+                label = 'Orbit2 (Chaos book)')
     ax5.set_title(f'Fixed point {args.N1} iterations')
     ax5.legend(loc='upper left')
 
