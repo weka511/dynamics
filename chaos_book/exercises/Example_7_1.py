@@ -25,7 +25,8 @@ import numpy as np
 import matplotlib.patches as mpatches
 from matplotlib.pyplot import figure, show
 from scipy.interpolate import splrep, splev
-from scipy.optimize import fsolve
+from scipy.optimize import fsolve, minimize
+from scipy.signal import argrelmin
 from rossler import Rossler
 from solver import rk4
 
@@ -162,7 +163,7 @@ def create_radial(PoincareSection, seq=0):
     return radii1[isort], radii2[isort]
 
 def fPoincare(s,tckPoincare):
-    """
+    '''
     Parametric interpolation to the Poincare section
     Inputs:
     s: Arc length which parametrizes the curve, a float or dx1-dim numpy
@@ -170,7 +171,7 @@ def fPoincare(s,tckPoincare):
     Outputs:
     xy = x and y coordinates on the Poincare section, 2-dim numpy array
        or (dx2)-dim numpy array
-    """
+    '''
     interpolation = splev(s, tckPoincare)
     xy = np.array([interpolation[0], interpolation[1]], float).transpose()
     return xy
@@ -192,15 +193,26 @@ def create_orbit(sspfixed,N=1000,delta_t=0.01):
         Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],rossler.Velocity)
     return Orbit
 
-def get_T1(N1,Orbit1,delta_t):
-    distances = np.empty((N1))
-    for i in range(N1):
+def get_T1(Orbit1,N=1000,delta_t=0.01,irange=12):
+    '''
+    Compute time to traverse orbit once. Traversal is defined as
+    minimizing the distance from the start point.
+    '''
+    distances = np.empty((N))
+    for i in range(N):
         distances[i] = np.linalg.norm(sspfixed - Orbit1[i,:])
-    diffs = np.diff(distances)
-    crossings1 = np.where(diffs<0)[0]
-    crossings2 = np.where(diffs>0)[0]
-    candidates = [c for c in crossings2 if c>crossings1[0]]
-    return delta_t * candidates[0]
+    # Find provisional minimum: closest point in orbit
+    index_min, = argrelmin(distances)
+    index_min = index_min[0]
+    indices_nearby = range(index_min-irange,index_min+irange)
+    # Now fit a curve and find its minimum
+    fun = splrep(delta_t * np.array(indices_nearby), np.array([distances[i] for i in indices_nearby]))
+    res = minimize(lambda t: splev(t,fun),delta_t*index_min)
+    if res.success:
+        return res.x[0]
+    else:
+        raise Exception('Could not find minimum')
+
 
 if __name__=='__main__':
     start  = time()
@@ -300,7 +312,7 @@ if __name__=='__main__':
                 c = 'xkcd:purple',
                 s = 1,
                 label = 'Orbit2 (Chaos book)')
-    ax5.set_title(f'Fixed point {args.N1} iterations. T1 = {get_T1(args.N1,Orbit1,args.delta_t)}')
+    ax5.set_title(f'Fixed point {args.N1} iterations. T1 = {get_T1(Orbit1,N=args.N1,delta_t=args.delta_t):.4f}')
     ax5.legend(loc='upper left')
 
     fig.suptitle('Rössler Attractor')
