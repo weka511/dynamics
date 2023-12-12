@@ -145,6 +145,10 @@ def get_index_zero_crossings(orientation):
 def get_intersections(orientation,Orbit):
     '''
     Find points where Orbit intersects Poincaré section
+
+    Parameters:
+        orientation
+        Orbit
     '''
     _,d = Orbit.shape
     index_zero_crossings = get_index_zero_crossings(orientation)
@@ -165,28 +169,38 @@ def create_radial(PoincareSection, seq=0):
 def fPoincare(s,tckPoincare):
     '''
     Parametric interpolation to the Poincare section
-    Inputs:
-    s: Arc length which parametrizes the curve, a float or dx1-dim numpy
-       array
-    Outputs:
-    xy = x and y coordinates on the Poincare section, 2-dim numpy array
-       or (dx2)-dim numpy array
+
+    Parameters:
+        s           Arc length which parametrizes the curve, a float or dx1-dim numpy array
+        tckPoincare
+    Returns:
+        xy = x and y coordinates on the Poincare section, 2-dim numpy array
+             or (dx2)-dim numpy array
     '''
     interpolation = splev(s, tckPoincare)
-    xy = np.array([interpolation[0], interpolation[1]], float).transpose()
-    return xy
+    return np.array([interpolation[0], interpolation[1]], float).transpose()
 
 def get_fp(radii1,radii2):
+    '''
+    '''
     r10 = radii1.min()
     r20 = radii2.min()
     r11 = radii1.max()
     r21 = radii2.max()
     tck = splrep(radii1,radii2)
-    ReturnMap = lambda r: splev(r, tck) - r
-    rfixed = fsolve(ReturnMap, r11)[0]
+    rfixed = fsolve(lambda r: splev(r, tck) - r, r11)[0]
     return rfixed, r10,r20,r11,r21
 
 def create_orbit(sspfixed,N=1000,delta_t=0.01,dynamics=None):
+    '''
+    Solve equations to computer orbit
+
+    Parameters:
+        sspfixed
+        N
+        delta_t
+        dynamics
+    '''
     Orbit = np.empty((N,dynamics.d))
     Orbit[0,:] = sspfixed
     for i in range(1,N):
@@ -235,18 +249,13 @@ if __name__=='__main__':
     sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
     Orbit1 = create_orbit(sspfixed, N=args.N1, delta_t=args.delta_t,dynamics=rossler)
 
-    Orbit2 = create_orbit(np.array([0,6.09176832,1.2997319]),
-                          N = args.N1,
-                          delta_t = args.delta_t,
-                          dynamics = rossler)
-
-    T1,Index_t1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
-    Jacobian,_ = create_jacobian(sspfixed, Index_t1, args.delta_t, rossler)
+    T1,N_T1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
+    Jacobian,_ = create_jacobian(sspfixed, N_T1, T1/N_T1, rossler)
     eigenValues, _ = np.linalg.eig(Jacobian[-1,:,:])
-    print (eigenValues)
+
     fig = figure(figsize=(12,12))
 
-    ax1 = fig.add_subplot(2,3,1,projection='3d')
+    ax1 = fig.add_subplot(2,2,1,projection='3d')
     ax1.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
                 c = np.sign(orientation),
                 s = 1,
@@ -256,14 +265,14 @@ if __name__=='__main__':
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
     ax1.set_title(fr'Orbit N={args.N:,}, $\delta T=${args.delta_t}')
-    ax1.legend(loc='upper left',
-               title='Orientation',
-               handles=[mpatches.Patch(color='xkcd:blue',
-                                       label='Negative'),
-                        mpatches.Patch(color='xkcd:red',
-                                       label='Positive')])
+    ax1.legend(loc = 'upper left',
+               title = 'Orientation',
+               handles = [mpatches.Patch(color = 'xkcd:blue',
+                                         label = 'Negative'),
+                          mpatches.Patch(color = 'xkcd:red',
+                                         label = 'Positive')])
 
-    ax2 = fig.add_subplot(2,3,2)
+    ax2 = fig.add_subplot(2,2,2)
     ax2.scatter(projection[:,0],projection[:,1],s=1,label='Crossings',c='xkcd:blue')
     ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
     ax2.axvline(rfixed,
@@ -276,7 +285,7 @@ if __name__=='__main__':
     ax2.set_ylabel('z')
     ax2.legend(loc='upper left')
 
-    ax3 = fig.add_subplot(2,3,3)
+    ax3 = fig.add_subplot(2,2,3)
     ax3.scatter(radii1,radii2,s=1,label='$r_{n+1}$ vs. $r_n$',c='xkcd:blue')
     ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
     ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
@@ -287,7 +296,7 @@ if __name__=='__main__':
     ax3.legend(loc='lower right')
     ax3.set_aspect('equal')
 
-    ax4 = fig.add_subplot(2,3,4)
+    ax4 = fig.add_subplot(2,2,4)
     ax4.scatter(zs1,zs2,s=1,label='$z_{n+1}$ vs. $z_n$',c='xkcd:blue')
     ax4.plot(zlims,zlims,linestyle='--',label='$z_{n+1}=z_n$',c='xkcd:aqua')
     ax4.axvline(zfixed,linestyle=':',
@@ -298,7 +307,12 @@ if __name__=='__main__':
     ax4.legend(loc='lower right')
     ax4.set_aspect('equal')
 
-    ax5 = fig.add_subplot(2,3,5,projection='3d')
+    fig.suptitle('Rössler Attractor')
+    fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
+    fig.savefig(get_name_for_save(extra=1))
+
+    fig = figure(figsize=(12,12))
+    ax5 = fig.add_subplot(1,2,1,projection='3d')
     ax5.scatter(sspfixed[0], sspfixed[1],sspfixed[2],
                 c = 'xkcd:terracotta',
                 s = 50,
@@ -307,22 +321,27 @@ if __name__=='__main__':
     ax5.scatter(Orbit1[:,0], Orbit1[:,1], Orbit1[:,2],
                 c = 'xkcd:green',
                 s = 1,
-                label = 'Orbit')
-    ax5.scatter(Orbit2[0,0], Orbit2[0,1], Orbit2[0,2],
-                c = 'xkcd:purple',
-                s = 50,
-                marker = '+',
-                label = f'({Orbit2[0,0]:.4f},{Orbit2[0,1]:.4f},{Orbit2[0,2]:.4f})')
-    ax5.scatter(Orbit2[:,0], Orbit2[:,1], Orbit2[:,2],
-                c = 'xkcd:purple',
-                s = 1,
-                label = 'Orbit2 (Chaos book)')
-    ax5.set_title(f'Fixed point {args.N1} iterations. T1 = {T1:.4f}')
-    ax5.legend(loc='upper left')
+                label = 'Cycle')
+    ax5.text2D(0.05, 0.75,
+               '\n'.join([
+                   fr'T1 = {T1:.4f},$',
+                   fr'$\Lambda_1=${eigenValues[0]:.4e}',
+                   fr'$\Lambda_2=${eigenValues[1]:.4e}',
+                   fr'$\Lambda_3=${eigenValues[2]:.4e}'
+                ]),
+               transform=ax5.transAxes,
+               bbox = dict(facecolor = 'xkcd:ivory',
+                           edgecolor = 'xkcd:brown',
+                           boxstyle = 'round,pad=1'))
+    ax5.set_title('Cycle')
+    ax5.legend(loc='lower left')
+    ax5.xaxis.set_ticklabels([])
+    ax5.yaxis.set_ticklabels([])
+    ax5.zaxis.set_ticklabels([])
 
     fig.suptitle('Rössler Attractor')
-    fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
-    fig.savefig(get_name_for_save(extra=f'{args.theta}'))
+    fig.tight_layout(pad = 1, h_pad = 5, w_pad = 1)
+    fig.savefig(get_name_for_save(extra=2))
 
     elapsed = time() - start
     minutes = int(elapsed/60)
