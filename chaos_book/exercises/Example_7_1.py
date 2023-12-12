@@ -227,6 +227,12 @@ def get_T1(Orbit1,N=1000,delta_t=0.01,irange=12):
     else:
         raise Exception('Could not find minimum')
 
+def get_stability(Jacobian,T1):
+    Floquet, _ = np.linalg.eig(Jacobian[-1,:,:])
+    JJ = np.dot(np.transpose(Jacobian[-1,:,:]),Jacobian[-1,:,:])
+    Stretches2,_ = np.linalg.eig(JJ)
+    Lyapunov = np.log(np.sqrt(Stretches2))/T1 # see (6.4) and (6.9)
+    return Floquet,Lyapunov
 
 if __name__=='__main__':
     start  = time()
@@ -251,7 +257,7 @@ if __name__=='__main__':
 
     T1,N_T1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
     Jacobian,_ = create_jacobian(sspfixed, N_T1, T1/N_T1, rossler)
-    eigenValues, _ = np.linalg.eig(Jacobian[-1,:,:])
+    Floquet,Lyapunov = get_stability(Jacobian,T1)
 
     fig = figure(figsize=(12,12))
 
@@ -311,36 +317,46 @@ if __name__=='__main__':
     fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
     fig.savefig(get_name_for_save(extra=1))
 
+    bbox = dict(facecolor = 'xkcd:ivory',
+                edgecolor = 'xkcd:brown',
+                boxstyle = 'round,pad=1')
     fig = figure(figsize=(12,12))
     ax5 = fig.add_subplot(1,2,1,projection='3d')
     ax5.scatter(sspfixed[0], sspfixed[1],sspfixed[2],
                 c = 'xkcd:terracotta',
                 s = 50,
                 marker = 'x',
-                label = f'({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
+                label = 'Start')
+    ax5.text(sspfixed[0], sspfixed[1],sspfixed[2],  f'({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})',
+             size = 12,
+             zorder = 1,
+             color='xkcd:terracotta',
+             bbox = bbox)
     ax5.scatter(Orbit1[:,0], Orbit1[:,1], Orbit1[:,2],
                 c = 'xkcd:green',
                 s = 1,
                 label = 'Cycle')
+
     ax5.text2D(0.05, 0.75,
                '\n'.join([
                    fr'T1 = {T1:.4f},$',
-                   fr'$\Lambda_1=${eigenValues[0]:.4e}',
-                   fr'$\Lambda_2=${eigenValues[1]:.4e}',
-                   fr'$\Lambda_3=${eigenValues[2]:.4e}'
+                   fr'$\Lambda_1=${Floquet[0]:.4e}',
+                   fr'$\Lambda_2=${Floquet[1]:.4e}',
+                   fr'$\Lambda_3=${Floquet[2]:.4e}',
+                   fr'$\lambda_1=${Lyapunov[0]:.4e}',
+                   fr'$\lambda_2=${Lyapunov[1]:.4e}',
+                   fr'$\lambda_3=${Lyapunov[2]:.4e}'
                 ]),
                transform=ax5.transAxes,
-               bbox = dict(facecolor = 'xkcd:ivory',
-                           edgecolor = 'xkcd:brown',
-                           boxstyle = 'round,pad=1'))
-    ax5.set_title('Cycle')
+               bbox = bbox)
+    ax5.set_title('Provisional Cycle')
     ax5.legend(loc='lower left')
     ax5.xaxis.set_ticklabels([])
     ax5.yaxis.set_ticklabels([])
     ax5.zaxis.set_ticklabels([])
 
+    ax6 = fig.add_subplot(1,2,2,projection='3d')
     fig.suptitle('Rössler Attractor')
-    fig.tight_layout(pad = 1, h_pad = 5, w_pad = 1)
     fig.savefig(get_name_for_save(extra=2))
 
     elapsed = time() - start
