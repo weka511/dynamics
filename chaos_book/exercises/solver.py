@@ -35,6 +35,22 @@ def rk4(h,y,f=lambda y:y):
     k4 = h * f(y + k3)
     return y + (k1 + 2*k2 + 2*k3 + k4)/6
 
+def rkm(h,y,f=lambda y:y):
+    '''
+    Kutta-Merson method
+
+    https://encyclopediaofmath.org/wiki/Kutta-Merson_method
+
+    '''
+    k1 = h * f(y)
+    k2 = h * f(y + k1/3.0)
+    k3 = h * f(y + k1/6.0 + k2/6.0)
+    k4 = h * f(y + k1/8.0 + 3.0*k3/8.0)
+    k5 = h * f(y + k1/2.0 - 3*k3/2.0 + 2*k4)
+    y1 = y + k1/2.0 - 3.0*k3/2.0 + 2.0*k4
+    y2 = y + k1/6.0 + 2.0*k4/3.0 + k5/6.0
+    return y2,0.2*np.linalg.norm(y1-y2)
+
 if __name__ == '__main__':
     m = 100
     y = np.zeros((m+1,2))
@@ -48,4 +64,21 @@ if __name__ == '__main__':
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_title(f'{y[-1,0]:04f},{y[-1,1]:04f},{y[-1,0]**2 +y[-1,1]**2:04f}')
+
+    y = np.zeros((m+1,2))
+    y[0,1] = 1
+    R = np.zeros((m+1))
+    for i in range(1,m+1):
+        y[i,:],R[i] = rkm(2*np.pi/m, y[i-1,:], lambda y:np.array([-y[1],y[0]]))
+
+    fig = figure()
+    ax1 = fig.add_subplot(1,2,1)
+    ax1.plot(y[:,0],y[:,1],c='xkcd:blue')
+
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_title(f'{y[-1,0]:04f},{y[-1,1]:04f},{y[-1,0]**2 +y[-1,1]**2:04f}')
+    ax2 = fig.add_subplot(1,2,2)
+    ax2.plot(R[1:])
+
     show()
