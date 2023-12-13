@@ -30,17 +30,17 @@ from scipy.signal import argrelmin
 from rossler import Rossler, create_jacobian
 from solver import rk4
 
-def parse_args():
+def parse_args( N =100000,
+                N1 = 1000,
+                a = 0.2,
+                b = 0.2,
+                c = 5.0,
+                delta_t = 0.01,
+                theta = 120,
+                figs = './figs'):
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
-    N =100000
-    N1 = 1000
-    a = 0.2
-    b = 0.2
-    c = 5.0
-    delta_t = 0.01
-    theta = 120
-    parser.add_argument('--show',  default=False, action='store_true', help='Show plots [False]')
+    parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--N', default=N, type=int, help = f'Number of iterations for Orbit [{N:,}]')
     parser.add_argument('--N1', default=N1, type=int, help = f'Number of iterations for fixed point Orbit [{N1:,}]')
     parser.add_argument('--a', default= a, type=float, help = f'Parameter for Roessler equation [{a}]')
@@ -48,6 +48,7 @@ def parse_args():
     parser.add_argument('--c', default= c, type=float, help = f'Parameter for Roessler equation [{c}]')
     parser.add_argument('--delta_t', default= delta_t, type=float, help=f'Stepsize for integrating Orbit [{delta_t}]')
     parser.add_argument('--theta', default = theta, type=int, help=f'Angle in degrees for Poincare Section [{theta}]')
+    parser.add_argument('--figs', default = figs, help=f'Pathname to save figures [{figs}]')
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -74,7 +75,7 @@ class Template:
     @staticmethod
     def create(thetaPoincare = np.pi/4):
         e_x         = np.array([1, 0, 0], float)  # Unit vector in x-direction
-        sspTemplate = np.dot(Template.zRotation(thetaPoincare), e_x)  #Template vector to define the Poincare section hyperplane
+        sspTemplate = np.dot(Template.zRotation(thetaPoincare), e_x)  #Template vector to define the Poincaré section hyperplane
         nTemplate   = np.dot(Template.zRotation(np.pi/2), sspTemplate)  #Normal to this plane will be equal to template vector rotated pi/2 about the z axis
         e_z          = np.array([0, 0, 1], float)  # Unit vector in z direction
         ProjPoincare = np.array([sspTemplate,
@@ -136,7 +137,7 @@ def get_index_zero_crossings(orientation):
     Locate the positions where the orientation changes from -ve to +ve
 
     Parameters:
-        orientation
+        orientation   Array containing orientation of orbit at each point
     '''
     signs = np.sign(orientation)
     diffs = np.diff(signs)
@@ -147,8 +148,8 @@ def get_intersections(orientation,Orbit):
     Find points where Orbit intersects Poincaré section
 
     Parameters:
-        orientation
-        Orbit
+        orientation   Array containing orientation of orbit at each point
+        Orbit         Orbit of dynamics
     '''
     _,d = Orbit.shape
     index_zero_crossings = get_index_zero_crossings(orientation)
@@ -160,61 +161,88 @@ def get_intersections(orientation,Orbit):
         intersections[i,:] = (a1*Orbit[index_zero_crossings[i],:] + a0*Orbit[index_zero_crossings[i]+1,:])/(a0+a1)
     return intersections
 
-def create_radial(PoincareSection, seq=0):
-    radii1 = PoincareSection[:-1, seq]
-    radii2 = PoincareSection[1:, seq]
-    isort = np.argsort(radii1)
-    return radii1[isort], radii2[isort]
+def map_component(projection, seq=0):
+    '''
+    Create mapping for one specified component from one point to next
+
+    Parameters:
+        projection  Projection of orbit onto Poincaré section
+        seq         Used to control whether we map first or second component
+
+    Returns:
+        firsts, successors  A tuple of lists: each point in successors
+                            is the successor of the corresponding term in firsts.
+                            The list firsts in sorted in asnding order
+    '''
+    firsts = projection[:-1, seq]
+    successors = projection[1:, seq]
+    isort = np.argsort(firsts)
+    return firsts[isort], successors[isort]
 
 def fPoincare(s,tckPoincare):
     '''
-    Parametric interpolation to the Poincare section
+    Parametric interpolation to the Poincaré section
 
     Parameters:
         s           Arc length which parametrizes the curve, a float or dx1-dim numpy array
         tckPoincare
     Returns:
-        xy = x and y coordinates on the Poincare section, 2-dim numpy array
+        xy = x and y coordinates on the Poincaré section, 2-dim numpy array
              or (dx2)-dim numpy array
     '''
     interpolation = splev(s, tckPoincare)
     return np.array([interpolation[0], interpolation[1]], float).transpose()
 
-def get_fp(radii1,radii2):
+def get_fp(firsts,successors):
     '''
+    Find fixed point for specified component
     '''
-    r10 = radii1.min()
-    r20 = radii2.min()
-    r11 = radii1.max()
-    r21 = radii2.max()
-    tck = splrep(radii1,radii2)
-    rfixed = fsolve(lambda r: splev(r, tck) - r, r11)[0]
-    return rfixed, r10,r20,r11,r21
+    r10 = firsts.min()
+    r20 = successors.min()
+    r11 = firsts.max()
+    r21 = successors.max()
+    tck = splrep(firsts,successors)
+    return fsolve(lambda r: splev(r, tck) - r, r11)[0], r10,r20,r11,r21
 
-def create_orbit(sspfixed,N=1000,delta_t=0.01,dynamics=None):
+def create_orbit(ssp0,N=1000,delta_t=0.01,dynamics=None,integrator=rk4):
     '''
-    Solve equations to computer orbit
+    Solve equations to compute orbit
 
     Parameters:
-        sspfixed
-        N
-        delta_t
-        dynamics
+        ssp0       Starting point
+        N          Number of steps
+        delta_t    Time step
+        dynamics   The RHS of differential equation
+        integrator Method used to integrate ODE
     '''
     Orbit = np.empty((N,dynamics.d))
-    Orbit[0,:] = sspfixed
+    Orbit[0,:] = ssp0
     for i in range(1,N):
-        Orbit[i,:] = rk4(args.delta_t,Orbit[i-1],dynamics.Velocity)
+        Orbit[i,:] = integrator(args.delta_t,Orbit[i-1],dynamics.Velocity)
     return Orbit
 
-def get_T1(Orbit1,N=1000,delta_t=0.01,irange=12):
+def get_T1(Orbit,
+           N = 1000,
+           delta_t = 0.01,
+           irange = 12):
     '''
     Compute time to traverse orbit once. Traversal is defined as
-    minimizing the distance from the start point.
+    minimizing the distance from the start point. We will find a provisional minimum,
+    the point that is closest to start, then fit a curve to nearby points to improve
+    minimum.
+
+    Parameters:
+        Orbit      Calculated orbit
+        N          Subset of Orbit to search
+        delta_t    Time step
+        irange     Defines neighbourhood of provisional minimum that will be searched
+
+    Returns:
+        Time from start to minimum; if this is truly a cycle, this will be the period.
     '''
     distances = np.empty((N))
     for i in range(N):
-        distances[i] = np.linalg.norm(sspfixed - Orbit1[i,:])
+        distances[i] = np.linalg.norm(sspfixed - Orbit[i,:])
     # Find provisional minimum: closest point in orbit
     index_min, = argrelmin(distances)
     index_min = index_min[0]
@@ -227,11 +255,22 @@ def get_T1(Orbit1,N=1000,delta_t=0.01,irange=12):
     else:
         raise Exception('Could not find minimum')
 
-def get_stability(Jacobian,T1):
+def get_stability(Jacobian,T):
+    '''
+    Calculate Floquet and Lyapunov exponents after Chaosbook chapter 6
+
+    Parameters:
+        Jacobian  Time series containing Jacobian evaulated at a range of times
+        T         Time for evaluating Floquet and Lyapunov
+
+    Returns:
+        Floquet   Floquet multipliers evaluated at T
+        Lyapunov  Lyapunov exponents evaluated at T
+    '''
     Floquet, _ = np.linalg.eig(Jacobian[-1,:,:])
     JJ = np.dot(np.transpose(Jacobian[-1,:,:]),Jacobian[-1,:,:])
     Stretches2,_ = np.linalg.eig(JJ)
-    Lyapunov = np.log(np.sqrt(Stretches2))/T1 # see (6.4) and (6.9)
+    Lyapunov = np.log(np.sqrt(Stretches2))/T # see (6.4) and (6.9)
     return Floquet,Lyapunov
 
 if __name__=='__main__':
@@ -244,11 +283,11 @@ if __name__=='__main__':
     orientation = template.get_orientation(Orbit)
     intersections = get_intersections(orientation,Orbit)
     projection = template.get_projection(intersections)
-    radii1,radii2 = create_radial(projection)
+    component_1,component_2 = map_component(projection)
 
-    rfixed, r10,r20,r11,r21 = get_fp(radii1,radii2)
+    rfixed, r10,r20,r11,r21 = get_fp(component_1,component_2)
     rlims = [min(r10,r20),max(r11,r21)]
-    zs1,zs2 = create_radial(projection,seq=1)
+    zs1,zs2 = map_component(projection,seq=1)
     zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
     zlims = [min(z10,z20),max(z11,z21)]
 
@@ -292,7 +331,7 @@ if __name__=='__main__':
     ax2.legend(loc='upper left')
 
     ax3 = fig.add_subplot(2,2,3)
-    ax3.scatter(radii1,radii2,s=1,label='$r_{n+1}$ vs. $r_n$',c='xkcd:blue')
+    ax3.scatter(component_1,component_2,s=1,label='$r_{n+1}$ vs. $r_n$',c='xkcd:blue')
     ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
     ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
                 label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
@@ -315,7 +354,7 @@ if __name__=='__main__':
 
     fig.suptitle('Rössler Attractor')
     fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
-    fig.savefig(get_name_for_save(extra=1))
+    fig.savefig(get_name_for_save(figs=args.figs, extra=1))
 
     bbox = dict(facecolor = 'xkcd:ivory',
                 edgecolor = 'xkcd:brown',
@@ -335,7 +374,7 @@ if __name__=='__main__':
     ax5.scatter(Orbit1[:,0], Orbit1[:,1], Orbit1[:,2],
                 c = 'xkcd:green',
                 s = 1,
-                label = 'Cycle')
+                label = 'Provisional Cycle')
 
     ax5.text2D(0.05, 0.75,
                '\n'.join([
@@ -349,7 +388,7 @@ if __name__=='__main__':
                 ]),
                transform=ax5.transAxes,
                bbox = bbox)
-    ax5.set_title('Provisional Cycle')
+
     ax5.legend(loc='lower left')
     ax5.xaxis.set_ticklabels([])
     ax5.yaxis.set_ticklabels([])
@@ -357,7 +396,7 @@ if __name__=='__main__':
 
     ax6 = fig.add_subplot(1,2,2,projection='3d')
     fig.suptitle('Rössler Attractor')
-    fig.savefig(get_name_for_save(extra=2))
+    fig.savefig(get_name_for_save(figs=args.figs,extra=2))
 
     elapsed = time() - start
     minutes = int(elapsed/60)
