@@ -35,21 +35,43 @@ def rk4(h,y,f=lambda y:y):
     k4 = h * f(y + k3)
     return y + (k1 + 2*k2 + 2*k3 + k4)/6
 
-def rkm(h,y,f=lambda y:y):
+depth = 0
+
+def rkm(h,y,f=lambda y:y,tol=1.0e-10,N=6):
     '''
     Kutta-Merson method
 
     https://encyclopediaofmath.org/wiki/Kutta-Merson_method
 
     '''
-    k1 = h * f(y)
-    k2 = h * f(y + k1/3.0)
-    k3 = h * f(y + k1/6.0 + k2/6.0)
-    k4 = h * f(y + k1/8.0 + 3.0*k3/8.0)
-    k5 = h * f(y + k1/2.0 - 3*k3/2.0 + 2*k4)
-    y1 = y + k1/2.0 - 3.0*k3/2.0 + 2.0*k4
-    y2 = y + k1/6.0 + 2.0*k4/3.0 + k5/6.0
-    return y2,0.2*np.linalg.norm(y1-y2)
+    def step(h,y):
+        k1 = h * f(y)
+        k2 = h * f(y + k1/3.0)
+        k3 = h * f(y + k1/6.0 + k2/6.0)
+        k4 = h * f(y + k1/8.0 + 3.0*k3/8.0)
+        k5 = h * f(y + k1/2.0 - 3*k3/2.0 + 2*k4)
+        y1 = y + k1/2.0 - 3.0*k3/2.0 + 2.0*k4
+        y2 = y + k1/6.0 + 2.0*k4/3.0 + k5/6.0
+        return y2,0.2*np.linalg.norm(y1-y2)
+
+    global depth
+
+    for i in range(N):
+        y1 = y
+        K = 2**depth
+        h_too_small = True
+        for j in range(K):
+            y1,R = step(h/K,y1)
+            if R>tol:
+                depth += 1
+                break
+            if R>tol/64:
+                h_too_small = False
+        if h_too_small  and depth > 0:
+            depth -= 1
+        return y1
+
+    raise(f'Failed to converge within {tol} in {N} iterations')
 
 if __name__ == '__main__':
     m = 100
