@@ -23,7 +23,7 @@ from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
-from solver import rk4
+from solver import RK4
 
 class JacobianBearer:
     def __init__(self,d):
@@ -94,7 +94,7 @@ class Rossler(JacobianBearer):
                          [z,  0,      x - self.c]],
                         float)
 
-def create_jacobian(ssp, N, delta_t, rossler,d=3):
+def create_jacobian(ssp, N, delta_t, rossler,d=3,solver=RK4()):
     '''
     Jacobian function for the trajectory started on ssp, evolved for time t
 
@@ -115,7 +115,7 @@ def create_jacobian(ssp, N, delta_t, rossler,d=3):
     Orbit[0,:] = ssp
     sspJacobianSolution = sspJacobian0
     for i in range(N):
-        sspJacobianSolution = rk4(delta_t,sspJacobianSolution,rossler.JacobianVelocity)
+        sspJacobianSolution = solver.solve(delta_t,sspJacobianSolution,rossler.JacobianVelocity)
         Jacobian[i+1,:,:] = sspJacobianSolution[d:].reshape((d, d))
         Orbit[i+1,:] = sspJacobianSolution[0:d]
     return Jacobian,Orbit

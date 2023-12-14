@@ -28,7 +28,7 @@ from scipy.interpolate import splrep, splev
 from scipy.optimize import fsolve, minimize
 from scipy.signal import argrelmin
 from rossler import Rossler, create_jacobian
-from solver import rk4
+from solver import Create
 
 def parse_args( N =100000,
                 N1 = 1000,
@@ -37,7 +37,9 @@ def parse_args( N =100000,
                 c = 5.0,
                 delta_t = 0.01,
                 theta = 120,
-                figs = './figs'):
+                figs = './figs',
+                solver = 'rk4',
+                tol = 1e-12):
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
@@ -49,6 +51,12 @@ def parse_args( N =100000,
     parser.add_argument('--delta_t', default= delta_t, type=float, help=f'Stepsize for integrating Orbit [{delta_t}]')
     parser.add_argument('--theta', default = theta, type=int, help=f'Angle in degrees for Poincare Section [{theta}]')
     parser.add_argument('--figs', default = figs, help=f'Pathname to save figures [{figs}]')
+    parser.add_argument('--solver',
+                        default = solver,
+                        choices=['rk4','km'],
+                        type=str.lower,
+                        help=f'Method used to integrate ODE[{solver}]')
+    parser.add_argument('--tol', default= tol, type=float, help=f'Tolerance for Kutta Merson [{tol}]')
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -204,7 +212,7 @@ def get_fp(firsts,successors):
     tck = splrep(firsts,successors)
     return fsolve(lambda r: splev(r, tck) - r, r11)[0], r10,r20,r11,r21
 
-def create_orbit(ssp0,N=1000,delta_t=0.01,dynamics=None,integrator=rk4):
+def create_orbit(ssp0,N=1000,delta_t=0.01,dynamics=None,integrator=None):
     '''
     Solve equations to compute orbit
 
@@ -218,7 +226,7 @@ def create_orbit(ssp0,N=1000,delta_t=0.01,dynamics=None,integrator=rk4):
     Orbit = np.empty((N,dynamics.d))
     Orbit[0,:] = ssp0
     for i in range(1,N):
-        Orbit[i,:] = integrator(args.delta_t,Orbit[i-1],dynamics.Velocity)
+        Orbit[i,:] = integrator.solve(args.delta_t,Orbit[i-1],dynamics.Velocity)
     return Orbit
 
 def get_T1(Orbit,
@@ -278,7 +286,8 @@ if __name__=='__main__':
     args = parse_args()
 
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
-    Orbit = create_orbit(np.zeros((3)),N=args.N,delta_t=args.delta_t,dynamics=rossler)
+    integrator = Create(args)
+    Orbit = create_orbit(np.zeros((3)),N=args.N,delta_t=args.delta_t,dynamics=rossler,integrator=integrator)
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = template.get_orientation(Orbit)
     intersections = get_intersections(orientation,Orbit)
@@ -292,10 +301,10 @@ if __name__=='__main__':
     zlims = [min(z10,z20),max(z11,z21)]
 
     sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
-    Orbit1 = create_orbit(sspfixed, N=args.N1, delta_t=args.delta_t,dynamics=rossler)
+    Orbit1 = create_orbit(sspfixed, N=args.N1, delta_t=args.delta_t,dynamics=rossler,integrator=integrator)
 
     T1,N_T1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
-    Jacobian,_ = create_jacobian(sspfixed, N_T1, T1/N_T1, rossler)
+    Jacobian,_ = create_jacobian(sspfixed, N_T1, T1/N_T1, rossler,solver=integrator)
     Floquet,Lyapunov = get_stability(Jacobian,T1)
 
     fig = figure(figsize=(12,12))
