@@ -15,35 +15,47 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-'''Runge Kutta using numpy'''
+'''
+Library of Runge Kutta methods
+
+References:
+    Handbook of Mathematical Functions with Formulas, Graphs, and Mathematical Tables,
+    Abramowitz, Milton; Stegun, Irene Ann, eds. (1964)
+'''
 
 from abc import ABC, abstractmethod
 import numpy as np
 from matplotlib.pyplot import figure, show
 
 class Solver(ABC):
-    '''Solver'''
+    '''Parent class for Runge Kutta methods'''
     @abstractmethod
     def solve(self,h,y,f=lambda y:y):
         '''
         Solve ODE
 
             Parameters:
-                h      Step size
-                y      Initial value for y in y'=f(y)
-                f     Function in y=f(y)
+                h     Step size
+                y     Initial value for y
+                f     Function for ODE: dy/dt = f(y)
         '''
         ...
 
     def get_text(self):
-        lines = self.__doc__.split('\n')
-        for line in lines:
+        '''
+        Text to be displayed for a solver
+
+        Returns:
+            The first non-empty line in subsclass's doc string
+        '''
+        for line in self.__doc__.split('\n'):
             if len(line.strip())>0:
                 return line.strip()
 
 class RK4(Solver):
     '''
     Traditional 4th order Runge Kutta
+    Abramowitz and Stegun, 25.5.10
     '''
     def solve(self,h,y,f=lambda y:y):
         k1 = h * f(y)
@@ -70,8 +82,6 @@ class RK4_gill(Solver):
     Abramowitz and Stegun, 25.5.12
     '''
     def solve(self,h,y,f=lambda y:y):
-
-
         k1 = h * f(y)
         k2 = h * f(y + k1/2)
         k3 = h * f(y  + (-1 + np.sqrt(2)) * k1/2 + (1-np.sqrt(2)/2)*k2)
@@ -83,23 +93,32 @@ class KuttaMerson(Solver):
     Kutta-Merson method
 
     https://encyclopediaofmath.org/wiki/Kutta-Merson_method
-
     '''
-    def __init__(self,tol=1.0e-12,N=6):
+    def __init__(self,
+                 tol = 1.0e-12,
+                 N = 6,
+                 ErrorLowerBound = 64):
         self.depth = 0
         self.tol = tol
         self.N = N
+        self.ErrorLowerBound = ErrorLowerBound
 
     def solve(self,h,y,f=lambda y:y):
+        '''
+        Iterate until error is acceptable.
+        1. If error too large, try again with half the stepsize.
+        2. If error exceeds lower bound, increase stepsize if it was previously subdivided.
+        3. Raise an exception if error continues to be too large, after a certin number of sub-divisions
+        '''
         for i in range(self.N):
             y1 = y
             K = 2**self.depth
-            h_too_small = True
+            h_too_small = True   # Assume error too small unless proven otherwise
             for j in range(K):
                 y1,R = self.step(h/K,y1,f=f)
-                if R>self.tol/64:
+                if R > self.tol/self.ErrorLowerBound: # If any error not too small...
                     h_too_small = False
-                if R>self.tol:
+                if R > self.tol: # If any error too large, halve stepsize and retry
                     self.depth += 1
                     break
 
