@@ -15,8 +15,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Example 7-1 Rössler attractor fixed points'''
+'''
+    Example 7-1 Rössler attractor fixed points
 
+    We run a long simulation of the Rössler flow, plot a Poincaré section, as in figure 3.3,
+    and extract the corresponding return map, as in figure 3.4. Display cycle, Floquet multipliers,
+    and Lyapunov exponents.
+'''
 
 from argparse import ArgumentParser
 from os.path import  basename,splitext,join
@@ -28,7 +33,7 @@ from scipy.interpolate import splrep, splev
 from scipy.optimize import fsolve, minimize
 from scipy.signal import argrelmin
 from rossler import Rossler, create_jacobian
-from solver import Create
+from solver import SolverFactory
 
 def parse_args( N =100000,
                 N1 = 1000,
@@ -53,9 +58,9 @@ def parse_args( N =100000,
     parser.add_argument('--figs', default = figs, help=f'Pathname to save figures [{figs}]')
     parser.add_argument('--solver',
                         default = solver,
-                        choices=['rk4','km'],
-                        type=str.lower,
-                        help=f'Method used to integrate ODE[{solver}]')
+                        choices = SolverFactory.get_choices(),
+                        type = str.lower,
+                        help = f'Method used to integrate ODE[{solver}]')
     parser.add_argument('--tol', default= tol, type=float, help=f'Tolerance for Kutta Merson [{tol}]')
     return parser.parse_args()
 
@@ -286,7 +291,7 @@ if __name__=='__main__':
     args = parse_args()
 
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
-    integrator = Create(args)
+    integrator = SolverFactory.Create(args)
     Orbit = create_orbit(np.zeros((3)),N=args.N,delta_t=args.delta_t,dynamics=rossler,integrator=integrator)
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = template.get_orientation(Orbit)
@@ -361,7 +366,7 @@ if __name__=='__main__':
     ax4.legend(loc='lower right')
     ax4.set_aspect('equal')
 
-    fig.suptitle('Rössler Attractor')
+    fig.suptitle(f'Rössler Attractor, Integrator={integrator.get_text()}')
     fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
     fig.savefig(get_name_for_save(figs=args.figs, extra=1))
 
@@ -404,7 +409,7 @@ if __name__=='__main__':
     ax5.zaxis.set_ticklabels([])
 
     ax6 = fig.add_subplot(1,2,2,projection='3d')
-    fig.suptitle('Rössler Attractor')
+    fig.suptitle(f'Rössler Attractor, Integrator={integrator.get_text()}')
     fig.savefig(get_name_for_save(figs=args.figs,extra=2))
 
     elapsed = time() - start
