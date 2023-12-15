@@ -22,26 +22,61 @@ import numpy as np
 from matplotlib.pyplot import figure, show
 
 class Solver(ABC):
+    '''Solver'''
     @abstractmethod
     def solve(self,h,y,f=lambda y:y):
-        ...
-
-class RK4(Solver):
-
-    def solve(self,h,y,f=lambda y:y):
         '''
-        Traditional 4th order Runge Kutta
+        Solve ODE
 
             Parameters:
                 h      Step size
                 y      Initial value for y in y'=f(y)
                 f     Function in y=f(y)
         '''
+        ...
+
+    def get_text(self):
+        lines = self.__doc__.split('\n')
+        for line in lines:
+            if len(line.strip())>0:
+                return line.strip()
+
+class RK4(Solver):
+    '''
+    Traditional 4th order Runge Kutta
+    '''
+    def solve(self,h,y,f=lambda y:y):
         k1 = h * f(y)
         k2 = h * f(y + 0.5*k1)
         k3 = h * f(y + 0.5*k2)
         k4 = h * f(y + k3)
         return y + (k1 + 2*k2 + 2*k3 + k4)/6
+
+class RK4_38(Solver):
+    '''
+        3/8 Runge Kutta (4th order)
+        Abramowitz and Stegun, 25.5.11
+    '''
+    def solve(self,h,y,f=lambda y:y):
+        k1 = h * f(y)
+        k2 = h * f(y + k1/3)
+        k3 = h * f(y + k2 - k1/3)
+        k4 = h * f(y + k1 - k2 + k3)
+        return y + (k1 + 3*k2 + 3*k3 + k4)/8
+
+class RK4_gill(Solver):
+    '''
+    Gill's method
+    Abramowitz and Stegun, 25.5.12
+    '''
+    def solve(self,h,y,f=lambda y:y):
+
+
+        k1 = h * f(y)
+        k2 = h * f(y + k1/2)
+        k3 = h * f(y  + (-1 + np.sqrt(2)) * k1/2 + (1-np.sqrt(2)/2)*k2)
+        k4 = h * f(y - np.sqrt(2) * k2/2 + (1+np.sqrt(2)/2)*k3)
+        return y + (k1 + (2-np.sqrt(2))*k2 + (2+np.sqrt(2))*k3 + k4)/6
 
 class KuttaMerson(Solver):
     '''
@@ -84,9 +119,30 @@ class KuttaMerson(Solver):
         y2 = y + k1/6.0 + 2.0*k4/3.0 + k5/6.0
         return y2,0.2*np.linalg.norm(y1-y2)
 
-def Create(args):
-    if args.solver == 'rk4': return RK4()
-    if args.solver == 'km': return KuttaMerson(tol=args.tol)
+    def get_text(self):
+        title = super().get_text()
+        return f'{title}, tol={self.tol:.2e}'
+
+class SolverFactory:
+    '''
+    Used to instantiate a solver
+    '''
+    @staticmethod
+    def get_choices():
+        '''
+        Get list of solvers that are supported
+        '''
+        return ['rk4','rk4.38','km','rkg']
+
+    @staticmethod
+    def Create(args):
+        '''
+        Instantiate solver
+        '''
+        if args.solver == 'rk4': return RK4()
+        if args.solver == 'rkg': return RK4_gill()
+        if args.solver == 'rk4.38': return RK4_38()
+        if args.solver == 'km': return KuttaMerson(tol=args.tol)
 
 if __name__ == '__main__':
     m = 100
