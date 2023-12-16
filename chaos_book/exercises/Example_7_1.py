@@ -83,6 +83,34 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
+def create_start(dynamics=None,eps=1e-6):
+    '''
+    Choose a starting point for an Orbit, located on the unstable manifold near a fixed point.
+    '''
+    eq0 = fsolve(dynamics.Velocity, np.array([0, 0, 0], float))
+    Aeq0 = dynamics.StabilityMatrix(eq0)
+    _, eigenVectors = np.linalg.eig(Aeq0)
+    v1 = np.real(eigenVectors[:, 0])
+    v1 = v1 / np.linalg.norm(v1)
+    return eq0 + eps * v1
+
+def create_orbit(ssp0,N=1000,delta_t=0.01,dynamics=None,integrator=None):
+    '''
+    Solve equations to compute orbit
+
+    Parameters:
+        ssp0       Starting point
+        N          Number of steps
+        delta_t    Time step
+        dynamics   The RHS of differential equation
+        integrator Method used to integrate ODE
+    '''
+    Orbit = np.empty((N,dynamics.d))
+    Orbit[0,:] = ssp0
+    for i in range(1,N):
+        Orbit[i,:] = integrator.solve(args.delta_t,Orbit[i-1],dynamics.Velocity)
+    return Orbit
+
 class Template:
     '''Represents a flat Poincaré Section'''
     @staticmethod
@@ -145,17 +173,6 @@ class Template:
         '''
         return np.dot(ssp,self.ProjPoincare)
 
-def get_index_zero_crossings(orientation):
-    '''
-    Locate the positions where the orientation changes from -ve to +ve
-
-    Parameters:
-        orientation   Array containing orientation of orbit at each point
-    '''
-    signs = np.sign(orientation)
-    diffs = np.diff(signs)
-    return np.where(diffs>0)[0]
-
 def get_intersections(orientation,Orbit):
     '''
     Find points where Orbit intersects Poincaré section
@@ -164,8 +181,20 @@ def get_intersections(orientation,Orbit):
         orientation   Array containing orientation of orbit at each point
         Orbit         Orbit of dynamics
     '''
+
+    def get_index_zero_crossings():
+        '''
+        Locate the positions where the orientation changes from -ve to +ve
+
+        Parameters:
+            orientation   Array containing orientation of orbit at each point
+        '''
+        signs = np.sign(orientation)
+        diffs = np.diff(signs)
+        return np.where(diffs>0)[0]
+
     _,d = Orbit.shape
-    index_zero_crossings = get_index_zero_crossings(orientation)
+    index_zero_crossings = get_index_zero_crossings()
     m, = index_zero_crossings.shape
     intersections = np.empty((m,d))
     for i in range(m):
@@ -217,22 +246,7 @@ def get_fp(firsts,successors):
     tck = splrep(firsts,successors)
     return fsolve(lambda r: splev(r, tck) - r, r11)[0], r10,r20,r11,r21
 
-def create_orbit(ssp0,N=1000,delta_t=0.01,dynamics=None,integrator=None):
-    '''
-    Solve equations to compute orbit
 
-    Parameters:
-        ssp0       Starting point
-        N          Number of steps
-        delta_t    Time step
-        dynamics   The RHS of differential equation
-        integrator Method used to integrate ODE
-    '''
-    Orbit = np.empty((N,dynamics.d))
-    Orbit[0,:] = ssp0
-    for i in range(1,N):
-        Orbit[i,:] = integrator.solve(args.delta_t,Orbit[i-1],dynamics.Velocity)
-    return Orbit
 
 def get_T1(Orbit,
            N = 1000,
@@ -286,13 +300,19 @@ def get_stability(Jacobian,T):
     Lyapunov = np.log(np.sqrt(Stretches2))/T # see (6.4) and (6.9)
     return Floquet,Lyapunov
 
+
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
 
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
     integrator = SolverFactory.Create(args)
-    Orbit = create_orbit(np.zeros((3)),N=args.N,delta_t=args.delta_t,dynamics=rossler,integrator=integrator)
+    Orbit = create_orbit(create_start(dynamics=rossler),
+                         N = args.N,
+                         delta_t = args.delta_t,
+                         dynamics = rossler,
+                         integrator = integrator)
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = template.get_orientation(Orbit)
     intersections = get_intersections(orientation,Orbit)
@@ -311,6 +331,24 @@ if __name__=='__main__':
     T1,N_T1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
     Jacobian,_ = create_jacobian(sspfixed, N_T1, T1/N_T1, rossler,solver=integrator)
     Floquet,Lyapunov = get_stability(Jacobian,T1)
+
+    N2 = N_T1
+    error = np.zeros(4)
+    error[0:3] = Orbit1[N2] - sspfixed
+    Newton = np.zeros((4, 4))
+    sspfixed2 = sspfixed.copy()
+    for k in range(100):
+        Newton[0:3, 0:3] = 1 - Jacobian[N2,:,:]
+        Newton[0:3, 3] = - rossler.Velocity( sspfixed2)
+        Newton[3, 0:3] = template.nTemplate
+        Delta = np.dot(np.linalg.inv(Newton), error)
+        sspfixed2 += + Delta[0:3]
+        T2 = T1 + Delta[3]
+        N2 = int(T2/args.delta_t) +1
+        Orbit2 = create_orbit(sspfixed2, N=N2, delta_t=T2/N2,dynamics=rossler,integrator=integrator)
+        error[0:3] = Orbit2[-1,:] - sspfixed2
+        Jacobian,_ = create_jacobian(sspfixed2, N2, T2/N2, rossler,solver=integrator)
+        print (T2,sspfixed2)
 
     fig = figure(figsize=(12,12))
 
@@ -409,6 +447,21 @@ if __name__=='__main__':
     ax5.zaxis.set_ticklabels([])
 
     ax6 = fig.add_subplot(1,2,2,projection='3d')
+    ax6.scatter(sspfixed2[0], sspfixed2[1],sspfixed2[2],
+                c = 'xkcd:terracotta',
+                s = 50,
+                marker = 'x',
+                label = 'Start')
+    ax6.text(sspfixed2[0], sspfixed2[1],sspfixed2[2],  f'({sspfixed2[0]:.4f},{sspfixed2[1]:.4f},{sspfixed2[2]:.4f})',
+             size = 12,
+             zorder = 1,
+             color='xkcd:terracotta',
+             bbox = bbox)
+    ax6.scatter(Orbit2[:,0], Orbit2[:,1], Orbit2[:,2],
+                c = 'xkcd:green',
+                s = 1,
+                label = 'Improved Cycle')
+
     fig.suptitle(f'Rössler Attractor, Integrator={integrator.get_text()}')
     fig.savefig(get_name_for_save(figs=args.figs,extra=2))
 
