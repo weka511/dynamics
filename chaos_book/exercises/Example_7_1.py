@@ -319,11 +319,10 @@ def improve_estimate(Orbit1, sspfixed, N_T1, Jacobian, dynamics=None,solver=None
         Delta = np.dot(np.linalg.inv(Newton), error)
         sspfixed2 += + Delta[0:3]
         T2 = T1 + Delta[3]
-        N2 = int(T2/args.delta_t) +1
-        Orbit2 = create_orbit(sspfixed2, N=N2, delta_t=T2/N2,dynamics=rossler,integrator=solver)
+        N2 = int(T2/args.delta_t) + 1
+        Orbit2 = create_orbit(sspfixed2, N=N2, delta_t=T2/N2, dynamics=rossler, integrator=solver)
         error[0:3] = Orbit2[-1,:] - sspfixed2
-        Jacobian2,_ = create_jacobian(sspfixed2, N2, T2/N2, rossler,solver=solver)
-        print (T2,sspfixed2,error)
+        Jacobian2,_ = create_jacobian(sspfixed2, N2 + 1, T2/N2, rossler,solver=solver)
         if error.max()<tol:
             return T2,sspfixed2,Orbit2,Jacobian2
 
@@ -422,46 +421,31 @@ if __name__=='__main__':
     bbox = dict(facecolor = 'xkcd:ivory',
                 edgecolor = 'xkcd:brown',
                 boxstyle = 'round,pad=1')
-    fig = figure(figsize=(12,12))
-    ax5 = fig.add_subplot(1,2,1,projection='3d')
-    ax5.scatter(sspfixed[0], sspfixed[1],sspfixed[2],
-                c = 'xkcd:terracotta',
-                s = 50,
-                marker = 'x',
-                label = 'Start')
-    ax5.text(sspfixed[0], sspfixed[1],sspfixed[2],  f'({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})',
-             size = 12,
-             zorder = 1,
-             color='xkcd:terracotta',
-             bbox = bbox)
-    ax5.scatter(Orbit1[:,0], Orbit1[:,1], Orbit1[:,2],
-                c = 'xkcd:green',
-                s = 1,
-                label = 'Provisional Cycle')
 
-    ax5.legend(loc='lower left')
+    fig = figure(figsize=(12,12))
+    ax5 = fig.add_subplot(1,1,1,projection='3d')
+
     ax5.xaxis.set_ticklabels([])
     ax5.yaxis.set_ticklabels([])
     ax5.zaxis.set_ticklabels([])
 
-    ax6 = fig.add_subplot(1,2,2,projection='3d')
-    ax6.scatter(sspfixed2[0], sspfixed2[1],sspfixed2[2],
+    ax5.scatter(sspfixed2[0], sspfixed2[1],sspfixed2[2],
                 c = 'xkcd:terracotta',
                 s = 50,
                 marker = 'x',
                 label = 'Start')
-    ax6.text(sspfixed2[0], sspfixed2[1],sspfixed2[2],  f'({sspfixed2[0]:.4f},{sspfixed2[1]:.4f},{sspfixed2[2]:.4f})',
+    ax5.text(sspfixed2[0], sspfixed2[1],sspfixed2[2],  f'({sspfixed2[0]:.4f},{sspfixed2[1]:.4f},{sspfixed2[2]:.4f})',
              size = 12,
              zorder = 1,
              color='xkcd:terracotta',
              bbox = bbox)
-    ax6.scatter(Orbit2[:,0], Orbit2[:,1], Orbit2[:,2],
-                c = 'xkcd:green',
-                s = 1,
+    ax5.scatter(Orbit2[:,0], Orbit2[:,1], Orbit2[:,2],
+                c = 'xkcd:purple',
+                s = 5,
                 label = 'Improved Cycle')
-    ax6.text2D(0.05, 0.75,
+    ax5.text2D(0.05, 0.75,
                '\n'.join([
-                   fr'T = {T2:.4f},$',
+                   fr'$T = ${T2:.4f},',
                    fr'$\Lambda_1=${Floquet[0]:.4e}',
                    fr'$\Lambda_2=${Floquet[1]:.4e}',
                    fr'$\Lambda_3=${Floquet[2]:.4e}',
@@ -469,8 +453,9 @@ if __name__=='__main__':
                    fr'$\lambda_2=${Lyapunov[1]:.4e}',
                    fr'$\lambda_3=${Lyapunov[2]:.4e}'
                 ]),
-               transform=ax6.transAxes,
+               transform = ax5.transAxes,
                bbox = bbox)
+    ax5.legend(loc='lower left')
 
     fig.suptitle(f'Rössler Attractor, Integrator={integrator.get_text()}')
     fig.savefig(get_name_for_save(figs=args.figs,extra=2))
