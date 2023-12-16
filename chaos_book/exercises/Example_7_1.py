@@ -43,7 +43,7 @@ def parse_args( N =100000,
                 delta_t = 0.01,
                 theta = 120,
                 figs = './figs',
-                solver = 'rk4',
+                solver = 'rkg',
                 tol = 1e-12):
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
@@ -63,25 +63,6 @@ def parse_args( N =100000,
                         help = f'Method used to integrate ODE[{solver}]')
     parser.add_argument('--tol', default= tol, type=float, help=f'Tolerance for Kutta Merson [{tol}]')
     return parser.parse_args()
-
-def get_name_for_save(extra = None,
-                      sep = '-',
-                      figs = './figs'):
-    '''
-    Extract name for saving figure
-
-    Parameters:
-        extra    Used if we want to save more than one figure to distinguish file names
-        sep      Used if we want to save more than one figure to separate extra from basic file name
-        figs     Path name for saving figure
-
-    Returns:
-        A file name composed of pathname for figures, plus the base name for
-        source file, with extra ditinguising information if required
-    '''
-    basic = splitext(basename(__file__))[0]
-    name = basic if extra==None else f'{basic}{sep}{extra}'
-    return join(figs,name)
 
 def create_start(dynamics=None,eps=1e-6):
     '''
@@ -300,33 +281,53 @@ def get_stability(Jacobian,T):
     Lyapunov = np.log(np.sqrt(Stretches2))/T # see (6.4) and (6.9)
     return Floquet,Lyapunov
 
-def improve_estimate(Orbit1, sspfixed, N_T1, Jacobian, dynamics=None,solver=None,K=25,tol=5.0e-3):
+def improve_estimate(Orbit1, sspfixed, T1, N_T1, Jacobian, dynamics=None,solver=None,K=25,tol=5.0e-3):
     '''
     Use Newton's method to improve estimate for cycle.
 
     Based on Chaos Book chapter 7 and code snarfed from Chaos Book wk3.
     '''
     N2 = N_T1
-    error = np.zeros(4)
-    error[0:3] = Orbit1[N2] - sspfixed
-    Newton = np.zeros((4, 4))
+    T2 = T1
+    error = np.zeros(dynamics.d + 1)
+    error[0:dynamics.d] = Orbit1[N2] - sspfixed
+    Newton = np.zeros((dynamics.d + 1, dynamics.d + 1))
     sspfixed2 = sspfixed.copy()
     Jacobian2 = Jacobian.copy()
     for k in range(K):
-        Newton[0:3, 0:3] = 1 - Jacobian2[N2,:,:]
-        Newton[0:3, 3] = - rossler.Velocity( sspfixed2)
-        Newton[3, 0:3] = template.nTemplate
+        Newton[0:dynamics.d , 0:dynamics.d ] = 1 - Jacobian2[N2,:,:]
+        Newton[0:dynamics.d, dynamics.d] = - rossler.Velocity( sspfixed2)
+        Newton[dynamics.d, 0:dynamics.d] = template.nTemplate
         Delta = np.dot(np.linalg.inv(Newton), error)
-        sspfixed2 += + Delta[0:3]
-        T2 = T1 + Delta[3]
+        sspfixed2 += + Delta[0:dynamics.d]
+        T2 += Delta[dynamics.d]
         N2 = int(T2/args.delta_t) + 1
         Orbit2 = create_orbit(sspfixed2, N=N2, delta_t=T2/N2, dynamics=rossler, integrator=solver)
-        error[0:3] = Orbit2[-1,:] - sspfixed2
+        error[0:dynamics.d] = Orbit2[-1,:] - sspfixed2
         Jacobian2,_ = create_jacobian(sspfixed2, N2 + 1, T2/N2, rossler,solver=solver)
         if error.max()<tol:
             return T2,sspfixed2,Orbit2,Jacobian2
 
     raise Exception(f'Error {error.max()} exceeds {tol} after {K} iterations')
+
+def get_name_for_save(extra = None,
+                      sep = '-',
+                      figs = './figs'):
+    '''
+    Extract name for saving figure
+
+    Parameters:
+        extra    Used if we want to save more than one figure to distinguish file names
+        sep      Used if we want to save more than one figure to separate extra from basic file name
+        figs     Path name for saving figure
+
+    Returns:
+        A file name composed of pathname for figures, plus the base name for
+        source file, with extra distinguising information if required
+    '''
+    basic = splitext(basename(__file__))[0]
+    name = basic if extra==None else f'{basic}{sep}{extra}'
+    return join(figs,name)
 
 if __name__=='__main__':
     start  = time()
@@ -357,7 +358,7 @@ if __name__=='__main__':
     T1,N_T1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
     Jacobian,_ = create_jacobian(sspfixed, N_T1, T1/N_T1, rossler,solver=integrator)
 
-    T2,sspfixed2,Orbit2,Jacobian2 = improve_estimate(Orbit1, sspfixed, N_T1, Jacobian, dynamics=rossler,solver=integrator)
+    T2,sspfixed2,Orbit2,Jacobian2 = improve_estimate(Orbit1, sspfixed, T1, N_T1, Jacobian, dynamics=rossler,solver=integrator)
     Floquet,Lyapunov = get_stability(Jacobian2,T2)
 
     fig = figure(figsize=(12,12))

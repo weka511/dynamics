@@ -43,7 +43,7 @@ def get_name_for_save(extra = None,
 
     Returns:
         A file name composed of pathname for figures, plus the base name for
-        source file, with extra ditinguising information if required
+        source file, with extra distinguising information if required
     '''
     basic = splitext(basename(__file__))[0]
     name = basic if extra==None else f'{basic}{sep}{extra}'
