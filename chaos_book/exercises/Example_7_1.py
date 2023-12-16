@@ -300,7 +300,34 @@ def get_stability(Jacobian,T):
     Lyapunov = np.log(np.sqrt(Stretches2))/T # see (6.4) and (6.9)
     return Floquet,Lyapunov
 
+def improve_estimate(Orbit1, sspfixed, N_T1, Jacobian, dynamics=None,solver=None,K=25,tol=5.0e-3):
+    '''
+    Use Newton's method to improve estimate for cycle.
 
+    Based on Chaos Book chapter 7 and code snarfed from Chaos Book wk3.
+    '''
+    N2 = N_T1
+    error = np.zeros(4)
+    error[0:3] = Orbit1[N2] - sspfixed
+    Newton = np.zeros((4, 4))
+    sspfixed2 = sspfixed.copy()
+    Jacobian2 = Jacobian.copy()
+    for k in range(K):
+        Newton[0:3, 0:3] = 1 - Jacobian2[N2,:,:]
+        Newton[0:3, 3] = - rossler.Velocity( sspfixed2)
+        Newton[3, 0:3] = template.nTemplate
+        Delta = np.dot(np.linalg.inv(Newton), error)
+        sspfixed2 += + Delta[0:3]
+        T2 = T1 + Delta[3]
+        N2 = int(T2/args.delta_t) +1
+        Orbit2 = create_orbit(sspfixed2, N=N2, delta_t=T2/N2,dynamics=rossler,integrator=solver)
+        error[0:3] = Orbit2[-1,:] - sspfixed2
+        Jacobian2,_ = create_jacobian(sspfixed2, N2, T2/N2, rossler,solver=solver)
+        print (T2,sspfixed2,error)
+        if error.max()<tol:
+            return T2,sspfixed2,Orbit2,Jacobian2
+
+    raise Exception(f'Error {error.max()} exceeds {tol} after {K} iterations')
 
 if __name__=='__main__':
     start  = time()
@@ -330,25 +357,9 @@ if __name__=='__main__':
 
     T1,N_T1 = get_T1(Orbit1,N=args.N1,delta_t=args.delta_t)
     Jacobian,_ = create_jacobian(sspfixed, N_T1, T1/N_T1, rossler,solver=integrator)
-    Floquet,Lyapunov = get_stability(Jacobian,T1)
 
-    N2 = N_T1
-    error = np.zeros(4)
-    error[0:3] = Orbit1[N2] - sspfixed
-    Newton = np.zeros((4, 4))
-    sspfixed2 = sspfixed.copy()
-    for k in range(100):
-        Newton[0:3, 0:3] = 1 - Jacobian[N2,:,:]
-        Newton[0:3, 3] = - rossler.Velocity( sspfixed2)
-        Newton[3, 0:3] = template.nTemplate
-        Delta = np.dot(np.linalg.inv(Newton), error)
-        sspfixed2 += + Delta[0:3]
-        T2 = T1 + Delta[3]
-        N2 = int(T2/args.delta_t) +1
-        Orbit2 = create_orbit(sspfixed2, N=N2, delta_t=T2/N2,dynamics=rossler,integrator=integrator)
-        error[0:3] = Orbit2[-1,:] - sspfixed2
-        Jacobian,_ = create_jacobian(sspfixed2, N2, T2/N2, rossler,solver=integrator)
-        print (T2,sspfixed2)
+    T2,sspfixed2,Orbit2,Jacobian2 = improve_estimate(Orbit1, sspfixed, N_T1, Jacobian, dynamics=rossler,solver=integrator)
+    Floquet,Lyapunov = get_stability(Jacobian2,T2)
 
     fig = figure(figsize=(12,12))
 
@@ -428,19 +439,6 @@ if __name__=='__main__':
                 s = 1,
                 label = 'Provisional Cycle')
 
-    ax5.text2D(0.05, 0.75,
-               '\n'.join([
-                   fr'T1 = {T1:.4f},$',
-                   fr'$\Lambda_1=${Floquet[0]:.4e}',
-                   fr'$\Lambda_2=${Floquet[1]:.4e}',
-                   fr'$\Lambda_3=${Floquet[2]:.4e}',
-                   fr'$\lambda_1=${Lyapunov[0]:.4e}',
-                   fr'$\lambda_2=${Lyapunov[1]:.4e}',
-                   fr'$\lambda_3=${Lyapunov[2]:.4e}'
-                ]),
-               transform=ax5.transAxes,
-               bbox = bbox)
-
     ax5.legend(loc='lower left')
     ax5.xaxis.set_ticklabels([])
     ax5.yaxis.set_ticklabels([])
@@ -461,6 +459,18 @@ if __name__=='__main__':
                 c = 'xkcd:green',
                 s = 1,
                 label = 'Improved Cycle')
+    ax6.text2D(0.05, 0.75,
+               '\n'.join([
+                   fr'T = {T2:.4f},$',
+                   fr'$\Lambda_1=${Floquet[0]:.4e}',
+                   fr'$\Lambda_2=${Floquet[1]:.4e}',
+                   fr'$\Lambda_3=${Floquet[2]:.4e}',
+                   fr'$\lambda_1=${Lyapunov[0]:.4e}',
+                   fr'$\lambda_2=${Lyapunov[1]:.4e}',
+                   fr'$\lambda_3=${Lyapunov[2]:.4e}'
+                ]),
+               transform=ax6.transAxes,
+               bbox = bbox)
 
     fig.suptitle(f'Rössler Attractor, Integrator={integrator.get_text()}')
     fig.savefig(get_name_for_save(figs=args.figs,extra=2))
