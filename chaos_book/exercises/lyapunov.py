@@ -234,6 +234,24 @@ def improve(sspfixed0,T,dynamics=None,K = 50,tol=1.0e-6,method='RK23'):
 
     raise Exception(f'Error {error.max()} exceeds {tol} after {K} iterations')
 
+def get_stability(Jacobian,T):
+    '''
+    Calculate Floquet and Lyapunov exponents after Chaosbook chapter 6
+
+    Parameters:
+        Jacobian  Time series containing Jacobian evaulated at a range of times
+        T         Time for evaluating Floquet and Lyapunov
+
+    Returns:
+        Floquet   Floquet multipliers evaluated at T
+        Lyapunov  Lyapunov exponents evaluated at T
+    '''
+    Floquet, _ = np.linalg.eig(Jacobian[-1,:,:])
+    JJ = np.dot(np.transpose(Jacobian[-1,:,:]),Jacobian[-1,:,:])
+    Stretches2,_ = np.linalg.eig(JJ)
+    Lyapunov = np.log(np.sqrt(Stretches2))/T # see (6.4) and (6.9)
+    return Floquet,Lyapunov
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
@@ -270,6 +288,7 @@ if __name__=='__main__':
     ts = np.where(solution1.t<t_refined)
     nn = len(ts[0])
     T,sspfixed,Orbit,Jacobian = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method)
+    Floquet,Lyapunov = get_stability(Jacobian,T)
 
     fig = figure(figsize=(12,12))
 
@@ -323,7 +342,9 @@ if __name__=='__main__':
 
     fig = figure(figsize=(12,12))
     ax5 = fig.add_subplot(1,1,1,projection='3d')
-
+    bbox = dict(facecolor = 'xkcd:ivory',
+                edgecolor = 'xkcd:brown',
+                boxstyle = 'round,pad=1')
     ax5.xaxis.set_ticklabels([])
     ax5.yaxis.set_ticklabels([])
     ax5.zaxis.set_ticklabels([])
@@ -335,7 +356,23 @@ if __name__=='__main__':
                 label=f'T={T:.4f}, SSP=({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
 
 
-    ax5.legend()
+    ax5.text2D(0.05, 0.75,
+            '\n'.join([
+                fr'$T = ${T:.4f},',
+                fr'$\Lambda_1=${Floquet[0]:.4e}',
+                fr'$\Lambda_2=${Floquet[1]:.4e}',
+                fr'$\Lambda_3=${Floquet[2]:.4e}',
+                fr'$\lambda_1=${Lyapunov[0]:.4e}',
+                fr'$\lambda_2=${Lyapunov[1]:.4e}',
+                fr'$\lambda_3=${Lyapunov[2]:.4e}'
+             ]),
+            transform = ax5.transAxes,
+            bbox = bbox)
+    ax5.legend(loc='lower left')
+
+    fig.suptitle(f'Rössler Attractor')
+    fig.savefig(get_name_for_save(figs=args.figs,extra=2))
+
 
     elapsed = time() - start
     minutes = int(elapsed/60)
