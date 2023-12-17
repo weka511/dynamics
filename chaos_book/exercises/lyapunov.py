@@ -39,7 +39,8 @@ def parse_args( T =1000,
                 b = 0.2,
                 c = 5.0,
                 theta = 120,
-                figs = './figs'):
+                figs = './figs',
+                method = 'RK23'):
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
@@ -49,6 +50,10 @@ def parse_args( T =1000,
     parser.add_argument('--c', default= c, type=float, help = f'Parameter for Roessler equation [{c}]')
     parser.add_argument('--theta', default = theta, type=int, help=f'Angle in degrees for Poincare Section [{theta}]')
     parser.add_argument('--figs', default = figs, help=f'Pathname to save figures [{figs}]')
+    parser.add_argument('--method',
+                        default = method,
+                        choices = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'],
+                        help=f'Integration method to use [{method}]')
     return parser.parse_args()
 
 class Template:
@@ -87,7 +92,7 @@ class Template:
         Calculate the U(x) using Chaosbook eq (3.14).
 
         Parameters:
-            ssp   A 3 vectopr representing the point
+            ssp   A 3 vector representing the point
 
         Returns:
             Zero if x is on the Poincaré Section;
@@ -182,6 +187,7 @@ if __name__=='__main__':
     get_orientation.direction = 1.0
 
     solution = solve_ivp(lambda t,y:rossler.Velocity(y),(0,args.T),create_start(dynamics=rossler),
+                         method = args.method,
                          events = [get_orientation])
 
     crossings = solution.y_events[0]
@@ -194,6 +200,28 @@ if __name__=='__main__':
     zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
     zlims = [min(z10,z20),max(z11,z21)]
 
+    # get_orientation = lambda t,y: template.get_orientation(y)
+    # get_orientation.direction = 1.0
+    # np.linalg.norm(sspfixed - Orbit[i,:])
+    previous_distance = 0
+    def get_delta_distance(t,y):
+        global previous_distance
+        d1 = np.linalg.norm(sspfixed - y)
+        result = d1 - previous_distance
+        previous_distance = d1
+        return result
+    get_delta_distance.direction = 1.0
+
+    sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
+    n_crossings,_ = crossings.shape
+    Tguess = args.T / n_crossings
+    solution1 = solve_ivp(lambda t,y:rossler.Velocity(y),(0,Tguess),sspfixed,
+                          events = [get_delta_distance],
+                          method = args.method)
+    t_events = solution1.t_events[0]
+    t_refined = t_events[1]
+    ts = np.where(solution1.t<t_refined)
+    nn = len(ts[0])
     fig = figure(figsize=(12,12))
 
     ax1 = fig.add_subplot(2,2,1,projection='3d')
@@ -243,6 +271,25 @@ if __name__=='__main__':
     fig.suptitle(f'Rössler Attractor')
     fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
     fig.savefig(get_name_for_save(figs=args.figs, extra=1))
+
+    fig = figure(figsize=(12,12))
+    ax5 = fig.add_subplot(1,1,1,projection='3d')
+
+    ax5.xaxis.set_ticklabels([])
+    ax5.yaxis.set_ticklabels([])
+    ax5.zaxis.set_ticklabels([])
+    ax5.scatter(solution1.y[0,0:nn], solution1.y[1,0:nn], solution1.y[2,0:nn],c='xkcd:green',label=f'T refined{t_refined}')
+    ax5.scatter(sspfixed[0], sspfixed[1],sspfixed[2],
+                c = 'xkcd:terracotta',
+                s = 50,
+                marker = 'x',
+                label = f'Start {sspfixed}')
+    ax5.scatter(solution1.y[0,0:nn], solution1.y[1,0:nn], solution1.y[2,0:nn],
+                c = 'xkcd:terracotta',
+                marker = '+',
+                s = 50,
+                label=f'{solution1.y[:,nn]}')
+    ax5.legend()
 
     elapsed = time() - start
     minutes = int(elapsed/60)
