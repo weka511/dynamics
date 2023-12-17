@@ -177,6 +177,63 @@ def get_fp(firsts,successors):
     tck = splrep(firsts,successors)
     return fsolve(lambda r: splev(r, tck) - r, r11)[0], r10,r20,r11,r21
 
+previous_distance = 0
+
+def get_delta_distance(t,y,sspfixed):
+    global previous_distance
+    d1 = np.linalg.norm(sspfixed - y)
+    result = d1 - previous_distance
+    previous_distance = d1
+    return result
+
+def create_jacobian(ssp,T, dynamics=None,method='RK23'):
+    '''
+    Jacobian function for the trajectory started on ssp, evolved for time t
+
+    Inputs:
+        ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
+        t: Integration time
+    Outputs:
+        J: Jacobian of trajectory f^t(ssp). dxd NumPy array
+    '''
+    Jacobian0 = np.identity(dynamics.d)
+    sspJacobian0  = np.empty(dynamics.d + dynamics.d ** 2,dtype=float)
+    sspJacobian0[0:dynamics.d] = ssp
+    sspJacobian0[dynamics.d:] = np.reshape(Jacobian0, dynamics.d**2)
+
+    # Jacobian[0,:,:] = sspJacobian0[dynamics.d:].reshape((dynamics.d, dynamics.d))
+    solution = solve_ivp(lambda t,y:dynamics.JacobianVelocity(y),(0,T),sspJacobian0,
+                         method = method)
+    _,n = solution.y.shape
+    Jacobian = np.empty((n,dynamics.d,dynamics.d),dtype=float)
+    Orbit = np.empty((n,dynamics.d))
+    for i in range(n):
+        Jacobian[i,:,:] = solution.y[dynamics.d:,i].reshape((dynamics.d, dynamics.d))
+        Orbit[i,:] = solution.y[0:dynamics.d,i]
+    return Jacobian,Orbit
+
+def improve(sspfixed0,T,dynamics=None,K = 50,tol=1.0e-6,method='RK23'):
+    sspfixed = sspfixed0.copy()
+    Jacobian,Orbit = create_jacobian(sspfixed, T,
+                                     dynamics = dynamics,
+                                     method = method)
+    error = np.zeros(dynamics.d + 1)
+    error[0:dynamics.d] = Orbit[-1,:] - sspfixed
+    Newton = np.zeros((dynamics.d + 1, dynamics.d + 1))
+    for k in range(K):
+        Newton[0:dynamics.d , 0:dynamics.d ] = 1 - Jacobian[-1,:,:]
+        Newton[0:dynamics.d, dynamics.d] = - dynamics.Velocity( sspfixed)
+        Newton[dynamics.d, 0:dynamics.d] = template.nTemplate
+        Delta = np.dot(np.linalg.inv(Newton), error)
+        sspfixed += Delta[0:dynamics.d]
+        T += Delta[dynamics.d]
+        Jacobian,Orbit = create_jacobian(sspfixed, T, rossler,method=args.method)
+        error[0:dynamics.d] = Orbit[-1,:] - sspfixed
+    if error.max()<tol:
+        return T,sspfixed,Orbit,Jacobian
+
+    raise Exception(f'Error {error.max()} exceeds {tol} after {K} iterations')
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
@@ -200,28 +257,20 @@ if __name__=='__main__':
     zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
     zlims = [min(z10,z20),max(z11,z21)]
 
-    # get_orientation = lambda t,y: template.get_orientation(y)
-    # get_orientation.direction = 1.0
-    # np.linalg.norm(sspfixed - Orbit[i,:])
-    previous_distance = 0
-    def get_delta_distance(t,y):
-        global previous_distance
-        d1 = np.linalg.norm(sspfixed - y)
-        result = d1 - previous_distance
-        previous_distance = d1
-        return result
-    get_delta_distance.direction = 1.0
-
-    sspfixed = template.get_projectionT(np.array([rfixed,zfixed,0]))
+    sspfixed0 = template.get_projectionT(np.array([rfixed,zfixed,0]))
+    get_delta_distance_event = lambda t,y: get_delta_distance(t,y,sspfixed0)
+    get_delta_distance_event.direction = 1.0
     n_crossings,_ = crossings.shape
     Tguess = args.T / n_crossings
-    solution1 = solve_ivp(lambda t,y:rossler.Velocity(y),(0,Tguess),sspfixed,
-                          events = [get_delta_distance],
+    solution1 = solve_ivp(lambda t,y:rossler.Velocity(y),(0,Tguess),sspfixed0,
+                          events = [get_delta_distance_event],
                           method = args.method)
     t_events = solution1.t_events[0]
     t_refined = t_events[1]
     ts = np.where(solution1.t<t_refined)
     nn = len(ts[0])
+    T,sspfixed,Orbit,Jacobian = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method)
+
     fig = figure(figsize=(12,12))
 
     ax1 = fig.add_subplot(2,2,1,projection='3d')
@@ -278,17 +327,14 @@ if __name__=='__main__':
     ax5.xaxis.set_ticklabels([])
     ax5.yaxis.set_ticklabels([])
     ax5.zaxis.set_ticklabels([])
-    ax5.scatter(solution1.y[0,0:nn], solution1.y[1,0:nn], solution1.y[2,0:nn],c='xkcd:green',label=f'T refined{t_refined}')
-    ax5.scatter(sspfixed[0], sspfixed[1],sspfixed[2],
-                c = 'xkcd:terracotta',
-                s = 50,
-                marker = 'x',
-                label = f'Start {sspfixed}')
     ax5.scatter(solution1.y[0,0:nn], solution1.y[1,0:nn], solution1.y[2,0:nn],
-                c = 'xkcd:terracotta',
-                marker = '+',
-                s = 50,
-                label=f'{solution1.y[:,nn]}')
+                c = 'xkcd:green',
+                label = f'T={t_refined:.4f}, SSP=({sspfixed0[0]:.4f},{sspfixed0[1]:.4f},{sspfixed0[2]:.4f})')
+    ax5.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
+                c='xkcd:purple',
+                label=f'T={T:.4f}, SSP=({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
+
+
     ax5.legend()
 
     elapsed = time() - start
