@@ -25,6 +25,7 @@
 
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
+from logging import basicConfig,INFO,FileHandler,StreamHandler,info
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
@@ -40,11 +41,14 @@ def parse_args( T =1000,
                 c = 5.0,
                 theta = 120,
                 figs = './figs',
-                method = 'RK23'):
+                method = 'RK23',
+                K = 50,
+                tol = 1.0e-7,
+                atol = 1.0e-12):
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
-    parser.add_argument('--T', default=T, type=int, help = f'Time for initial [{T:,}]')
+    parser.add_argument('--T', default=T, type=int, help = f'Period of time for integrating Roessler equation[{T:,}]')
     parser.add_argument('--a', default= a, type=float, help = f'Parameter for Roessler equation [{a}]')
     parser.add_argument('--b', default= b, type=float, help = f'Parameter for Roessler equation [{b}]')
     parser.add_argument('--c', default= c, type=float, help = f'Parameter for Roessler equation [{c}]')
@@ -54,6 +58,9 @@ def parse_args( T =1000,
                         default = method,
                         choices = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'],
                         help=f'Integration method to use [{method}]')
+    parser.add_argument('--K', default = K, type=int, help=f'Number of iterations for Newton [{K}]')
+    parser.add_argument('--tol', default = tol, type=float, help=f'Tolerance for Newton [{tol}]')
+    parser.add_argument('--atol', default = atol, type=float, help=f'Tolerance for onegration [{atol}]')
     return parser.parse_args()
 
 class Template:
@@ -221,7 +228,7 @@ class DeltaDistance(EventFactory):
         self.previous_distance = d1
         return result
 
-def create_jacobian(ssp,T, dynamics=None,method='RK23'):
+def create_jacobian(ssp,T, dynamics=None,method='RK23',atol=1e-12):
     '''
     Jacobian function for the trajectory started on ssp, evolved for time t
 
@@ -236,9 +243,8 @@ def create_jacobian(ssp,T, dynamics=None,method='RK23'):
     sspJacobian0[0:dynamics.d] = ssp
     sspJacobian0[dynamics.d:] = np.reshape(Jacobian0, dynamics.d**2)
 
-    # Jacobian[0,:,:] = sspJacobian0[dynamics.d:].reshape((dynamics.d, dynamics.d))
     solution = solve_ivp(lambda t,y:dynamics.JacobianVelocity(y),(0,T),sspJacobian0,
-                         method = method)
+                         method = method,atol=atol)
     _,n = solution.y.shape
     Jacobian = np.empty((n,dynamics.d,dynamics.d),dtype=float)
     Orbit = np.empty((n,dynamics.d))
@@ -250,12 +256,30 @@ def create_jacobian(ssp,T, dynamics=None,method='RK23'):
 def improve(sspfixed0,T,dynamics=None,K = 50,tol=1.0e-7,method='RK23'):
     '''
     Use Newton's method to improve solution
+
+    Parameters:
+        sspfixed0
+        T
+        dynamics
+        K
+        tol
+
+    Returns:
+        T
+        sspfixed
+        Orbit
+        Jacobian
+        k
+        error.max()
     '''
     sspfixed = sspfixed0.copy()
     error = np.zeros(dynamics.d + 1)
     Newton = np.zeros((dynamics.d + 1, dynamics.d + 1))
     for k in range(K):
-        Jacobian,Orbit = create_jacobian(sspfixed, T, dynamics = dynamics,method=method)
+        Jacobian,Orbit = create_jacobian(sspfixed, T,
+                                         dynamics = dynamics,
+                                         method = method,
+                                         atol = args.atol)
         error[0:dynamics.d] = Orbit[-1,:] - sspfixed
         if k>0 and error.max()<tol:
             return T,sspfixed,Orbit,Jacobian,k,error.max()
@@ -287,15 +311,23 @@ def get_stability(Jacobian,T):
     return Floquet,Lyapunov
 
 if __name__=='__main__':
+    basicConfig(
+        level=INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            FileHandler(f'{splitext(basename(__file__))[0]}.log'),
+            StreamHandler()
+        ]
+    )
+
     start  = time()
     args = parse_args()
 
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
     orientation = GetOrientation(template)
-    # get_orientation = lambda t,y: template.get_orientation(y)
-    # get_orientation.direction = 1.0
-
+    info(f'T={args.T}, a={args.a}, b={args.b}, c={args.c}, theta={args.theta}')
+    info(f'method={args.method}, K={args.K}, tol={args.tol}, atol={args.atol}')
     solution = solve_ivp(lambda t,y:rossler.Velocity(y),(0,args.T),create_start(dynamics=rossler),
                          method = args.method,
                          events = [orientation.create()])
@@ -322,9 +354,11 @@ if __name__=='__main__':
     ts = np.where(solution1.t<t_refined)
     nn = len(ts[0])
     T,sspfixed,Orbit,Jacobian,k,error = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method)
-    print (f'Error {error:.2e} after {k} iterations')
     Floquet,Lyapunov = get_stability(Jacobian,T)
-
+    info (f'Error {error:.2e} after {k} iterations')
+    info (f'T={T}')
+    info(f'Floquet={Floquet}')
+    info(f'Lyapunov={Lyapunov}')
     fig = figure(figsize=(12,12))
 
     ax1 = fig.add_subplot(2,2,1,projection='3d')
@@ -390,7 +424,6 @@ if __name__=='__main__':
                 c='xkcd:purple',
                 label=f'T={T:.4f}, SSP=({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
 
-
     ax5.text2D(0.05, 0.75,
             '\n'.join([
                 fr'$T = ${T:.4f},',
@@ -408,10 +441,10 @@ if __name__=='__main__':
     fig.suptitle(f'Rössler Attractor')
     fig.savefig(get_name_for_save(figs=args.figs,extra=2))
 
-
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
-    print (f'Elapsed Time {minutes} m {seconds:.2f} s')
+
+    info (f'Elapsed Time {minutes} m {seconds:.2f} s')
     if args.show:
         show()
