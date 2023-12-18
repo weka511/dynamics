@@ -56,7 +56,7 @@ def parse_args( T_init = 1000,
     parser.add_argument('--figs', default = figs, help=f'Pathname to save figures [{figs}]')
     parser.add_argument('--method',
                         default = method,
-                        choices = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA'],
+                        choices = ['RK45', 'RK23', 'DOP853'],
                         help=f'Integration method to use [{method}]')
     parser.add_argument('--K', default = K, type=int, help=f'Number of iterations for Newton [{K}]')
     parser.add_argument('--tol', default = tol, type=float, help=f'Tolerance for Newton [{tol}]')
@@ -333,6 +333,9 @@ if __name__=='__main__':
                              events = [orientation.create()])
 
         crossings = solution.y_events[0]
+
+        if len(crossings)==0:
+            raise Exception('No crossings found!')
         projection = template.get_projection(crossings)
         component_1,component_2 = map_component(projection)
 
