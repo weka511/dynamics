@@ -43,8 +43,7 @@ wk16|ksSub.py|-|Turbulence
 exercises|henon.py|6.3| How unstable is the Hénon attractor?
 -|pinball.py|9.1|A pinball simulator. Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point.
 -|rossler.py|6.3|Rössler attractor Lyapunov Exponents
--|Example_7_1.py|7.1|Rössler attractor: Fixed Points, Floquet Multipliers, and Lyapunov Exponents
--|lyapunov.py|7.1|Rössler attractor: Fixed Points, Floquet Multipliers, and Lyapunov Exponents using scipy.integrate.solve_ivp
+-|lyapunov.py|7.1|Rössler attractor: Fixed Points, Floquet Multipliers, and Lyapunov Exponents
 -|trapped.py|9.2|Trapped orbits. Construct figure 1.9 using Monte-Carlo simulation
 -|xkcd.py|-|Support for [the 954 most common RGB monitor colors, as defined in the xkcd color name survey](https://xkcd.com/color/rgb/)
 -|rgb.txt|-|Data downloaded from [XKCD survey](https://xkcd.com/color/rgb.txt)
