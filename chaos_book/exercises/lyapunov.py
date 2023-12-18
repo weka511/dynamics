@@ -25,7 +25,7 @@
 
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
-from logging import basicConfig,INFO,FileHandler,StreamHandler,info
+from logging import basicConfig,INFO,FileHandler,StreamHandler,info,error
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
@@ -35,20 +35,20 @@ from scipy.interpolate import splrep, splev
 from scipy.optimize import fsolve
 from rossler import Rossler
 
-def parse_args( T =1000,
+def parse_args( T_init = 1000,
                 a = 0.2,
                 b = 0.2,
                 c = 5.0,
                 theta = 120,
                 figs = './figs',
-                method = 'RK23',
+                method = 'RK45',
                 K = 50,
                 tol = 1.0e-7,
                 atol = 1.0e-12):
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
-    parser.add_argument('--T', default=T, type=int, help = f'Period of time for integrating Roessler equation[{T:,}]')
+    parser.add_argument('--T_init', default=T_init, type=int, help = f'Period of time for integrating Roessler equation[{T_init:,}]')
     parser.add_argument('--a', default= a, type=float, help = f'Parameter for Roessler equation [{a}]')
     parser.add_argument('--b', default= b, type=float, help = f'Parameter for Roessler equation [{b}]')
     parser.add_argument('--c', default= c, type=float, help = f'Parameter for Roessler equation [{c}]')
@@ -322,129 +322,131 @@ if __name__=='__main__':
 
     start  = time()
     args = parse_args()
+    try:
+        rossler = Rossler(a = args.a, b = args.b, c = args.c)
+        template = Template.create(thetaPoincare=np.deg2rad(args.theta))
+        orientation = GetOrientation(template)
+        info(f'T={args.T_init}, a={args.a}, b={args.b}, c={args.c}, theta={args.theta}')
+        info(f'method={args.method}, K={args.K}, tol={args.tol}, atol={args.atol}')
+        solution = solve_ivp(lambda t,y:rossler.Velocity(y),(0,args.T_init),create_start(dynamics=rossler),
+                             method = args.method,
+                             events = [orientation.create()])
 
-    rossler = Rossler(a = args.a, b = args.b, c = args.c)
-    template = Template.create(thetaPoincare=np.deg2rad(args.theta))
-    orientation = GetOrientation(template)
-    info(f'T={args.T}, a={args.a}, b={args.b}, c={args.c}, theta={args.theta}')
-    info(f'method={args.method}, K={args.K}, tol={args.tol}, atol={args.atol}')
-    solution = solve_ivp(lambda t,y:rossler.Velocity(y),(0,args.T),create_start(dynamics=rossler),
-                         method = args.method,
-                         events = [orientation.create()])
+        crossings = solution.y_events[0]
+        projection = template.get_projection(crossings)
+        component_1,component_2 = map_component(projection)
 
-    crossings = solution.y_events[0]
-    projection = template.get_projection(crossings)
-    component_1,component_2 = map_component(projection)
+        rfixed, r10,r20,r11,r21 = get_fp(component_1,component_2)
+        rlims = [min(r10,r20),max(r11,r21)]
+        zs1,zs2 = map_component(projection,seq=1)
+        zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
+        zlims = [min(z10,z20),max(z11,z21)]
 
-    rfixed, r10,r20,r11,r21 = get_fp(component_1,component_2)
-    rlims = [min(r10,r20),max(r11,r21)]
-    zs1,zs2 = map_component(projection,seq=1)
-    zfixed, z10,z20,z11,z21 = get_fp(zs1,zs2)
-    zlims = [min(z10,z20),max(z11,z21)]
+        sspfixed0 = template.get_projectionT(np.array([rfixed,zfixed,0]))
+        delta_distance = DeltaDistance(sspfixed0)
+        n_crossings,_ = crossings.shape
+        Tguess = args.T_init / n_crossings
+        solution1 = solve_ivp(lambda t,y:rossler.Velocity(y),(0,Tguess),sspfixed0,
+                              events = [delta_distance.create()],
+                              method = args.method)
+        t_events = solution1.t_events[0]
+        t_refined = t_events[1]
+        ts = np.where(solution1.t<t_refined)
+        nn = len(ts[0])
+        T,sspfixed,Orbit,Jacobian,k,error = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method,K=args.K,tol=args.tol)
+        Floquet,Lyapunov = get_stability(Jacobian,T)
+        info (f'Error {error:.2e} after {k} iterations')
+        info (f'T={T}')
+        info(f'Floquet={Floquet}')
+        info(f'Lyapunov={Lyapunov}')
+        fig = figure(figsize=(12,12))
 
-    sspfixed0 = template.get_projectionT(np.array([rfixed,zfixed,0]))
-    delta_distance = DeltaDistance(sspfixed0)
-    n_crossings,_ = crossings.shape
-    Tguess = args.T / n_crossings
-    solution1 = solve_ivp(lambda t,y:rossler.Velocity(y),(0,Tguess),sspfixed0,
-                          events = [delta_distance.create()],
-                          method = args.method)
-    t_events = solution1.t_events[0]
-    t_refined = t_events[1]
-    ts = np.where(solution1.t<t_refined)
-    nn = len(ts[0])
-    T,sspfixed,Orbit,Jacobian,k,error = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method)
-    Floquet,Lyapunov = get_stability(Jacobian,T)
-    info (f'Error {error:.2e} after {k} iterations')
-    info (f'T={T}')
-    info(f'Floquet={Floquet}')
-    info(f'Lyapunov={Lyapunov}')
-    fig = figure(figsize=(12,12))
+        ax1 = fig.add_subplot(2,2,1,projection='3d')
+        ax1.scatter(solution.y[0,:], solution.y[1,:], solution.y[2,:],s=1,c='xkcd:blue',label='Rössler')
+        ax1.scatter(crossings[:,0], crossings[:,1], crossings[:,2],s=25,c='xkcd:red',label='Crossing Poincaré Section')
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
+        ax1.set_zlabel('z')
+        ax1.set_title(fr'Orbit T={args.T_init:,}')
+        ax1.legend()
 
-    ax1 = fig.add_subplot(2,2,1,projection='3d')
-    ax1.scatter(solution.y[0,:], solution.y[1,:], solution.y[2,:],s=1,c='xkcd:blue',label='Rössler')
-    ax1.scatter(crossings[:,0], crossings[:,1], crossings[:,2],s=25,c='xkcd:red',label='Crossing Poincaré Section')
-    ax1.set_xlabel('x')
-    ax1.set_ylabel('y')
-    ax1.set_zlabel('z')
-    ax1.set_title(fr'Orbit T={args.T:,}')
-    ax1.legend()
+        ax2 = fig.add_subplot(2,2,2)
+        ax2.scatter(projection[:,0],projection[:,1],s=1,label='Crossings',c='xkcd:blue')
+        ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
+        ax2.axvline(rfixed,
+                    linestyle=':',
+                    label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
+        ax2.axhline(zfixed,
+                    linestyle=':',
+                    label=f'Fixed z={zfixed:.06f}',c='xkcd:forest green')
+        ax2.set_xlabel('r')
+        ax2.set_ylabel('z')
+        ax2.legend(loc='upper left')
 
-    ax2 = fig.add_subplot(2,2,2)
-    ax2.scatter(projection[:,0],projection[:,1],s=1,label='Crossings',c='xkcd:blue')
-    ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
-    ax2.axvline(rfixed,
-                linestyle=':',
-                label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
-    ax2.axhline(zfixed,
-                linestyle=':',
-                label=f'Fixed z={zfixed:.06f}',c='xkcd:forest green')
-    ax2.set_xlabel('r')
-    ax2.set_ylabel('z')
-    ax2.legend(loc='upper left')
+        ax3 = fig.add_subplot(2,2,3)
+        ax3.scatter(component_1,component_2,s=1,label='$r_{n+1}$ vs. $r_n$',c='xkcd:blue')
+        ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
+        ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
+                    label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
+        ax3.set_title('Return map (r)')
+        ax3.set_xlabel('$r_n$')
+        ax3.set_ylabel('$r_{n+1}$')
+        ax3.legend(loc='lower right')
+        ax3.set_aspect('equal')
 
-    ax3 = fig.add_subplot(2,2,3)
-    ax3.scatter(component_1,component_2,s=1,label='$r_{n+1}$ vs. $r_n$',c='xkcd:blue')
-    ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
-    ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
-                label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
-    ax3.set_title('Return map (r)')
-    ax3.set_xlabel('$r_n$')
-    ax3.set_ylabel('$r_{n+1}$')
-    ax3.legend(loc='lower right')
-    ax3.set_aspect('equal')
+        ax4 = fig.add_subplot(2,2,4)
+        ax4.scatter(zs1,zs2,s=1,label='$z_{n+1}$ vs. $z_n$',c='xkcd:blue')
+        ax4.plot(zlims,zlims,linestyle='--',label='$z_{n+1}=z_n$',c='xkcd:aqua')
+        ax4.axvline(zfixed,linestyle=':',
+                    label=f'Fixed z={zfixed:.06f}',c='xkcd:olive')
+        ax4.set_title('Return map (z)')
+        ax4.set_xlabel('$z_n$')
+        ax4.set_ylabel('$z_{n+1}$')
+        ax4.legend(loc='lower right')
+        ax4.set_aspect('equal')
 
-    ax4 = fig.add_subplot(2,2,4)
-    ax4.scatter(zs1,zs2,s=1,label='$z_{n+1}$ vs. $z_n$',c='xkcd:blue')
-    ax4.plot(zlims,zlims,linestyle='--',label='$z_{n+1}=z_n$',c='xkcd:aqua')
-    ax4.axvline(zfixed,linestyle=':',
-                label=f'Fixed z={zfixed:.06f}',c='xkcd:olive')
-    ax4.set_title('Return map (z)')
-    ax4.set_xlabel('$z_n$')
-    ax4.set_ylabel('$z_{n+1}$')
-    ax4.legend(loc='lower right')
-    ax4.set_aspect('equal')
+        fig.suptitle(f'Rössler Attractor: method={args.method}, T={args.T_init}, atol={args.atol}')
+        fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
+        fig.savefig(get_name_for_save(figs=args.figs, extra=1))
 
-    fig.suptitle(f'Rössler Attractor')
-    fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
-    fig.savefig(get_name_for_save(figs=args.figs, extra=1))
+        fig = figure(figsize=(12,12))
+        ax5 = fig.add_subplot(1,1,1,projection='3d')
+        bbox = dict(facecolor = 'xkcd:ivory',
+                    edgecolor = 'xkcd:brown',
+                    boxstyle = 'round,pad=1')
+        ax5.xaxis.set_ticklabels([])
+        ax5.yaxis.set_ticklabels([])
+        ax5.zaxis.set_ticklabels([])
+        ax5.scatter(solution1.y[0,0:nn], solution1.y[1,0:nn], solution1.y[2,0:nn],
+                    c = 'xkcd:green',
+                    label = f'Initial: T={t_refined:.4f}, SSP=({sspfixed0[0]:.4f},{sspfixed0[1]:.4f},{sspfixed0[2]:.4f})')
+        ax5.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
+                    c='xkcd:purple',
+                    label=f'Final: T={T:.4f}, SSP=({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
 
-    fig = figure(figsize=(12,12))
-    ax5 = fig.add_subplot(1,1,1,projection='3d')
-    bbox = dict(facecolor = 'xkcd:ivory',
-                edgecolor = 'xkcd:brown',
-                boxstyle = 'round,pad=1')
-    ax5.xaxis.set_ticklabels([])
-    ax5.yaxis.set_ticklabels([])
-    ax5.zaxis.set_ticklabels([])
-    ax5.scatter(solution1.y[0,0:nn], solution1.y[1,0:nn], solution1.y[2,0:nn],
-                c = 'xkcd:green',
-                label = f'T={t_refined:.4f}, SSP=({sspfixed0[0]:.4f},{sspfixed0[1]:.4f},{sspfixed0[2]:.4f})')
-    ax5.scatter(Orbit[:,0], Orbit[:,1], Orbit[:,2],
-                c='xkcd:purple',
-                label=f'T={T:.4f}, SSP=({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
+        ax5.text2D(0.05, 0.75,
+                '\n'.join([
+                    fr'$T = ${T:.4f},',
+                    fr'$\Lambda_1=${Floquet[0]:.4e}',
+                    fr'$\Lambda_2=${Floquet[1]:.4e}',
+                    fr'$\Lambda_3=${Floquet[2]:.4e}',
+                    fr'$\lambda_1=${Lyapunov[0]:.4e}',
+                    fr'$\lambda_2=${Lyapunov[1]:.4e}',
+                    fr'$\lambda_3=${Lyapunov[2]:.4e}'
+                 ]),
+                transform = ax5.transAxes,
+                bbox = bbox)
+        ax5.legend(loc='lower left')
 
-    ax5.text2D(0.05, 0.75,
-            '\n'.join([
-                fr'$T = ${T:.4f},',
-                fr'$\Lambda_1=${Floquet[0]:.4e}',
-                fr'$\Lambda_2=${Floquet[1]:.4e}',
-                fr'$\Lambda_3=${Floquet[2]:.4e}',
-                fr'$\lambda_1=${Lyapunov[0]:.4e}',
-                fr'$\lambda_2=${Lyapunov[1]:.4e}',
-                fr'$\lambda_3=${Lyapunov[2]:.4e}'
-             ]),
-            transform = ax5.transAxes,
-            bbox = bbox)
-    ax5.legend(loc='lower left')
+        fig.suptitle(f'Rössler Attractor: method={args.method}, K={args.K}, tol={args.tol}, atol={args.atol}')
+        fig.savefig(get_name_for_save(figs=args.figs,extra=2))
 
-    fig.suptitle(f'Rössler Attractor')
-    fig.savefig(get_name_for_save(figs=args.figs,extra=2))
+        elapsed = time() - start
+        minutes = int(elapsed/60)
+        seconds = elapsed - 60*minutes
+        info (f'Elapsed Time {minutes} m {seconds:.2f} s')
+        if args.show:
+            show()
+    except Exception as exception:
+        error(exception, exc_info=1)
 
-    elapsed = time() - start
-    minutes = int(elapsed/60)
-    seconds = elapsed - 60*minutes
-
-    info (f'Elapsed Time {minutes} m {seconds:.2f} s')
-    if args.show:
-        show()
