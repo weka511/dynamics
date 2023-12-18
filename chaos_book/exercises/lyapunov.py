@@ -23,7 +23,7 @@
     and Lyapunov exponents.
 '''
 
-
+from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from os.path import  basename,splitext,join
 from time import time
@@ -177,14 +177,49 @@ def get_fp(firsts,successors):
     tck = splrep(firsts,successors)
     return fsolve(lambda r: splev(r, tck) - r, r11)[0], r10,r20,r11,r21
 
-previous_distance = 0
+class EventFactory(ABC):
+    '''
+    Used to create events for solve_ivp
+    '''
+    @abstractmethod
+    def get(self,t,y):
+        '''
+        Compute the value that solve_ivp uses to trigger and event
+        '''
+        ...
 
-def get_delta_distance(t,y,sspfixed):
-    global previous_distance
-    d1 = np.linalg.norm(sspfixed - y)
-    result = d1 - previous_distance
-    previous_distance = d1
-    return result
+    def create(self,direction = 1.0):
+        '''
+        Create an event in the format that solve_ivp expects
+        '''
+        product = lambda t,y: self.get(t,y)
+        product.direction = direction
+        return product
+
+class GetOrientation(EventFactory):
+    '''
+    Used to create events for solve_ivp to determine that a solution has crosses the Poincaré surface
+    '''
+    def __init__(self,template):
+        self.template = template
+
+    def get(self,t,y):
+        return self.template.get_orientation(y)
+
+
+class DeltaDistance(EventFactory):
+    '''
+    Used to create events for solve_ivp to determine that a solution has passed the start point
+    '''
+    def __init__(self,sspfixed):
+        self.previous_distance = 0
+        self.sspfixed = sspfixed
+
+    def get(self,t,y):
+        d1 = np.linalg.norm(self.sspfixed - y)
+        result = d1 - self.previous_distance
+        self.previous_distance = d1
+        return result
 
 def create_jacobian(ssp,T, dynamics=None,method='RK23'):
     '''
@@ -212,27 +247,26 @@ def create_jacobian(ssp,T, dynamics=None,method='RK23'):
         Orbit[i,:] = solution.y[0:dynamics.d,i]
     return Jacobian,Orbit
 
-def improve(sspfixed0,T,dynamics=None,K = 50,tol=1.0e-6,method='RK23'):
+def improve(sspfixed0,T,dynamics=None,K = 50,tol=1.0e-7,method='RK23'):
+    '''
+    Use Newton's method to improve solution
+    '''
     sspfixed = sspfixed0.copy()
-    Jacobian,Orbit = create_jacobian(sspfixed, T,
-                                     dynamics = dynamics,
-                                     method = method)
     error = np.zeros(dynamics.d + 1)
-    error[0:dynamics.d] = Orbit[-1,:] - sspfixed
     Newton = np.zeros((dynamics.d + 1, dynamics.d + 1))
     for k in range(K):
+        Jacobian,Orbit = create_jacobian(sspfixed, T, dynamics = dynamics,method=method)
+        error[0:dynamics.d] = Orbit[-1,:] - sspfixed
+        if k>0 and error.max()<tol:
+            return T,sspfixed,Orbit,Jacobian,k,error.max()
         Newton[0:dynamics.d , 0:dynamics.d ] = 1 - Jacobian[-1,:,:]
         Newton[0:dynamics.d, dynamics.d] = - dynamics.Velocity( sspfixed)
         Newton[dynamics.d, 0:dynamics.d] = template.nTemplate
         Delta = np.dot(np.linalg.inv(Newton), error)
         sspfixed += Delta[0:dynamics.d]
         T += Delta[dynamics.d]
-        Jacobian,Orbit = create_jacobian(sspfixed, T, rossler,method=args.method)
-        error[0:dynamics.d] = Orbit[-1,:] - sspfixed
-    if error.max()<tol:
-        return T,sspfixed,Orbit,Jacobian
 
-    raise Exception(f'Error {error.max()} exceeds {tol} after {K} iterations')
+    raise Exception(f'Error {error.max()} still exceeds {tol} after {K} iterations')
 
 def get_stability(Jacobian,T):
     '''
@@ -258,12 +292,13 @@ if __name__=='__main__':
 
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
     template = Template.create(thetaPoincare=np.deg2rad(args.theta))
-    get_orientation = lambda t,y: template.get_orientation(y)
-    get_orientation.direction = 1.0
+    orientation = GetOrientation(template)
+    # get_orientation = lambda t,y: template.get_orientation(y)
+    # get_orientation.direction = 1.0
 
     solution = solve_ivp(lambda t,y:rossler.Velocity(y),(0,args.T),create_start(dynamics=rossler),
                          method = args.method,
-                         events = [get_orientation])
+                         events = [orientation.create()])
 
     crossings = solution.y_events[0]
     projection = template.get_projection(crossings)
@@ -276,18 +311,18 @@ if __name__=='__main__':
     zlims = [min(z10,z20),max(z11,z21)]
 
     sspfixed0 = template.get_projectionT(np.array([rfixed,zfixed,0]))
-    get_delta_distance_event = lambda t,y: get_delta_distance(t,y,sspfixed0)
-    get_delta_distance_event.direction = 1.0
+    delta_distance = DeltaDistance(sspfixed0)
     n_crossings,_ = crossings.shape
     Tguess = args.T / n_crossings
     solution1 = solve_ivp(lambda t,y:rossler.Velocity(y),(0,Tguess),sspfixed0,
-                          events = [get_delta_distance_event],
+                          events = [delta_distance.create()],
                           method = args.method)
     t_events = solution1.t_events[0]
     t_refined = t_events[1]
     ts = np.where(solution1.t<t_refined)
     nn = len(ts[0])
-    T,sspfixed,Orbit,Jacobian = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method)
+    T,sspfixed,Orbit,Jacobian,k,error = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method)
+    print (f'Error {error:.2e} after {k} iterations')
     Floquet,Lyapunov = get_stability(Jacobian,T)
 
     fig = figure(figsize=(12,12))
