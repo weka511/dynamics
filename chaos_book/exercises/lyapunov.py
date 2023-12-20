@@ -301,20 +301,20 @@ def improve(sspfixed0,T,dynamics=None,K = 50,tol=1.0e-7,method='RK23'):
 
 def get_stability(Jacobian,T):
     '''
-    Calculate Floquet and Lyapunov exponents after Chaosbook chapter 6
+    Calculate Floquet and Lyapunov exponents after Chaosbook chapters 5 and 6
 
     Parameters:
-        Jacobian  Time series containing Jacobian evaulated at a range of times
+        Jacobian  Time series containing Jacobian evaluated at a range of times
         T         Time for evaluating Floquet and Lyapunov
 
     Returns:
         Floquet   Floquet multipliers evaluated at T
         Lyapunov  Lyapunov exponents evaluated at T
     '''
-    Floquet, _ = np.linalg.eig(Jacobian[-1,:,:])
-    JJ = np.dot(np.transpose(Jacobian[-1,:,:]),Jacobian[-1,:,:])
+    Floquet, _ = np.linalg.eig(Jacobian[-1,:,:])  # see 5.2.1
+    JJ = np.dot(np.transpose(Jacobian[-1,:,:]),Jacobian[-1,:,:]) # see (6.4)
     Stretches2,_ = np.linalg.eig(JJ)
-    Lyapunov = np.log(np.sqrt(Stretches2))/T # see (6.4) and (6.9)
+    Lyapunov = np.log(np.sqrt(Stretches2))/T #see (6.9)
     return Floquet,Lyapunov
 
 if __name__=='__main__':
