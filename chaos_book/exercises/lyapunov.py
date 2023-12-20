@@ -228,15 +228,20 @@ class DeltaDistance(EventFactory):
         self.previous_distance = d1
         return result
 
-def create_jacobian(ssp,T, dynamics=None,method='RK23',atol=1e-12):
+def create_jacobian(ssp,T, dynamics=None,method='RK23',atol=1e-12,N=50):
     '''
     Jacobian function for the trajectory started on ssp, evolved for time t
 
-    Inputs:
+    Parameters:
         ssp: Initial state space point. dx1 NumPy array: ssp = [x, y, z]
         t: Integration time
-    Outputs:
-        J: Jacobian of trajectory f^t(ssp). dxd NumPy array
+        dynamics    Equation to be integrated
+        method      Integration method
+        atol        Tolerance for integration
+        N           Number of points to be generated
+    Returns:
+        Jacobian    Jacobian of trajectory f^t(ssp). dxd NumPy array
+        Orbit       Actuak trajectory
     '''
     Jacobian0 = np.identity(dynamics.d)
     sspJacobian0  = np.empty(dynamics.d + dynamics.d ** 2,dtype=float)
@@ -244,7 +249,9 @@ def create_jacobian(ssp,T, dynamics=None,method='RK23',atol=1e-12):
     sspJacobian0[dynamics.d:] = np.reshape(Jacobian0, dynamics.d**2)
 
     solution = solve_ivp(lambda t,y:dynamics.JacobianVelocity(y),(0,T),sspJacobian0,
-                         method = method,atol=atol)
+                         t_eval = np.linspace(0,T,N),
+                         method = method,
+                         atol = atol)
     _,n = solution.y.shape
     Jacobian = np.empty((n,dynamics.d,dynamics.d),dtype=float)
     Orbit = np.empty((n,dynamics.d))
@@ -277,9 +284,9 @@ def improve(sspfixed0,T,dynamics=None,K = 50,tol=1.0e-7,method='RK23'):
     Newton = np.zeros((dynamics.d + 1, dynamics.d + 1))
     for k in range(K):
         Jacobian,Orbit = create_jacobian(sspfixed, T,
-                                         dynamics = dynamics,
-                                         method = method,
-                                         atol = args.atol)
+                                dynamics = dynamics,
+                                method = method,
+                                atol = args.atol)
         error[0:dynamics.d] = Orbit[-1,:] - sspfixed
         if k>0 and error.max()<tol:
             return T,sspfixed,Orbit,Jacobian,k,error.max()
@@ -356,6 +363,8 @@ if __name__=='__main__':
         t_refined = t_events[1]
         ts = np.where(solution1.t<t_refined)
         nn = len(ts[0])
+        # sspfixed0 = np.array([0, 6.09176832, 1.2997319])  #FIXME #39
+        # t_refined = 5.88108845586                         #FIXME #39
         T,sspfixed,Orbit,Jacobian,k,error = improve(sspfixed0,t_refined,dynamics=rossler, method=args.method,K=args.K,tol=args.tol)
         Floquet,Lyapunov = get_stability(Jacobian,T)
         info (f'Error {error:.2e} after {k} iterations')
