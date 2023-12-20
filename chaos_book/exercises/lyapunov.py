@@ -39,7 +39,7 @@ from rossler import Rossler
 def parse_args( T_init = 1000,
                 a = 0.2,
                 b = 0.2,
-                c = 5.0,
+                c = 5.7,
                 theta = 120,
                 figs = './figs',
                 method = 'RK45',
@@ -322,13 +322,13 @@ def get_stability(Jacobian,T):
 def force(args,rossler):
     sspfixed0 = np.array([0, 6.09176832, 1.2997319])  #FIXME #39
     T = 5.88108845586                         #FIXME #39
-    N = 100
+    N = 1000
     solution = solve_ivp(lambda t,y:rossler.Velocity(y),(0,T),sspfixed0,
                         method = args.method,
                         t_eval = np.linspace(0,T,N),
                         atol = args.atol)
     tArray = np.linspace(0, T, N)
-    sspSolution = odeint(lambda y,t:rossler.Velocity(y), sspfixed0, tArray,atol=args.atol)
+    sspSolution = odeint(lambda y,t:rossler.Velocity(y), sspfixed0, tArray)
     fig = figure(figsize=(8,8))
     ax1 = fig.add_subplot(1,1,1,projection='3d')
     ax1.scatter(solution.y[0,:], solution.y[1,:], solution.y[2,:],
@@ -488,7 +488,6 @@ if __name__=='__main__':
     rossler = Rossler(a = args.a, b = args.b, c = args.c)
     if args.force:
         force(args,rossler)
-        exit()
     else:
         try:
             calculate_and_plot(args,rossler)
