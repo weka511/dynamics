@@ -313,7 +313,7 @@ def get_stability(Jacobian,T):
         Lyapunov  Lyapunov exponents evaluated at T
     '''
     Floquet, _ = np.linalg.eig(Jacobian[-1,:,:])  # see 5.2.1
-    JJ = np.dot(np.transpose(Jacobian[-1,:,:]),Jacobian[-1,:,:]) # see (6.4)
+    JJ = np.dot(Jacobian[-1,:,:],Jacobian[-1,:,:]) # see (6.4)
     Stretches2,_ = np.linalg.eig(JJ)
     Lyapunov = np.log(np.sqrt(Stretches2))/T #see (6.9)
     return Floquet,Lyapunov
