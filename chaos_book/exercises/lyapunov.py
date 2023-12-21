@@ -31,7 +31,7 @@ from sys import exit
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
-from scipy.integrate import solve_ivp, odeint
+from scipy.integrate import solve_ivp
 from scipy.interpolate import splrep, splev
 from scipy.optimize import fsolve
 from rossler import Rossler
@@ -376,20 +376,21 @@ if __name__=='__main__':
         info (f'T={T}')
         info(f'Floquet={Floquet}')
         info(f'Lyapunov={Lyapunov}')
+
         fig = figure(figsize=(12,12))
 
-        ax1 = fig.add_subplot(2,2,1,projection='3d')
+        ax1 = fig.add_subplot(2,3,1,projection='3d')
         ax1.scatter(solution.y[0,:], solution.y[1,:], solution.y[2,:],s=1,c='xkcd:blue',label='Rössler')
         ax1.scatter(crossings[:,0], crossings[:,1], crossings[:,2],s=25,c='xkcd:red',label='Crossing Poincaré Section')
         ax1.set_xlabel('x')
         ax1.set_ylabel('y')
         ax1.set_zlabel('z')
-        ax1.set_title(fr'Orbit T={args.T_init:,}')
+        ax1.set_title(fr'T={args.T_init:,}, method={args.method}, atol={args.atol}')
         ax1.legend()
 
-        ax2 = fig.add_subplot(2,2,2)
+        ax2 = fig.add_subplot(2,3,2)
         ax2.scatter(projection[:,0],projection[:,1],s=1,label='Crossings',c='xkcd:blue')
-        ax2.set_title(fr'Crossing Poincaré section -ve to +ve: $\theta=${args.theta}'+r'$^{\circ}$')
+        ax2.set_title(fr'Crossing Poincaré section: $\theta=${args.theta}'+r'$^{\circ}$')
         ax2.axvline(rfixed,
                     linestyle=':',
                     label=f'Fixed r={rfixed:.06f}',c='xkcd:hot pink')
@@ -400,7 +401,7 @@ if __name__=='__main__':
         ax2.set_ylabel('z')
         ax2.legend(loc='upper left')
 
-        ax3 = fig.add_subplot(2,2,3)
+        ax3 = fig.add_subplot(2,3,3)
         ax3.scatter(component_1,component_2,s=1,label='$r_{n+1}$ vs. $r_n$',c='xkcd:blue')
         ax3.plot(rlims,rlims,linestyle='--',label='$r_{n+1}=r_n$',c='xkcd:aqua')
         ax3.axvline(rfixed,ymin=min(r10,r20),ymax=rfixed,linestyle=':',
@@ -411,7 +412,7 @@ if __name__=='__main__':
         ax3.legend(loc='lower right')
         ax3.set_aspect('equal')
 
-        ax4 = fig.add_subplot(2,2,4)
+        ax4 = fig.add_subplot(2,3,4)
         ax4.scatter(zs1,zs2,s=1,label='$z_{n+1}$ vs. $z_n$',c='xkcd:blue')
         ax4.plot(zlims,zlims,linestyle='--',label='$z_{n+1}=z_n$',c='xkcd:aqua')
         ax4.axvline(zfixed,linestyle=':',
@@ -422,12 +423,10 @@ if __name__=='__main__':
         ax4.legend(loc='lower right')
         ax4.set_aspect('equal')
 
-        fig.suptitle(f'Rössler Attractor: method={args.method}, T={args.T_init}, atol={args.atol}')
         fig.tight_layout(pad = 2, h_pad = 5, w_pad = 1)
-        fig.savefig(get_name_for_save(figs=args.figs, extra=1))
 
-        fig = figure(figsize=(12,12))
-        ax5 = fig.add_subplot(1,1,1,projection='3d')
+        # fig = figure(figsize=(12,12))
+        ax5 = fig.add_subplot(2,3,5,projection='3d')
         bbox = dict(facecolor = 'xkcd:ivory',
                     edgecolor = 'xkcd:brown',
                     boxstyle = 'round,pad=1')
@@ -441,7 +440,7 @@ if __name__=='__main__':
                     c='xkcd:purple',
                     label=f'Final: T={T:.4f}, SSP=({sspfixed[0]:.4f},{sspfixed[1]:.4f},{sspfixed[2]:.4f})')
 
-        ax5.text2D(0.05, 0.75,
+        ax5.text2D(0.05, 0.65,
                 '\n'.join([
                     fr'$T = ${T:.4f},',
                     fr'$\Lambda_1=${Floquet[0]:.4e}',
@@ -455,8 +454,7 @@ if __name__=='__main__':
                 bbox = bbox)
         ax5.legend(loc='lower left')
 
-        fig.suptitle(f'Rössler Attractor: method={args.method}, K={args.K}, tol={args.tol}, atol={args.atol}')
-        fig.savefig(get_name_for_save(figs=args.figs,extra=2))
+        fig.savefig(get_name_for_save(figs=args.figs))
         elapsed = time() - start
         minutes = int(elapsed/60)
         seconds = elapsed - 60*minutes
