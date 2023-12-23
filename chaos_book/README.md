@@ -39,15 +39,15 @@ wk10|henonMap.py|Q10.1/Q10.2|Natural Measure
 -|logisticMap.py|Q10.4|Escape rate in Logistic map (Exercise 20.2)
 wk12|wk12.py|-|Cycle Expansion
 wk16|ksSub.py|-|Turbulence
-exercises|henon.py|6.3| How unstable is the Hénon attractor?
--|pinball.py|9.1|A pinball simulator. Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point.
--|rossler.py|6.3|Rössler attractor Lyapunov Exponents
+exercises|burkeshaw.py|10.4|The Burke-Shaw System
+-|henon.py|6.3| How unstable is the Hénon attractor?
 -|lyapunov.py|7.1|Rössler attractor: Fixed Points, Floquet Multipliers, and Lyapunov Exponents
--|trapped.py|9.2|Trapped orbits. Construct figure 1.9 using Monte-Carlo simulation
--|burkeshaw.py|10.4|The Burke-Shaw System
 -|mirandastone.py|11.5|[Proto-Lorentz system](https://chaosbook.org/library/Mir93.pdf)
--|xkcd.py|-|Support for [the 954 most common RGB monitor colors, as defined in the xkcd color name survey](https://xkcd.com/color/rgb/)
+-|pinball.py|9.1|A pinball simulator. Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point.
 -|rgb.txt|-|Data downloaded from [XKCD survey](https://xkcd.com/color/rgb.txt)
+-|rossler.py|6.3|Rössler attractor Lyapunov Exponents
+-|trapped.py|9.2|Trapped orbits. Construct figure 1.9 using Monte-Carlo simulation
+-|xkcd.py|-|Support for [the 954 most common RGB monitor colors, as defined in the xkcd color name survey](https://xkcd.com/color/rgb/)
 projects|dynamics.py|-|Common code for a few ODEs
 -|cycles.py|-|Find cycles in orbit
 -|eqs.py|-|Replicate figure 4.5 for Rossler
