@@ -28,14 +28,8 @@ from matplotlib.colors import Normalize
 from scipy.integrate import solve_ivp
 
 mu1 = -2.8
-mu2 = 1.0
-e1 = 0.0
-e2 = 1.0
-a1 = -1.0
 a2 = -2.66
-b1 = 0.0
 c1 = -7.75
-c2 = 1.0
 
 def parse_args():
     '''Define and parse command line arguments'''
@@ -96,7 +90,8 @@ if __name__=='__main__':
                 c = 'xkcd:red')
     fig.colorbar(ScalarMappable(norm=Normalize(0, 1),
                                 cmap = 'viridis'),
-                 ax = ax1)
+                 ax = ax1,
+                 label = 'y2')
     ax1.set_xlabel('x1')
     ax1.set_ylabel('y1')
     ax1.set_zlabel('x2')
