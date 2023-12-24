@@ -93,6 +93,7 @@ if __name__=='__main__':
                                 cmap = 'viridis'),
                  ax=ax1)
 
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
