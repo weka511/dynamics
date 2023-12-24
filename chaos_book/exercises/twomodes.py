@@ -28,14 +28,14 @@ from matplotlib.colors import Normalize
 from scipy.integrate import solve_ivp
 
 mu1 = -2.8
-mu2 = 1
-e1 = 0
-e2 = 1
-a1=-1
+mu2 = 1.0
+e1 = 0.0
+e2 = 1.0
+a1 = -1.0
 a2 = -2.66
-b1 = 0
+b1 = 0.0
 c1 = -7.75
-c2 = 1
+c2 = 1.0
 
 def parse_args():
     '''Define and parse command line arguments'''
@@ -88,11 +88,19 @@ if __name__=='__main__':
     ax1.scatter(solution.y[0,:],solution.y[1,:],solution.y[2,:],
                 c = solution.y[3,:],
                 s = 1,
-                cmap = 'viridis')
+                cmap = 'viridis',
+                label = 'Trajectory')
+    ax1.scatter(solution.y[0,0],solution.y[1,0],solution.y[2,0],
+                marker = 'X',
+                label = 'Start',
+                c = 'xkcd:red')
     fig.colorbar(ScalarMappable(norm=Normalize(0, 1),
                                 cmap = 'viridis'),
-                 ax=ax1)
-
+                 ax = ax1)
+    ax1.set_xlabel('x1')
+    ax1.set_ylabel('y1')
+    ax1.set_zlabel('x2')
+    ax1.legend()
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
