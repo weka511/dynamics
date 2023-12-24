@@ -38,11 +38,16 @@ def parse_args():
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
+ix1 = 0
+iy1 = 1
+ix2 = 2
+iy2 = 3
+
 def Velocity(t,ssp):
-    x1 = ssp[0]
-    y1 = ssp[1]
-    x2 = ssp[2]
-    y2 = ssp[3]
+    x1 = ssp[ix1]
+    y1 = ssp[iy1]
+    x2 = ssp[ix2]
+    y2 = ssp[iy2]
     r2 = x1**2 + y1**2
     return np.array([
         (mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
@@ -79,13 +84,14 @@ if __name__=='__main__':
     solution = solve_ivp(Velocity, (0,args.T), ssp)
 
     fig = figure(figsize=(12,12))
-    ax1 = fig.add_subplot(1,1,1,projection='3d')
-    ax1.scatter(solution.y[0,:],solution.y[2,:],solution.y[3,:],
-                c = solution.y[1,:],
+
+    ax1 = fig.add_subplot(1,2,1,projection='3d')
+    ax1.scatter(solution.y[ix2,:],solution.y[ix1,:],solution.y[iy2,:],
+                c = solution.y[iy1,:],
                 s = 1,
                 cmap = 'viridis',
                 label = 'Trajectory')
-    ax1.scatter(solution.y[0,0],solution.y[2,0],solution.y[3,0],
+    ax1.scatter(solution.y[ix2,0],solution.y[ix1,0],solution.y[iy2,0],
                 marker = 'X',
                 label = 'Start',
                 c = 'xkcd:red')
@@ -93,11 +99,28 @@ if __name__=='__main__':
                                 cmap = 'viridis'),
                  ax = ax1,
                  label = 'y1')
-    ax1.set_xlabel('x1')
-    ax1.set_ylabel('x2')
+    ax1.set_xlabel('x2')
+    ax1.set_ylabel('x1')
     ax1.set_zlabel('y2')
     ax1.legend()
-    ax1.set_title(f'Two Modes for T={args.T}')
+    ax1.set_title(f'Figure 12.1 T={args.T}')
+
+    ax2 = fig.add_subplot(1,2,2,projection='3d')
+    ax2.scatter(solution.y[ix1,:],solution.y[iy1,:],solution.y[iy2,:],
+                c = solution.y[ix2,:],
+                s = 1,
+                cmap = 'viridis',
+                label = 'Trajectory')
+    ax2.scatter(solution.y[ix1,0],solution.y[iy1,0],solution.y[iy2,0],
+                marker = 'X',
+                label = 'Start',
+                c = 'xkcd:red')
+    ax2.set_xlabel('x1')
+    ax2.set_ylabel('y1')
+    ax2.set_zlabel('y2')
+    ax2.legend()
+    ax2.set_title(f'Exercise 12.7 T={args.T}')
+
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
