@@ -34,6 +34,7 @@ c1 = -7.75
 def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument('--T', type=float, default=10000)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
@@ -45,8 +46,8 @@ def Velocity(t,ssp):
     r2 = x1**2 + y1**2
     return np.array([
         (mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
-        (mu1-r2)*y1 + c1*(x1*y2 + x2*y1),
-        x2 + y2 + x1**2 - y1**2 +a2*x2* r2 ,
+        (mu1-r2)*y1 + c1*(x1*y2 - x2*y1),
+        x2 + y2 + x1**2 - y1**2 +a2*x2*r2 ,
         -x2 + y2+ 2*x1*y1 + a2*y2*r2
     ])
 
@@ -75,27 +76,28 @@ if __name__=='__main__':
 
     rng = np.random.default_rng()
     ssp = rng.uniform(-1,1,4)
-    solution = solve_ivp(Velocity, (0,1000), ssp)
+    solution = solve_ivp(Velocity, (0,args.T), ssp)
 
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,1,1,projection='3d')
-    ax1.scatter(solution.y[0,:],solution.y[1,:],solution.y[2,:],
-                c = solution.y[3,:],
+    ax1.scatter(solution.y[0,:],solution.y[2,:],solution.y[3,:],
+                c = solution.y[1,:],
                 s = 1,
                 cmap = 'viridis',
                 label = 'Trajectory')
-    ax1.scatter(solution.y[0,0],solution.y[1,0],solution.y[2,0],
+    ax1.scatter(solution.y[0,0],solution.y[2,0],solution.y[3,0],
                 marker = 'X',
                 label = 'Start',
                 c = 'xkcd:red')
     fig.colorbar(ScalarMappable(norm=Normalize(0, 1),
                                 cmap = 'viridis'),
                  ax = ax1,
-                 label = 'y2')
+                 label = 'y1')
     ax1.set_xlabel('x1')
-    ax1.set_ylabel('y1')
-    ax1.set_zlabel('x2')
+    ax1.set_ylabel('x2')
+    ax1.set_zlabel('y2')
     ax1.legend()
+    ax1.set_title(f'Two Modes for T={args.T}')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
