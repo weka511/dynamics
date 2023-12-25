@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Chaosbook Example 12.8: Visualize two-modes flow'''
+'''Chaosbook Example 12.8: Visualize two-modes flow, Example 12.9 short relative periods, exercise 12.7'''
 
 
 from argparse import ArgumentParser
@@ -52,7 +52,7 @@ def Velocity(t,ssp):
     return np.array([
         (mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
         (mu1-r2)*y1 + c1*(x1*y2 - x2*y1),
-        x2 + y2 + x1**2 - y1**2 +a2*x2*r2 ,
+        x2 + y2 + x1**2 - y1**2 + a2*x2*r2 ,
         -x2 + y2+ 2*x1*y1 + a2*y2*r2
     ])
 
@@ -85,7 +85,7 @@ if __name__=='__main__':
 
     fig = figure(figsize=(12,12))
 
-    ax1 = fig.add_subplot(1,2,1,projection='3d')
+    ax1 = fig.add_subplot(2,2,1,projection='3d')
     ax1.scatter(solution.y[ix2,:],solution.y[ix1,:],solution.y[iy2,:],
                 c = solution.y[iy1,:],
                 s = 1,
@@ -105,7 +105,7 @@ if __name__=='__main__':
     ax1.legend()
     ax1.set_title(f'Figure 12.1 T={args.T}')
 
-    ax2 = fig.add_subplot(1,2,2,projection='3d')
+    ax2 = fig.add_subplot(2,2,2,projection='3d')
     ax2.scatter(solution.y[ix1,:],solution.y[iy1,:],solution.y[iy2,:],
                 c = solution.y[ix2,:],
                 s = 1,
@@ -120,6 +120,27 @@ if __name__=='__main__':
     ax2.set_zlabel('y2')
     ax2.legend()
     ax2.set_title(f'Exercise 12.7 T={args.T}')
+    Itineraries = ['1', '01', '0111', '01101']
+
+    Starts = np.array([[0.4525719, 0.0, 0.0509257, 0.0335428, 3.6415120],
+                       [0.4517771, 0.0, 0.0202026, 0.0405222, 7.3459412],
+                       [0.4514665, 0.0, 0.0108291, 0.0424373, 14.6795175],
+                       [0.4503967, 0.0, -0.0170958, 0.0476009, 18.3874094]
+                       ])
+    m,_ = Starts.shape
+    ax3 = fig.add_subplot(2,2,3,projection='3d')
+
+    for i in range(m):
+        T = Starts[i,4]
+        solution = solve_ivp(Velocity, (0,T), Starts[i,0:4],
+                             t_eval=np.linspace(0,T,1000),
+                             method='DOP853',
+                             rtol=1.0e-9,
+                             atol=1.0e-9)
+        ax3.scatter(solution.y[ix1,:],solution.y[iy1,:],solution.y[iy2,:],
+                    s = 1,
+                    label = Itineraries[i])
+    ax3.legend()
 
     fig.savefig(get_name_for_save())
     elapsed = time() - start

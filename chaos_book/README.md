@@ -47,7 +47,7 @@ exercises|burkeshaw.py|10.4|The Burke-Shaw System
 -|rgb.txt|-|Data downloaded from [XKCD survey](https://xkcd.com/color/rgb.txt)
 -|rossler.py|6.3|Rössler attractor Lyapunov Exponents
 -|trapped.py|9.2|Trapped orbits. Construct figure 1.9 using Monte-Carlo simulation
--|twomodes.py|12.8|Visualize two-modes flow
+-|twomodes.py|12.8|Examples 12.8, Visualize two-modes flow, 12.9 short relative periods, exercise 12.7
 -|xkcd.py|-|Support for [the 954 most common RGB monitor colors, as defined in the xkcd color name survey](https://xkcd.com/color/rgb/)
 projects|dynamics.py|-|Common code for a few ODEs
 -|cycles.py|-|Find cycles in orbit
