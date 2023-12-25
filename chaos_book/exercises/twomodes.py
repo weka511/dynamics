@@ -36,12 +36,15 @@ def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--T', type=float, default=10000)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
+    parser.add_argument('--axes', type=int, nargs=3, default=[2,0,1])
+    parser.add_argument('--action', choices=['solution', 'fp'], default='solution')
     return parser.parse_args()
 
 ix1 = 0
 iy1 = 1
 ix2 = 2
 iy2 = 3
+labels = ['x1','y1', 'x2','y2']
 
 def Velocity(t,ssp):
     x1 = ssp[ix1]
@@ -78,69 +81,60 @@ def get_name_for_save(extra = None,
 if __name__=='__main__':
     start  = time()
     args = parse_args()
+    match args.action:
+        case 'solution':
+            rng = np.random.default_rng()
+            ssp = rng.uniform(-1,1,4)
+            solution = solve_ivp(Velocity, (0,args.T), ssp)
 
-    rng = np.random.default_rng()
-    ssp = rng.uniform(-1,1,4)
-    solution = solve_ivp(Velocity, (0,args.T), ssp)
+            fig = figure(figsize=(12,12))
 
-    fig = figure(figsize=(12,12))
+            ax1 = fig.add_subplot(1,1,1,projection='3d')
+            ax1.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
+                        s = 1,
+                        c = 'xkcd:blue',
+                        label = 'Trajectory')
+            ax1.scatter(solution.y[args.axes[0],0],solution.y[args.axes[1],0],solution.y[args.axes[2],0],
+                        marker = 'X',
+                        label = 'Start',
+                        c = 'xkcd:red')
 
-    ax1 = fig.add_subplot(2,2,1,projection='3d')
-    ax1.scatter(solution.y[ix2,:],solution.y[ix1,:],solution.y[iy2,:],
-                c = solution.y[iy1,:],
-                s = 1,
-                cmap = 'viridis',
-                label = 'Trajectory')
-    ax1.scatter(solution.y[ix2,0],solution.y[ix1,0],solution.y[iy2,0],
-                marker = 'X',
-                label = 'Start',
-                c = 'xkcd:red')
-    fig.colorbar(ScalarMappable(norm=Normalize(0, 1),
-                                cmap = 'viridis'),
-                 ax = ax1,
-                 label = 'y1')
-    ax1.set_xlabel('x2')
-    ax1.set_ylabel('x1')
-    ax1.set_zlabel('y2')
-    ax1.legend()
-    ax1.set_title(f'Figure 12.1 T={args.T}')
+            ax1.set_xlabel(labels[args.axes[0]])
+            ax1.set_ylabel(labels[args.axes[1]])
+            ax1.set_zlabel(labels[args.axes[2]])
+            ax1.legend()
+            ax1.set_title(f'Figure 12.1 T={args.T}')
 
-    ax2 = fig.add_subplot(2,2,2,projection='3d')
-    ax2.scatter(solution.y[ix1,:],solution.y[iy1,:],solution.y[iy2,:],
-                c = solution.y[ix2,:],
-                s = 1,
-                cmap = 'viridis',
-                label = 'Trajectory')
-    ax2.scatter(solution.y[ix1,0],solution.y[iy1,0],solution.y[iy2,0],
-                marker = 'X',
-                label = 'Start',
-                c = 'xkcd:red')
-    ax2.set_xlabel('x1')
-    ax2.set_ylabel('y1')
-    ax2.set_zlabel('y2')
-    ax2.legend()
-    ax2.set_title(f'Exercise 12.7 T={args.T}')
-    Itineraries = ['1', '01', '0111', '01101']
+        case 'fp':
 
-    Starts = np.array([[0.4525719, 0.0, 0.0509257, 0.0335428, 3.6415120],
-                       [0.4517771, 0.0, 0.0202026, 0.0405222, 7.3459412],
-                       [0.4514665, 0.0, 0.0108291, 0.0424373, 14.6795175],
-                       [0.4503967, 0.0, -0.0170958, 0.0476009, 18.3874094]
-                       ])
-    m,_ = Starts.shape
-    ax3 = fig.add_subplot(2,2,3,projection='3d')
+            fig = figure(figsize=(12,12))
+            Itineraries = ['1', '01', '0111', '01101']
 
-    for i in range(m):
-        T = Starts[i,4]
-        solution = solve_ivp(Velocity, (0,T), Starts[i,0:4],
-                             t_eval=np.linspace(0,T,1000),
-                             method='DOP853',
-                             rtol=1.0e-9,
-                             atol=1.0e-9)
-        ax3.scatter(solution.y[ix1,:],solution.y[iy1,:],solution.y[iy2,:],
-                    s = 1,
-                    label = Itineraries[i])
-    ax3.legend()
+            Starts = np.array([[0.4525719, 0.0, 0.0509257, 0.0335428, 3.6415120],
+                               [0.4517771, 0.0, 0.0202026, 0.0405222, 7.3459412],
+                               [0.4514665, 0.0, 0.0108291, 0.0424373, 14.6795175],
+                               [0.4503967, 0.0, -0.0170958, 0.0476009, 18.3874094]
+                               ])
+            m,_ = Starts.shape
+
+            for i in range(m):
+                ax3 = fig.add_subplot(2,2,i+1,projection='3d')
+                T = Starts[i,4]
+                solution = solve_ivp(Velocity, (0,T), Starts[i,0:4],
+                                     t_eval=np.linspace(0,T,1000),
+                                     rtol=1.0e-9,
+                                     atol=1.0e-9)
+                ax3.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
+                            s = 1)
+                ax3.scatter(solution.y[args.axes[0],0],solution.y[args.axes[1],0],solution.y[args.axes[2],0],
+                            marker = 'X',
+                            label = 'Start',
+                            c = 'xkcd:red')
+                ax3.set_title( Itineraries[i])
+                ax3.set_xlabel(labels[args.axes[0]])
+                ax3.set_ylabel(labels[args.axes[1]])
+                ax3.set_zlabel(labels[args.axes[2]])
+
 
     fig.savefig(get_name_for_save())
     elapsed = time() - start
