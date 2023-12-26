@@ -26,6 +26,7 @@ from matplotlib.pyplot import figure, show
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 from scipy.integrate import solve_ivp
+from xkcd import create_colour_names
 
 mu1 = -2.8
 a2 = -2.66
@@ -38,6 +39,7 @@ def parse_args():
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--axes', type=int, nargs=3, default=[2,0,1])
     parser.add_argument('--action', choices=['solution', 'fp'], default='solution')
+    parser.add_argument('--n', type=int, default=1)
     return parser.parse_args()
 
 ix1 = 0
@@ -106,7 +108,7 @@ if __name__=='__main__':
             ax1.set_title(f'Figure 12.1 T={args.T}')
 
         case 'fp':
-
+            colours = create_colour_names(args.n)
             fig = figure(figsize=(12,12))
             Itineraries = ['1', '01', '0111', '01101']
 
@@ -120,16 +122,18 @@ if __name__=='__main__':
             for i in range(m):
                 ax3 = fig.add_subplot(2,2,i+1,projection='3d')
                 T = Starts[i,4]
-                solution = solve_ivp(Velocity, (0,T), Starts[i,0:4],
-                                     t_eval=np.linspace(0,T,1000),
-                                     rtol=1.0e-9,
-                                     atol=1.0e-9)
-                ax3.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
-                            s = 1)
-                ax3.scatter(solution.y[args.axes[0],0],solution.y[args.axes[1],0],solution.y[args.axes[2],0],
-                            marker = 'X',
-                            label = 'Start',
-                            c = 'xkcd:red')
+                for j in range(args.n):
+                    solution = solve_ivp(Velocity, (0,T), Starts[i,0:4] if j==0 else solution.y[:,-1],
+                                         t_eval=np.linspace(0,T,1000),
+                                         rtol=1.0e-9,
+                                         atol=1.0e-9)
+                    ax3.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
+                                s = 1,
+                                c = colours[j])
+                    ax3.scatter(solution.y[args.axes[0],0],solution.y[args.axes[1],0],solution.y[args.axes[2],0],
+                                marker = 'X',
+                                label = 'Start',
+                                c = colours[j])
                 ax3.set_title( Itineraries[i])
                 ax3.set_xlabel(labels[args.axes[0]])
                 ax3.set_ylabel(labels[args.axes[1]])
