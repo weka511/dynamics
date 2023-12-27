@@ -35,11 +35,12 @@ c1 = -7.75
 def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument('action', choices=['solution', 'fp'])
     parser.add_argument('--T', type=float, default=10000)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
-    parser.add_argument('--axes', type=int, nargs=3, default=[2,0,1])
-    parser.add_argument('--action', choices=['solution', 'fp'], default='solution')
+    parser.add_argument('--axes', type=int, nargs=3, default=[0, 2, 3])
     parser.add_argument('--n', type=int, default=1)
+    parser.add_argument('--symmetry', choices = ['reduce','ignore'], default = 'ignore')
     return parser.parse_args()
 
 ix1 = 0
@@ -65,8 +66,8 @@ def Velocity(t,ssp):
     y2 = ssp[iy2]
     r2 = x1**2 + y1**2
     return np.array(
-        [(mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
-         (mu1-r2)*y1 + c1*(x1*y2 - x2*y1),
+        [(mu1 - r2)*x1 + c1*(x1*x2 + y1*y2),
+         (mu1 - r2)*y1 + c1*(x1*y2 - x2*y1),
          x2 + y2 + x1**2 - y1**2 + a2*x2*r2 ,
          -x2 + y2+ 2*x1*y1 + a2*y2*r2],
         dtype = float)
@@ -89,6 +90,51 @@ def get_name_for_save(extra = None,
     basic = splitext(basename(__file__))[0]
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
+
+def groupTransform(state, phi):
+    '''
+    perform group transform on a particular state. Symmetry group is 'g(phi)'
+    and state is 'x'. the transformed state is ' xp = g(phi) * x '
+
+    state:  state in the full state space. Dimension [1 x 4]
+    phi:    group angle. in range [0, 2*pi]
+    return: the transformed state. Dimension [1 x 4]
+    '''
+    c1 = np.cos(phi)
+    s1 = np.sin(phi)
+    c2 = np.cos(2*phi)
+    s2 = np.sin(2*phi)
+    return np.dot(np.array(
+        [[c1,  -s1, 0,   0],
+         [s1,  c1,  0,   0],
+         [0,   0,   c2,  -s2],
+         [0,   0,   s2,  c2]]),
+                  state)
+
+def reduceSymmetry(states,
+                   show_phi = False,
+                   epsilon  = 1e-15):
+    '''
+    transform states in the full state space into the slice.
+    Hint: use numpy.arctan2(y,x)
+    Note: this function should be able to reduce the symmetry
+    of a single state and that of a sequence of states.
+
+    states: states in the full state space. dimension [m x 4]
+    return: the corresponding states on the slice dimension [m x 3]
+    '''
+    if states.ndim == 1: # if the state is one point
+        phi = - np.arctan2(states[1],states[0])
+        reducedStates = groupTransform(states, phi)
+        assert np.abs(reducedStates[1])<epsilon
+        reducedStates = np.array([reducedStates[i] for i in [0,2,3]])
+        if show_phi: return reducedStates,phi
+    if states.ndim == 2: # if they are a sequence of state points
+        reducedStates = np.empty((3,states.shape[1]))
+        for i in range(states.shape[1]):
+            reducedStates[:,i] = reduceSymmetry(states[:,i])
+
+    return reducedStates
 
 if __name__=='__main__':
     start  = time()
@@ -137,10 +183,15 @@ if __name__=='__main__':
                                          t_eval=np.linspace(0,T,1000),
                                          rtol=1.0e-9,
                                          atol=1.0e-9)
-                    ax3.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
+                    match args.symmetry:
+                        case 'reduce':
+                            y = reduceSymmetry(solution.y)
+                        case 'ignore':
+                            y = solution.y[[args.axes[0],args.axes[1],args.axes[2]],:]
+                    ax3.scatter(y[0,:],y[1,:],y[2,:],
                                 s = 1,
                                 c = colours[j])
-                    ax3.scatter(solution.y[args.axes[0],0],solution.y[args.axes[1],0],solution.y[args.axes[2],0],
+                    ax3.scatter(y[0,0],y[1,0],y[2,0],
                                 marker = 'X',
                                 label = 'Start',
                                 c = colours[j])
@@ -148,7 +199,7 @@ if __name__=='__main__':
                 ax3.set_xlabel(labels[args.axes[0]])
                 ax3.set_ylabel(labels[args.axes[1]])
                 ax3.set_zlabel(labels[args.axes[2]])
-
+            fig.suptitle(f'{args.symmetry.title()} Symmetry')
 
     fig.savefig(get_name_for_save())
     elapsed = time() - start
