@@ -19,14 +19,14 @@
 # case3                     TODO
 #
 ############################################################
-from argparse             import ArgumentParser
-from contextlib           import AbstractContextManager
-from matplotlib.cm        import ScalarMappable, hsv
-from matplotlib.pyplot    import figure, show
+from argparse import ArgumentParser
+from contextlib import AbstractContextManager
+from matplotlib.cm import ScalarMappable, hsv
+from matplotlib.pyplot import figure, show
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from scipy.integrate      import odeint
-from scipy.optimize       import fsolve
+from scipy.integrate import odeint
+from scipy.optimize import fsolve
 
 mu1 = -2.8
 c1  = -7.75
@@ -45,7 +45,6 @@ def velocity(stateVec, t):
     y1 = stateVec[1]
     x2 = stateVec[2]
     y2 = stateVec[3]
-
     r2 = x1**2 + y1**2
 
     return [(mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
@@ -66,13 +65,12 @@ def velocity_reduced(stateVec_reduced, tau):
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
 
-    velo        = velocity([x1,y1,x2,y2], tau)
+    velo = velocity([x1,y1,x2,y2], tau)
 
-    t            = np.array([0, x1, -2*y2, 2*x2]) #Tx
-    phi          = velocity_phase(stateVec_reduced)
+    t = np.array([0, x1, -2*y2, 2*x2]) #Tx
+    phi  = velocity_phase(stateVec_reduced)
     velo_reduced = velo - phi*t               # Equation 13.32
-    velo3        = [velo_reduced[i] for i in [0,2,3]]
-    return velo3
+    return np.array([velo_reduced[i] for i in [0,2,3]])
 
 def velocity_phase(stateVec_reduced):
     r'''
@@ -81,15 +79,13 @@ def velocity_phase(stateVec_reduced):
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     Note: phase velocity only depends on the state vector
     '''
-    x1         = stateVec_reduced[0]
+    x1  = stateVec_reduced[0]
     # y1         = 0
     # x2         = stateVec_reduced[1]
-    y2         = stateVec_reduced[2]
+    y2 = stateVec_reduced[2]
                                          # r2         = x1**2 + y1**2
-    v2         = c1*x1*y2                # (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
-    velo_phase =  v2/x1                  # Equation 13.33 - except I don't have minus sign - erratum in 13.33?
-    return velo_phase
-
+    v2 = c1*x1*y2                # (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
+    return  v2/x1                  # Equation 13.33 - except I don't have minus sign - erratum in 13.33?
 
 def integrator(init_state, dtau, nstp):
     '''
@@ -109,9 +105,7 @@ def integrator_reduced(init_state, dtau, nstp):
     dtau: time step
     nstp: number of time step
     '''
-    states = odeint(velocity_reduced, init_state, np.arange(0, dtau*nstp, dtau))
-
-    return states
+    return odeint(velocity_reduced, init_state, np.arange(0, dtau*nstp, dtau))
 
 def stabilityMatrix_reduced(stateVec_reduced):
     r'''
@@ -127,12 +121,9 @@ def stabilityMatrix_reduced(stateVec_reduced):
     y2    = stateVec_reduced[2]
     velo  = velocity([x1,y1,x2,y2], None)
     d_phi = np.arctan2(velo[1],-velo[0])
-    stab  = np.array([[0, 0, 0],
+    return np.array([[0, 0, 0],                    # FIXME
                    [0, 0, 0],
                    [0, 0, 0]])
-
-    return stab
-
 
 
 def groupTransform(state, phi):
@@ -169,10 +160,10 @@ def reduceSymmetry(states,
     '''
 
     if states.ndim == 1: # if the state is one point
-        phi           = - np.arctan2(states[1],states[0])
+        phi = - np.arctan2(states[1],states[0])
         reducedStates = groupTransform(states, phi)
         assert np.abs(reducedStates[1])<epsilon
-        reducedStates = [reducedStates[i] for i in [0,2,3]]
+        reducedStates = np.array([reducedStates[i] for i in [0,2,3]])
         if show_phi: return reducedStates,phi
     if states.ndim == 2: # if they are a sequence of state points
         reducedStates = np.zeros((states.shape[0],3))
@@ -182,33 +173,33 @@ def reduceSymmetry(states,
     return reducedStates
 
 def plotFig(orbit,
-            title      = 'Orbit',
+            title = 'Orbit',
             markersize = 0.5,
-            colour     = 'xkcd:blue'):
+            colour = 'xkcd:blue'):
     fig = figure(figsize=(8,6))
     ax  = fig.add_subplot(111, projection='3d')
     ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
             markersize = markersize,
             linewidth  = 0.5,
-            c          = colour)
+            c  = colour)
     ax.set_title(title)
 
 class MultiPlotter(AbstractContextManager):
-    count        = 0
+    count = 0
     show_on_exit = True
 
     def __init__(self,
-                 nrows  = 2,
-                 ncols  = 2,
-                 name   = 'twoModes',
-                 width  = 12,
+                 nrows = 2,
+                 ncols = 2,
+                 name = 'twoModes',
+                 width = 12,
                  height = 12):
 
-        self.nrows  = nrows
-        self.ncols  = ncols
-        self.seq    = 0
-        self.name   = name
-        self.width  = width
+        self.nrows = nrows
+        self.ncols = ncols
+        self.seq = 0
+        self.name = name
+        self.width = width
         self.height = height
 
     def __enter__(self):
@@ -218,16 +209,16 @@ class MultiPlotter(AbstractContextManager):
         return self
 
     def plot(self,orbit,
-            title      = 'Orbit',
+            title  = 'Orbit',
             markersize = 0.5,
-            colour     = 'xkcd:blue'):
+            colour = 'xkcd:blue'):
         self.seq += 1
         ax = self.fig.add_subplot(self.nrows, self.ncols, self.seq,
                                   projection = '3d')
         ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
                 markersize = markersize,
                 linewidth  = 0.5,
-                c          = colour)
+                c = colour)
         ax.set_title(title)
         ax.set_xlabel('$x_1$')
         ax.set_ylabel('$x_2$')
@@ -278,9 +269,9 @@ if __name__ == '__main__':
 
     if args.case == 1:       # validate your implementation.
         # Start by verifying transformations given in Homework
-        z1,phi1=reduceSymmetry(np.array([1,2,3,4]),
+        z1,phi1 = reduceSymmetry(np.array([1,2,3,4]),
                                show_phi = True)
-        z2,phi2=reduceSymmetry(np.array([-2,1,-3,-4]),
+        z2,phi2 = reduceSymmetry(np.array([-2,1,-3,-4]),
                                show_phi = True)
         assert(np.isclose(z1,z2).all())
         assert phi1-phi2==np.pi/2
@@ -289,12 +280,12 @@ if __name__ == '__main__':
         # the corresponding trajectory in slice.  The first method is post-processing.
         # The second method utilizes the dynamics in the slice directly.
 
-        x0             = rng.uniform(0,0.1, 4)      # random initial state
-        x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
-        dtau           = 0.005
-        nstp           = 500.0 / dtau
-        orbit          = integrator(x0, dtau, nstp)                 # trajectory in the full state space
-        reduced_orbit  = reduceSymmetry(orbit)                      # trajectory in the slice by reducing the symmety
+        x0 = rng.uniform(0,0.1, 4)      # random initial state
+        x0_reduced = reduceSymmetry(x0) # initial state transformed into slice
+        dtau = 0.005
+        nstp = 500.0 / dtau
+        orbit  = integrator(x0, dtau, nstp)                 # trajectory in the full state space
+        reduced_orbit = reduceSymmetry(orbit)                      # trajectory in the slice by reducing the symmety
         reduced_orbit2 = integrator_reduced(x0_reduced, dtau, nstp) # trajectory in the slice by integration in slice
 
         # x1s,x2s,y2s,diffs = get_norms(rng=rng)
