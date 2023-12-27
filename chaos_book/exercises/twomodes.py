@@ -49,17 +49,27 @@ iy2 = 3
 labels = ['x1','y1', 'x2','y2']
 
 def Velocity(t,ssp):
+    '''
+    Velocity of two-modes system
+
+    Parameters:
+        t        Time: not used, but solve_ivp will expect it
+        ssp      State space point
+
+    Returns:
+         computed velocity
+    '''
     x1 = ssp[ix1]
     y1 = ssp[iy1]
     x2 = ssp[ix2]
     y2 = ssp[iy2]
     r2 = x1**2 + y1**2
-    return np.array([
-        (mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
-        (mu1-r2)*y1 + c1*(x1*y2 - x2*y1),
-        x2 + y2 + x1**2 - y1**2 + a2*x2*r2 ,
-        -x2 + y2+ 2*x1*y1 + a2*y2*r2
-    ])
+    return np.array(
+        [(mu1-r2)*x1 + c1*(x1*x2 + y1*y2),
+         (mu1-r2)*y1 + c1*(x1*y2 - x2*y1),
+         x2 + y2 + x1**2 - y1**2 + a2*x2*r2 ,
+         -x2 + y2+ 2*x1*y1 + a2*y2*r2],
+        dtype = float)
 
 def get_name_for_save(extra = None,
                       sep = '-',
