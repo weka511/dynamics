@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
    Relative periodic orbits from Table 12.1
 '''

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ############################################################
 # This file contains all functions for two modes system
 #
@@ -22,9 +24,7 @@ from contextlib           import AbstractContextManager
 from matplotlib.cm        import ScalarMappable, hsv
 from matplotlib.pyplot    import figure, show
 from mpl_toolkits.mplot3d import Axes3D
-from numpy                import abs, arange, array, arctan2, cos, dot, eye, isclose,  pi, round, sin, zeros
-from numpy.linalg         import norm
-from numpy.random         import RandomState
+import numpy as np
 from scipy.integrate      import odeint
 from scipy.optimize       import fsolve
 
@@ -54,7 +54,7 @@ def velocity(stateVec, t):
             -x2 + y2 + 2*x1*y1 + a2*y2*r2]
 
 def velocity_reduced(stateVec_reduced, tau):
-    '''
+    r'''
     velocity in the slice after reducing the continous symmetry
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
@@ -68,14 +68,14 @@ def velocity_reduced(stateVec_reduced, tau):
 
     velo        = velocity([x1,y1,x2,y2], tau)
 
-    t            = array([0, x1, -2*y2, 2*x2]) #Tx
+    t            = np.array([0, x1, -2*y2, 2*x2]) #Tx
     phi          = velocity_phase(stateVec_reduced)
     velo_reduced = velo - phi*t               # Equation 13.32
     velo3        = [velo_reduced[i] for i in [0,2,3]]
     return velo3
 
 def velocity_phase(stateVec_reduced):
-    '''
+    r'''
     phase velocity.
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
@@ -99,23 +99,22 @@ def integrator(init_state, dtau, nstp):
     dtau: time step
     nstp: number of time step
     '''
-    states = odeint(velocity, init_state, arange(0, dtau*nstp, dtau))
-    return states
+    return odeint(velocity, init_state, np.arange(0, dtau*nstp, dtau))
 
 def integrator_reduced(init_state, dtau, nstp):
-    '''
+    r'''
     integrate two modes system in the slice
 
     init_state: initial state [\hat{x}_1, \hat{x}_2, \hat{y}_2]
     dtau: time step
     nstp: number of time step
     '''
-    states = odeint(velocity_reduced, init_state, arange(0, dtau*nstp, dtau))
+    states = odeint(velocity_reduced, init_state, np.arange(0, dtau*nstp, dtau))
 
     return states
 
 def stabilityMatrix_reduced(stateVec_reduced):
-    '''
+    r'''
     calculate the stability matrix on the slice
 
     stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
@@ -127,8 +126,8 @@ def stabilityMatrix_reduced(stateVec_reduced):
     x2    = stateVec_reduced[1]
     y2    = stateVec_reduced[2]
     velo  = velocity([x1,y1,x2,y2], None)
-    d_phi = arctan2(velo[1],-velo[0])
-    stab  = array([[0, 0, 0],
+    d_phi = np.arctan2(velo[1],-velo[0])
+    stab  = np.array([[0, 0, 0],
                    [0, 0, 0],
                    [0, 0, 0]])
 
@@ -145,16 +144,16 @@ def groupTransform(state, phi):
     phi:    group angle. in range [0, 2*pi]
     return: the transformed state. Dimension [1 x 4]
     '''
-    c1                = cos(phi)
-    s1                = sin(phi)
-    c2                = cos(2*phi)
-    s2                = sin(2*phi)
-    g                 = array([[c1, -s1, 0, 0],
-                               [s1, c1,  0, 0],
-                               [0,   0,   c2, -s2],
-                               [0,   0,   s2,  c2]])
-    state_transformed = dot(g,state)
-    return  state_transformed
+    c1 = np.cos(phi)
+    s1 = np.sin(phi)
+    c2 = np.cos(2*phi)
+    s2 = np.sin(2*phi)
+    return np.dot(np.array(
+        [[c1,  -s1, 0,   0],
+         [s1,  c1,  0,   0],
+         [0,   0,   c2,  -s2],
+         [0,   0,   s2,  c2]]),
+                  state)
 
 def reduceSymmetry(states,
                    show_phi = False,
@@ -170,20 +169,17 @@ def reduceSymmetry(states,
     '''
 
     if states.ndim == 1: # if the state is one point
-        phi           = - arctan2(states[1],states[0])
+        phi           = - np.arctan2(states[1],states[0])
         reducedStates = groupTransform(states, phi)
-        assert abs(reducedStates[1])<epsilon
+        assert np.abs(reducedStates[1])<epsilon
         reducedStates = [reducedStates[i] for i in [0,2,3]]
         if show_phi: return reducedStates,phi
     if states.ndim == 2: # if they are a sequence of state points
-        reducedStates = zeros((states.shape[0],3))
+        reducedStates = np.zeros((states.shape[0],3))
         for i in range(states.shape[0]):
             reducedStates[i,:] = reduceSymmetry(states[i,:])
 
     return reducedStates
-
-
-
 
 def plotFig(orbit,
             title      = 'Orbit',
@@ -245,7 +241,7 @@ class MultiPlotter(AbstractContextManager):
             show()
 
 def randrange(n, vmin, vmax, rng):
-    return (vmax-vmin)*rng.rand(n) + vmin
+    return rng.uniform(vmin,vmax,n)
 
 def get_norms(n       = 10000,
               epsilon = 0.1,
@@ -278,22 +274,22 @@ if __name__ == '__main__':
                         type = int,
                         help = 'Seed for random number generator')
     args = parser.parse_args()
-    rng  = RandomState(args.seed)
+    rng  =np.random.default_rng(args.seed)
 
     if args.case == 1:       # validate your implementation.
         # Start by verifying transformations given in Homework
-        z1,phi1=reduceSymmetry(array([1,2,3,4]),
+        z1,phi1=reduceSymmetry(np.array([1,2,3,4]),
                                show_phi = True)
-        z2,phi2=reduceSymmetry(array([-2,1,-3,-4]),
+        z2,phi2=reduceSymmetry(np.array([-2,1,-3,-4]),
                                show_phi = True)
-        assert(isclose(z1,z2).all())
-        assert phi1-phi2==pi/2
+        assert(np.isclose(z1,z2).all())
+        assert phi1-phi2==np.pi/2
 
         # We generate an ergodic trajectory, and then use two different methods to obtain
         # the corresponding trajectory in slice.  The first method is post-processing.
         # The second method utilizes the dynamics in the slice directly.
 
-        x0             = 0.1 * rng.rand(4)      # random initial state
+        x0             = rng.uniform(0,0.1, 4)      # random initial state
         x0_reduced     = reduceSymmetry(x0) # initial state transformed into slice
         dtau           = 0.005
         nstp           = 500.0 / dtau
@@ -316,7 +312,7 @@ if __name__ == '__main__':
                                       # projection = '3d')
             # yg = ax.scatter(x1s, x2s, y2s, c=diffs, marker='o')
             # cb = plotter.fig.colorbar(colmap)
-            print (stabilityMatrix_reduced(array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
+            print (stabilityMatrix_reduced(np.array([0.1, 0.2, 0.3]))) # test your implementation of stability matrix
 
 
     if args.case == 2:
@@ -329,10 +325,10 @@ if __name__ == '__main__':
         req      =  TBP# relative equilibrium
 
         # see how relative equilibrium drifts in the full state space
-        req_full = array([req[0], 0, req[1], req[2]])
+        req_full = np.array([req[0], 0, req[1], req[2]])
         dtau     = 0.005
-        T        =  abs(2 * pi /  velocity_phase(req))
-        nstp     = round(T / dtau)
+        T        =  np.abs(2 * np.pi /  velocity_phase(req))
+        nstp     = np.round(T / dtau)
         orbit    = integrator(req_full, dtau, nstp)
         plotFig(orbit[:,0:3])
 
@@ -355,7 +351,7 @@ if __name__ == '__main__':
         you are only required to obtain the return map.
         '''
         # copy the relative equilibrium you got from case 2 here
-        req = array([ TBP,TBP, TBP]) # [rx1, rx2, ry2]
+        req = np.array([ TBP,TBP, TBP]) # [rx1, rx2, ry2]
         # find the real part and imaginary part of the expanding eigenvector at req
         # You should get: Vi = array([-0.        ,  0.58062392, -0.00172256])
         Vr = TBP
