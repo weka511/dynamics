@@ -17,7 +17,6 @@
 
 '''Chaosbook Example 12.8: Visualize two-modes flow, Example 12.9 short relative periods, exercise 12.7'''
 
-
 from argparse import ArgumentParser
 from os.path import  basename,splitext,join
 from time import time
@@ -40,7 +39,7 @@ def parse_args():
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--axes', type=int, nargs=3, default=[0, 2, 3])
     parser.add_argument('--n', type=int, default=1)
-    parser.add_argument('--symmetry', choices = ['reduce','ignore'], default = 'ignore')
+    parser.add_argument('--symmetry', choices = ['reduce','ignore', 'inslice'], default = 'ignore')
     return parser.parse_args()
 
 ix1 = 0
@@ -69,8 +68,44 @@ def Velocity(t,ssp):
         [(mu1 - r2)*x1 + c1*(x1*x2 + y1*y2),
          (mu1 - r2)*y1 + c1*(x1*y2 - x2*y1),
          x2 + y2 + x1**2 - y1**2 + a2*x2*r2 ,
-         -x2 + y2+ 2*x1*y1 + a2*y2*r2],
+         -x2 + y2 + 2*x1*y1 + a2*y2*r2],
         dtype = float)
+
+def Velocity_reduced(tau, stateVec_reduced):
+    r'''
+    velocity in the slice after reducing the continous symmetry
+
+    stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
+    t: not used
+    return: velocity at stateVect_reduced. dimension [1 x 3]
+    '''
+    x1 = stateVec_reduced[0]
+    y1 = 0
+    x2 = stateVec_reduced[1]
+    y2 = stateVec_reduced[2]
+
+    velo = Velocity(tau, [x1,y1,x2,y2])
+
+    t = np.array([0, x1, -2*y2, 2*x2]) #Tx
+    phi = Velocity_phase(stateVec_reduced)
+    velo_reduced = velo - phi*t               # Equation 13.32
+    return np.array([velo_reduced[i] for i in [0,2,3]])
+
+def Velocity_phase(stateVec_reduced):
+    r'''
+    phase velocity.
+
+    stateVec_reduced: state vector in slice [\hat{x}_1, \hat{x}_2, \hat{y}_2]
+    Note: phase velocity only depends on the state vector
+    '''
+    x1  = stateVec_reduced[0]
+    # y1         = 0
+    # x2         = stateVec_reduced[1]
+    y2 = stateVec_reduced[2]
+                                         # r2         = x1**2 + y1**2
+    v2 = c1*x1*y2                # (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
+    return  v2/x1                  # Equation 13.33 - except I don't have minus sign - erratum in 13.33?
+
 
 def get_name_for_save(extra = None,
                       sep = '-',
@@ -93,12 +128,14 @@ def get_name_for_save(extra = None,
 
 def groupTransform(state, phi):
     '''
-    perform group transform on a particular state. Symmetry group is 'g(phi)'
+    Perform group transform on a particular state. Symmetry group is 'g(phi)'
     and state is 'x'. the transformed state is ' xp = g(phi) * x '
 
-    state:  state in the full state space. Dimension [1 x 4]
-    phi:    group angle. in range [0, 2*pi]
-    return: the transformed state. Dimension [1 x 4]
+    Parameters:
+        state:  state in the full state space. Dimension [1 x 4]
+        phi:    group angle. in range [0, 2*pi]
+    Returns:
+         the transformed state. Dimension [1 x 4]
     '''
     c1 = np.cos(phi)
     s1 = np.sin(phi)
@@ -112,60 +149,58 @@ def groupTransform(state, phi):
                   state)
 
 def reduceSymmetry(states,
-                   show_phi = False,
                    epsilon  = 1e-15):
     '''
     transform states in the full state space into the slice.
-    Hint: use numpy.arctan2(y,x)
     Note: this function should be able to reduce the symmetry
     of a single state and that of a sequence of states.
 
-    states: states in the full state space. dimension [m x 4]
-    return: the corresponding states on the slice dimension [m x 3]
+    Parameters:
+        states: states in the full state space. dimension [m x 4]
+
+    Returns:
+        the corresponding states on the slice dimension [m x 3]
     '''
-    if states.ndim == 1: # if the state is one point
+    if states.ndim == 1:
         phi = - np.arctan2(states[1],states[0])
         reducedStates = groupTransform(states, phi)
         assert np.abs(reducedStates[1])<epsilon
-        reducedStates = np.array([reducedStates[i] for i in [0,2,3]])
-        if show_phi: return reducedStates,phi
-    if states.ndim == 2: # if they are a sequence of state points
+        return np.array([reducedStates[i] for i in [0,2,3]])
+
+    if states.ndim == 2:
         reducedStates = np.empty((3,states.shape[1]))
         for i in range(states.shape[1]):
             reducedStates[:,i] = reduceSymmetry(states[:,i])
-
-    return reducedStates
+        return reducedStates
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
+    fig = figure(figsize=(12,12))
     match args.action:
         case 'solution':
             rng = np.random.default_rng()
             ssp = rng.uniform(-1,1,4)
             solution = solve_ivp(Velocity, (0,args.T), ssp)
 
-            fig = figure(figsize=(12,12))
-
-            ax1 = fig.add_subplot(1,1,1,projection='3d')
-            ax1.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
+            ax = fig.add_subplot(1,1,1,projection='3d')
+            ax.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
                         s = 1,
                         c = 'xkcd:blue',
                         label = 'Trajectory')
-            ax1.scatter(solution.y[args.axes[0],0],solution.y[args.axes[1],0],solution.y[args.axes[2],0],
+            ax.scatter(solution.y[args.axes[0],0],solution.y[args.axes[1],0],solution.y[args.axes[2],0],
                         marker = 'X',
                         label = 'Start',
                         c = 'xkcd:red')
 
-            ax1.set_xlabel(labels[args.axes[0]])
-            ax1.set_ylabel(labels[args.axes[1]])
-            ax1.set_zlabel(labels[args.axes[2]])
-            ax1.legend()
-            ax1.set_title(f'Figure 12.1 T={args.T}')
+            ax.set_xlabel(labels[args.axes[0]])
+            ax.set_ylabel(labels[args.axes[1]])
+            ax.set_zlabel(labels[args.axes[2]])
+            ax.legend()
+            ax.set_title(f'Figure 12.1 T={args.T}')
 
         case 'fp':
             colours = create_colour_names(args.n)
-            fig = figure(figsize=(12,12))
             Itineraries = ['1', '01', '0111', '01101']
 
             Starts = np.array([[0.4525719, 0.0, 0.0509257, 0.0335428, 3.6415120],
@@ -176,29 +211,39 @@ if __name__=='__main__':
             m,_ = Starts.shape
 
             for i in range(m):
-                ax3 = fig.add_subplot(2,2,i+1,projection='3d')
+                ax = fig.add_subplot(2,2,i+1,projection='3d')
                 T = Starts[i,4]
                 for j in range(args.n):
-                    solution = solve_ivp(Velocity, (0,T), Starts[i,0:4] if j==0 else solution.y[:,-1],
-                                         t_eval=np.linspace(0,T,1000),
-                                         rtol=1.0e-9,
-                                         atol=1.0e-9)
                     match args.symmetry:
                         case 'reduce':
+                            solution = solve_ivp(Velocity, (0,T), Starts[i,0:4] if j==0 else solution.y[:,-1],
+                                                 t_eval=np.linspace(0,T,1000),
+                                                 rtol=1.0e-9,
+                                                 atol=1.0e-9)
                             y = reduceSymmetry(solution.y)
                         case 'ignore':
+                            solution = solve_ivp(Velocity, (0,T), Starts[i,0:4] if j==0 else solution.y[:,-1],
+                                                 t_eval=np.linspace(0,T,1000),
+                                                 rtol=1.0e-9,
+                                                 atol=1.0e-9)
                             y = solution.y[[args.axes[0],args.axes[1],args.axes[2]],:]
-                    ax3.scatter(y[0,:],y[1,:],y[2,:],
+                        case 'inslice':
+                            solution = solve_ivp(Velocity_reduced, (0,T), reduceSymmetry(Starts[i,0:4]) if j==0 else solution.y[:,-1],
+                                                 t_eval=np.linspace(0,T,1000),
+                                                 rtol=1.0e-9,
+                                                 atol=1.0e-9)
+                            y = solution.y
+                    ax.scatter(y[0,:],y[1,:],y[2,:],
                                 s = 1,
                                 c = colours[j])
-                    ax3.scatter(y[0,0],y[1,0],y[2,0],
+                    ax.scatter(y[0,0],y[1,0],y[2,0],
                                 marker = 'X',
                                 label = 'Start',
                                 c = colours[j])
-                ax3.set_title( Itineraries[i])
-                ax3.set_xlabel(labels[args.axes[0]])
-                ax3.set_ylabel(labels[args.axes[1]])
-                ax3.set_zlabel(labels[args.axes[2]])
+                ax.set_title( Itineraries[i])
+                ax.set_xlabel(labels[args.axes[0]])
+                ax.set_ylabel(labels[args.axes[1]])
+                ax.set_zlabel(labels[args.axes[2]])
             fig.suptitle(f'{args.symmetry.title()} Symmetry')
 
     fig.savefig(get_name_for_save())
