@@ -1,23 +1,25 @@
-from numpy             import arange, array, dot,  identity, reshape, size, zeros, zeros_like
-from matplotlib.pyplot import figure, show, suptitle
-from numpy.random      import rand
-from scipy.integrate   import odeint
-from scipy.linalg      import eig, norm
-from argparse          import ArgumentParser
+#!/usr/bin/env python
+
+'''
+    Q4.3 Symmetry of Lorenz Flow
+'''
+from argparse import ArgumentParser
+import numpy as np
+from matplotlib.pyplot import figure, show
+from scipy.integrate import solve_ivp
+from scipy.linalg import eig, norm
 
 sigma = 10.0
 rho   = 28.0
 b     = 8.0/3.0
 
-
-C2 = array([ #  C^{1/2} operation matrix for Lorenz system.
+C2 = np.array([ #  C^{1/2} operation matrix for Lorenz system.
     [-1, 0, 0],
     [0, -1, 0],
     [0, 0, 1]
 ])
 
-
-def velocity(stateVec, t):
+def velocity(t, stateVec):
     '''
     return the velocity field of Lorentz system.
     stateVec : the state vector in the full space. [x, y, z]
@@ -28,7 +30,7 @@ def velocity(stateVec, t):
     y = stateVec[1]
     z = stateVec[2]
 
-    return array([sigma * (y-x),
+    return np.array([sigma * (y-x),
                   rho*x - y - x*z,
                   x*y - b*z])
 
@@ -40,7 +42,7 @@ def stabilityMatrix(stateVec):
 
     x = stateVec[0]; y = stateVec[1]; z = stateVec[2];
     # fill out the following matrix.
-    stab = array([
+    stab = np.array([
             [-sigma, sigma, 0],
             [rho-z,  -1 , -x],
             [y,      x,   -b]
@@ -58,7 +60,7 @@ def integrator(init_x, dt, nstp):
     return : a [ nstp x 3 ] vector
     '''
 
-    return odeint(velocity, init_x, arange(0, dt*nstp, dt))
+    return solve_ivp(velocity, (0, dt*nstp),init_x, t_eval=np.linspace(0, dt*nstp, nstp)).y
 
 
 def integrator_with_jacob(init_x, dt, nstp):
@@ -70,27 +72,27 @@ def integrator_with_jacob(init_x, dt, nstp):
             state: a [ nstp x 3 ] state vector
             Jacob: [ 3 x 3 ] Jacobian matrix
     '''
-    def JacobianVelocity(sspJacobian, t):
-        ssp        = sspJacobian[0:d]                 # First three elements form the original state space vector
-        J          = sspJacobian[d:].reshape((d, d))  # Last nine elements corresponds to the elements of Jacobian.
-        velJ       = zeros(size(sspJacobian))         # Initiate the velocity vector as a vector of same size as sspJacobian
-        velJ[0:d]  = velocity(ssp, t)
-        velTangent = dot(stabilityMatrix(ssp), J)     # Velocity matrix for  the tangent space
-        velJ[d:]   = reshape(velTangent, d*d)           # Last dxd elements of the velJ are determined by the action of
+    def JacobianVelocity(t, sspJacobian):
+        ssp = sspJacobian[0:d]                 # First three elements form the original state space vector
+        J = sspJacobian[d:].reshape((d, d))  # Last nine elements corresponds to the elements of Jacobian.
+        velJ = np.zeros(np.size(sspJacobian))         # Initiate the velocity vector as a vector of same size as sspJacobian
+        velJ[0:d] = velocity(t, ssp)
+        velTangent = np.dot(stabilityMatrix(ssp), J)     # Velocity matrix for  the tangent space
+        velJ[d:] = np.reshape(velTangent, d*d)           # Last dxd elements of the velJ are determined by the action of
                                                       # stability matrix on the current value of the Jacobian:
         return velJ
 
-    d                   = len(init_x)
-    Jacobian0           = identity(d)
-    sspJacobian0        = zeros(d + d ** 2)
-    sspJacobian0[0:d]   = init_x
-    sspJacobian0[d:]    = reshape(Jacobian0, d**2)
-
-    sspJacobianSolution = odeint(JacobianVelocity,
-                                 sspJacobian0,
-                                 arange(0, dt*nstp, dt))
-    state = sspJacobianSolution[0:d]
-    Jacob = sspJacobianSolution[-1, d:].reshape((d, d))
+    d = len(init_x)
+    Jacobian0  = np.identity(d)
+    sspJacobian0 = np.zeros(d + d ** 2)
+    sspJacobian0[0:d] = init_x
+    sspJacobian0[d:] = np.reshape(Jacobian0, d**2)
+    sspJacobianSolution = solve_ivp(JacobianVelocity,
+                                    (0, dt*nstp),
+                                    sspJacobian0,
+                                    t_eval=np.linspace(0, dt*nstp, nstp)).y
+    state = sspJacobianSolution[0:d,-1]
+    Jacob = sspJacobianSolution[d:,-1].reshape((d, d))
 
     return state, Jacob
 
@@ -103,93 +105,85 @@ def reduceSymmetry(states):
     return: states in the invariant polynomial basis. dimension [nstp x 3]
     '''
 
-    x,y,z              = states[:,0], states[:,1], states[:,2]
-    (u, v)             = (x*2 - y*2, 2*x*y)
-    reducedStates      = zeros_like(states)
-    reducedStates[:,0] = u
-    reducedStates[:,1] = v
-    reducedStates[:,2] = z
+    x,y,z = states[0,:], states[1,:], states[2:,]
+    (u, v) = (x*2 - y*2, 2*x*y)
+    reducedStates = np.empty_like(states)
+    reducedStates[0,:] = u
+    reducedStates[1,:] = v
+    reducedStates[2,:] = z
     return reducedStates
 
-def plotFig(orbit):
-    fig = figure(figsize=(8,6))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(orbit[:,0], orbit[:,1], orbit[:,2])
-    show()
 
 def plot_orbits(orbit,reduced_orbit,case=None):
     fig = figure(figsize=(20,20))
-    suptitle(f'Case {case}')
-    ax = fig.add_subplot(121, projection='3d')
-    ax.plot(orbit[:,0], orbit[:,1], orbit[:,2],
-            markersize = 1)
-    ax.set_title('Orbit')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-    ax = fig.add_subplot(122, projection='3d')
-    ax.set_title('Reduced')
-    ax.plot(reduced_orbit[:,0], reduced_orbit[:,1], reduced_orbit[:,2],
-            markersize = 1)
-    ax.set_xlabel('u')
-    ax.set_ylabel('v')
-    ax.set_zlabel('z')
+    fig.suptitle(f'Case {case}')
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax1.plot(orbit[0,:], orbit[1,:], orbit[2,:], markersize = 1)
+    ax1.set_title('Orbit')
+    ax1.set_xlabel('x')
+    ax1.set_ylabel('y')
+    ax1.set_zlabel('z')
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.set_title('Reduced')
+    ax2.plot(reduced_orbit[0,:], reduced_orbit[1,:], reduced_orbit[2,:], markersize = 1)
+    ax2.set_xlabel('u')
+    ax2.set_ylabel('v')
+    ax2.set_zlabel('z')
     show()
 
 if __name__ == '__main__':
-    parser = ArgumentParser('Q4.3 Symmetry of Lorenz Flow')
+    parser = ArgumentParser(__doc__)
     parser.add_argument('case',
                         type    = int,
                         choices = [1,2,3,4])
+    parser.add_argument('--seed', type=int)
+
     args = parser.parse_args()
+    rng = np.random.default_rng(args.seed)
 
-    # case 1: try a random initial condition
-    if args.case == 1:
-        x0            = rand(3)
-        dt            = 0.005
-        nstp          = 50.0/dt
-        orbit         = integrator(x0, dt, nstp)
-        reduced_orbit = reduceSymmetry(orbit)
-        plot_orbits(orbit,reduced_orbit,case=args.case)
-
-
-    # case 2: periodic orbit
-    if args.case == 2:
-        x0            = array([ -0.78844208,  -1.84888176,  18.75036186])
-        dt            = 0.0050279107820829149
-        nstp          = 156
-        orbit_double  = integrator(x0, dt, nstp*2)
-        orbit         = orbit_double[:nstp, :] # one prime period
-        reduced_orbit = reduceSymmetry(orbit)
-        plot_orbits(orbit,reduced_orbit,case=args.case)
-
-    # case 3 : calculate Floquet multipliers and Floquet vectors associated
-    # with the full periodic orbit in the full state space.
-    if args.case == 3:
-        x0                        = array([ -0.78844208,  -1.84888176,  18.75036186])
-        dt                        = 0.0050279107820829149 # integration time step
-        nstp                      = 156 # number of integration steps => T = nstp * dt
-        state, Jacob              = integrator_with_jacob(x0, dt, 2*nstp)
-        eigenValues, eigenVectors = eig(Jacob)
-        vel                       = velocity(state[-1],2*nstp)
-        vel                      /= norm(vel)
-        print (f'Eigenvalues: {eigenValues}')
-        print (f'Gradient,{vel}')
-        # Check that one of Floquet vectors is in the same/opposite
-        # direction with velocity field at x0.
-        for i in range(len(eigenValues)):
-            print (eigenVectors[:,i], norm(eigenVectors[:,i]), dot(eigenVectors[:,i],vel))
+    match(args.case):
+        case 1: # case 1: try a random initial condition
+            x0 = rng.uniform(0,1,size=3)
+            dt = 0.005
+            nstp = int(50.0/dt)
+            orbit = integrator(x0, dt, nstp)
+            reduced_orbit = reduceSymmetry(orbit)
+            plot_orbits(orbit,reduced_orbit,case=args.case)
 
 
-    # case 4: calculate Floquet multipliers and Floquet vectors associated
-    # with the prime period.
-    if args.case == 4:
-        C                         = array([[-1, 0, 0],
-                                           [0,  -1, 0],
-                                           [0,  0, 1]])
-        x0                        = array([ -0.78844208,  -1.84888176,  18.75036186])
-        dt                        = 0.0050279107820829149
-        nstp                      = 156
-        state, Jacob              = integrator_with_jacob(x0, dt, nstp)
-        eigenValues, eigenVectors = eig(dot(C,Jacob))
-        print (eigenValues)
+        case 2: #periodic orbit
+            x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
+            dt = 0.0050279107820829149
+            nstp = 156
+            orbit_double = integrator(x0, dt, nstp*2)
+            orbit = orbit_double[:,:nstp] # one prime period
+            reduced_orbit = reduceSymmetry(orbit)
+            plot_orbits(orbit,reduced_orbit,case=args.case)
+
+        case 3:# calculate Floquet multipliers and Floquet vectors associated
+               # with the full periodic orbit in the full state space.
+            x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
+            dt = 0.0050279107820829149 # integration time step
+            nstp = 156 # number of integration steps => T = nstp * dt
+            state, Jacob = integrator_with_jacob(x0, dt, 2*nstp)
+            eigenValues, eigenVectors = eig(Jacob)
+            vel  = velocity(2*nstp,state)
+            vel /= norm(vel)
+            print (f'Eigenvalues: {eigenValues}')
+            print (f'Gradient,{vel}')
+            # Check that one of Floquet vectors is in the same/opposite
+            # direction with velocity field at x0.
+            for i in range(len(eigenValues)):
+                print (eigenVectors[:,i], norm(eigenVectors[:,i]), np.dot(eigenVectors[:,i],vel))
+
+
+        case 4:# calculate Floquet multipliers and Floquet vectors associated with the prime period.
+            C = np.array([[-1, 0, 0],
+                          [0,  -1, 0],
+                          [0,  0, 1]])
+            x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
+            dt = 0.0050279107820829149
+            nstp = 156
+            _, Jacob = integrator_with_jacob(x0, dt, nstp)
+            eigenValues, eigenVectors = eig(np.dot(C,Jacob))
+            print (eigenValues)
