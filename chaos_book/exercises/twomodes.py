@@ -15,7 +15,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Chaosbook Example 12.8: Visualize two-modes flow, Example 12.9 short relative periods, exercise 12.7'''
+'''Two-modes flow
+   Chaosbook Example 12.8: Visualize two-modes flow,
+   Example 12.9 short relative periods
+   Exercise 12.7
+   '''
 
 from argparse import ArgumentParser
 from os.path import  basename,splitext,join
@@ -25,7 +29,6 @@ from matplotlib.pyplot import figure, show
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 from scipy.integrate import solve_ivp
-from xkcd import create_colour_names
 
 mu1 = -2.8
 a2 = -2.66
@@ -102,10 +105,9 @@ def Velocity_phase(stateVec_reduced):
     # y1         = 0
     # x2         = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
-                                         # r2         = x1**2 + y1**2
+    # r2         = x1**2 + y1**2
     v2 = c1*x1*y2                # (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
-    return  v2/x1                  # Equation 13.33 - except I don't have minus sign - erratum in 13.33?
-
+    return  v2/x1                  # Equation 13.33
 
 def get_name_for_save(extra = None,
                       sep = '-',
@@ -173,6 +175,28 @@ def reduceSymmetry(states,
             reducedStates[:,i] = reduceSymmetry(states[:,i])
         return reducedStates
 
+def solve_orbit(symmetry,T,Start,n=1000):
+    t_eval = np.linspace(0,T,n)
+    match symmetry:
+        case 'reduce':
+            solution = solve_ivp(Velocity, (0,T), Start,
+                                 t_eval = t_eval,
+                                 rtol = 1.0e-9,
+                                 atol = 1.0e-9)
+            return reduceSymmetry(solution.y)
+        case 'ignore':
+            solution = solve_ivp(Velocity, (0,T), Start,
+                                 t_eval = t_eval,
+                                 rtol = 1.0e-9,
+                                 atol = 1.0e-9)
+            return solution.y[[args.axes[0],args.axes[1],args.axes[2]],:]
+        case 'inslice':
+            solution = solve_ivp(Velocity_reduced, (0,T), reduceSymmetry(Start),
+                                 t_eval = t_eval,
+                                 rtol = 1.0e-9,
+                                 atol = 1.0e-9)
+            return  solution.y
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
@@ -182,7 +206,6 @@ if __name__=='__main__':
             rng = np.random.default_rng()
             ssp = rng.uniform(-1,1,4)
             solution = solve_ivp(Velocity, (0,args.T), ssp)
-
             ax = fig.add_subplot(1,1,1,projection='3d')
             ax.scatter(solution.y[args.axes[0],:],solution.y[args.axes[1],:],solution.y[args.axes[2],:],
                         s = 1,
@@ -200,46 +223,23 @@ if __name__=='__main__':
             ax.set_title(f'Figure 12.1 T={args.T}')
 
         case 'fp':
-            colours = create_colour_names(args.n)
             Itineraries = ['1', '01', '0111', '01101']
-
             Starts = np.array([[0.4525719, 0.0, 0.0509257, 0.0335428, 3.6415120],
                                [0.4517771, 0.0, 0.0202026, 0.0405222, 7.3459412],
                                [0.4514665, 0.0, 0.0108291, 0.0424373, 14.6795175],
                                [0.4503967, 0.0, -0.0170958, 0.0476009, 18.3874094]
                                ])
             m,_ = Starts.shape
-
             for i in range(m):
+                y = solve_orbit(args.symmetry,Starts[i,4],Starts[i,0:4])
                 ax = fig.add_subplot(2,2,i+1,projection='3d')
-                T = Starts[i,4]
-                for j in range(args.n):
-                    match args.symmetry:
-                        case 'reduce':
-                            solution = solve_ivp(Velocity, (0,T), Starts[i,0:4] if j==0 else solution.y[:,-1],
-                                                 t_eval=np.linspace(0,T,1000),
-                                                 rtol=1.0e-9,
-                                                 atol=1.0e-9)
-                            y = reduceSymmetry(solution.y)
-                        case 'ignore':
-                            solution = solve_ivp(Velocity, (0,T), Starts[i,0:4] if j==0 else solution.y[:,-1],
-                                                 t_eval=np.linspace(0,T,1000),
-                                                 rtol=1.0e-9,
-                                                 atol=1.0e-9)
-                            y = solution.y[[args.axes[0],args.axes[1],args.axes[2]],:]
-                        case 'inslice':
-                            solution = solve_ivp(Velocity_reduced, (0,T), reduceSymmetry(Starts[i,0:4]) if j==0 else solution.y[:,-1],
-                                                 t_eval=np.linspace(0,T,1000),
-                                                 rtol=1.0e-9,
-                                                 atol=1.0e-9)
-                            y = solution.y
-                    ax.scatter(y[0,:],y[1,:],y[2,:],
-                                s = 1,
-                                c = colours[j])
-                    ax.scatter(y[0,0],y[1,0],y[2,0],
-                                marker = 'X',
-                                label = 'Start',
-                                c = colours[j])
+                ax.scatter(y[0,:],y[1,:],y[2,:],
+                            s = 1,
+                            c = 'xkcd:blue')
+                ax.scatter(y[0,0],y[1,0],y[2,0],
+                            marker = 'X',
+                            label = 'Start',
+                            c = 'xkcd:blue')
                 ax.set_title( Itineraries[i])
                 ax.set_xlabel(labels[args.axes[0]])
                 ax.set_ylabel(labels[args.axes[1]])

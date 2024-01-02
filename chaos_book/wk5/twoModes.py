@@ -85,7 +85,7 @@ def velocity_phase(stateVec_reduced):
     y2 = stateVec_reduced[2]
                                          # r2         = x1**2 + y1**2
     v2 = c1*x1*y2                # (mu1-r2)*y1 + c1*(x1*y2 - x2*y1)
-    return  v2/x1                  # Equation 13.33 - except I don't have minus sign - erratum in 13.33?
+    return  v2/x1                  # Equation 13.33
 
 def integrator(init_state, dtau, nstp):
     '''
@@ -265,14 +265,12 @@ if __name__ == '__main__':
                         type = int,
                         help = 'Seed for random number generator')
     args = parser.parse_args()
-    rng  =np.random.default_rng(args.seed)
+    rng = np.random.default_rng(args.seed)
 
     if args.case == 1:       # validate your implementation.
         # Start by verifying transformations given in Homework
-        z1,phi1 = reduceSymmetry(np.array([1,2,3,4]),
-                               show_phi = True)
-        z2,phi2 = reduceSymmetry(np.array([-2,1,-3,-4]),
-                               show_phi = True)
+        z1,phi1 = reduceSymmetry(np.array([1,2,3,4]), show_phi = True)
+        z2,phi2 = reduceSymmetry(np.array([-2,1,-3,-4]), show_phi = True)
         assert(np.isclose(z1,z2).all())
         assert phi1-phi2==np.pi/2
 
