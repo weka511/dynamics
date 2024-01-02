@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#   Copyright (C) 2023 Simon Crase
+#   Copyright (C) 2024 Simon Crase
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@ if __name__=='__main__':
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,1,1)
 
+    fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
