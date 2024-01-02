@@ -13,17 +13,18 @@ sigma = 10.0
 rho   = 28.0
 b     = 8.0/3.0
 
-C2 = np.array([ #  C^{1/2} operation matrix for Lorenz system.
-    [-1, 0, 0],
-    [0, -1, 0],
-    [0, 0, 1]
-])
 
-def velocity(t, stateVec):
+
+def Velocity(t, stateVec):
     '''
-    return the velocity field of Lorentz system.
-    stateVec : the state vector in the full space. [x, y, z]
-    t : time is used since odeint() requires it.
+    Calculate the velocity field of Lorentz system.
+
+    Parameters:
+        stateVec : the state vector in the full space. [x, y, z]
+        t : time is unused, but solve_ivp(...) requires it.
+
+    Returns:
+       velocity field
     '''
 
     x = stateVec[0]
@@ -31,36 +32,40 @@ def velocity(t, stateVec):
     z = stateVec[2]
 
     return np.array([sigma * (y-x),
-                  rho*x - y - x*z,
-                  x*y - b*z])
+                     rho*x - y - x*z,
+                     x*y - b*z])
 
 def stabilityMatrix(stateVec):
     '''
-    return the stability matrix at a state point.
-    stateVec: the state vector in the full space. [x, y, z]
+    Calculate the stability matrix at a state point.
+
+    Parameters:
+        stateVec the state vector in the full space. [x, y, z]
     '''
 
-    x = stateVec[0]; y = stateVec[1]; z = stateVec[2];
-    # fill out the following matrix.
-    stab = np.array([
-            [-sigma, sigma, 0],
-            [rho-z,  -1 , -x],
-            [y,      x,   -b]
-            ])
+    x = stateVec[0]
+    y = stateVec[1]
+    z = stateVec[2]
 
-    return stab
+    return np.array([
+        [-sigma, sigma, 0],
+        [rho-z,  -1, -x],
+        [y,      x,   -b]
+    ])
+
 
 def integrator(init_x, dt, nstp):
     '''
-    The integator of the Lorentz system.
-    init_x: the intial condition
-    dt : time step
-    nstp: number of integration steps.
+    Integate the Lorentz system.
+    Parameters:
+        init_x: the intial condition
+        dt : time step
+        nstp: number of integration steps.
 
-    return : a [ nstp x 3 ] vector
+    Returns:
+        a [ 3 x nstp ] vector
     '''
-
-    return solve_ivp(velocity, (0, dt*nstp),init_x, t_eval=np.linspace(0, dt*nstp, nstp)).y
+    return solve_ivp(Velocity, (0, dt*nstp),init_x, t_eval=np.linspace(0, dt*nstp, nstp)).y
 
 
 def integrator_with_jacob(init_x, dt, nstp):
@@ -76,7 +81,7 @@ def integrator_with_jacob(init_x, dt, nstp):
         ssp = sspJacobian[0:d]                 # First three elements form the original state space vector
         J = sspJacobian[d:].reshape((d, d))  # Last nine elements corresponds to the elements of Jacobian.
         velJ = np.zeros(np.size(sspJacobian))         # Initiate the velocity vector as a vector of same size as sspJacobian
-        velJ[0:d] = velocity(t, ssp)
+        velJ[0:d] = Velocity(t, ssp)
         velTangent = np.dot(stabilityMatrix(ssp), J)     # Velocity matrix for  the tangent space
         velJ[d:] = np.reshape(velTangent, d*d)           # Last dxd elements of the velJ are determined by the action of
                                                       # stability matrix on the current value of the Jacobian:
@@ -98,15 +103,18 @@ def integrator_with_jacob(init_x, dt, nstp):
 
 def reduceSymmetry(states):
     '''
-    reduce C^{1/2} symmetry of Lorenz system by invariant polynomials.
+    Reduce C^{1/2} symmetry of Lorenz system by invariant polynomials.
     (x, y, z) -> (u, v, z) = (x^2 - y^2, 2xy, z)
 
-    states: trajectory in the full state space. dimension [nstp x 3]
-    return: states in the invariant polynomial basis. dimension [nstp x 3]
+    Paremeters:
+        states: trajectory in the full state space. dimension [3 x nstp]
+
+    Returns:
+        states in the invariant polynomial basis. dimension [3 x nstp]
     '''
 
     x,y,z = states[0,:], states[1,:], states[2:,]
-    (u, v) = (x*2 - y*2, 2*x*y)
+    (u, v) = (x**2 - y**2, 2*x*y)
     reducedStates = np.empty_like(states)
     reducedStates[0,:] = u
     reducedStates[1,:] = v
@@ -115,6 +123,14 @@ def reduceSymmetry(states):
 
 
 def plot_orbits(orbit,reduced_orbit,case=None):
+    '''
+    Plot both the orbit and reduced orbit in two separate figures
+
+    Parameters:
+        orbit
+        reduced_orbit
+        case
+    '''
     fig = figure(figsize=(20,20))
     fig.suptitle(f'Case {case}')
     ax1 = fig.add_subplot(121, projection='3d')
@@ -150,7 +166,6 @@ if __name__ == '__main__':
             reduced_orbit = reduceSymmetry(orbit)
             plot_orbits(orbit,reduced_orbit,case=args.case)
 
-
         case 2: #periodic orbit
             x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
             dt = 0.0050279107820829149
@@ -167,7 +182,7 @@ if __name__ == '__main__':
             nstp = 156 # number of integration steps => T = nstp * dt
             state, Jacob = integrator_with_jacob(x0, dt, 2*nstp)
             eigenValues, eigenVectors = eig(Jacob)
-            vel  = velocity(2*nstp,state)
+            vel  = Velocity(2*nstp,state)
             vel /= norm(vel)
             print (f'Eigenvalues: {eigenValues}')
             print (f'Gradient,{vel}')
@@ -178,9 +193,10 @@ if __name__ == '__main__':
 
 
         case 4:# calculate Floquet multipliers and Floquet vectors associated with the prime period.
-            C = np.array([[-1, 0, 0],
-                          [0,  -1, 0],
-                          [0,  0, 1]])
+            C = np.array([ #  C^{1/2} operation matrix for Lorenz system.
+                [-1, 0, 0],
+                [0,  -1, 0],
+                [0,  0, 1]])
             x0 = np.array([ -0.78844208,  -1.84888176,  18.75036186])
             dt = 0.0050279107820829149
             nstp = 156
