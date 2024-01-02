@@ -18,7 +18,7 @@
 '''Chaosbook Exercise 7.2: Inverse Iteration Method for the Hénon repeller'''
 
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from os.path import  basename,splitext,join
 from time import time
 import numpy as np
@@ -26,10 +26,19 @@ from matplotlib.pyplot import figure, show
 
 a = 6
 
+def sign(s):
+    converted = int(s)
+    if converted==0: return -1
+    elif converted==1: return 1
+    else: raise ArgumentTypeError(f'{s} should be 0 or 1')
+
 def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
+    parser.add_argument('--N', type = int, default = 1000)
+    parser.add_argument('--M', type = int, default = 100)
+    parser.add_argument('--S', type = sign, nargs = '+')
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -51,21 +60,23 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
+def get_sign(S,i):
+    return S[i%len(S)]
 
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-    N = 1000
     rng = np.random.default_rng()
-    X = np.zeros((N))
-    X[0] = rng.uniform(0,1)
-    X[2] = 0
-    for i in range(1,N-1):
-        X[i] = np.sqrt((1-X[i-1]-X[i+1])/a)
-    sigma = X.sum()
+    X = rng.uniform(0,0.5,2*args.M + args.N)
+    for i in range(args.M):
+        for j in range(1,X.size-1):
+            X[j] =   get_sign(args.S,j) * np.sqrt((1-X[j-1]-X[j+1])/a)
+
+    Cycle = X[args.M:args.M+len(args.S)]
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,1,1)
-    ax1.scatter(X[0:-1],X[1:])
+    ax1.scatter(range(args.N),X[args.M:-args.M],s=1)
+    ax1.set_title(f'{args.S} {Cycle.sum()}')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
