@@ -63,6 +63,9 @@ def get_name_for_save(extra = None,
 def get_sign(S,i):
     return S[i%len(S)]
 
+def get_p(S):
+    return ''.join(['0' if s==-1 else '1' for s in S ])
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
@@ -76,7 +79,8 @@ if __name__=='__main__':
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,1,1)
     ax1.scatter(range(args.N),X[args.M:-args.M],s=1)
-    ax1.set_title(f'{args.S} {Cycle.sum()}')
+    avge =  r'$\Sigma_i x_{p,i}$'
+    ax1.set_title(f'p={get_p(args.S)}, {avge}={Cycle.sum():.6f}')
     fig.savefig(get_name_for_save())
     elapsed = time() - start
     minutes = int(elapsed/60)
