@@ -38,7 +38,10 @@ def parse_args():
     parser.add_argument('--N', type = int, default = 1000)
     parser.add_argument('--M', type = int, default = 100)
     parser.add_argument('--S', type = sign, nargs = '+')
-    parser.add_argument('action',choices=['explore','list'])
+    parser.add_argument('action',choices=['explore',
+                                          'list',
+                                          'prune'])
+    parser.add_argument('--n', type = int, default = 6)
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -74,6 +77,68 @@ def calculate_cycle(rng,M,N,S,a=6):
 
     Cycle = X[M:M+len(S)]
     return Cycle,X
+
+def generate_cycles(m):
+    for i in range(2**m):
+        A = []
+        for j in range(m):
+            A.append(i%2)
+            i = i//2
+        yield A[::-1]
+
+def factorize(n):
+    Factors = []
+    for k in range(1,n+1):
+        m = n//k
+        if m*k==n:
+            Factors.append((m,k))
+    return Factors
+
+def cycles_equal(c1,c2):
+    if c1 == c2: return True
+    for i in range(1,len(c1)):
+        c = c1[i:] + c1[:i]
+        if c == c2: return True
+    return False
+
+def anymatch(cycle,Factors):
+
+
+    def matches(sub_cycles):
+        for i in range(1,len(sub_cycles)):
+            if not cycles_equal(sub_cycles[0],sub_cycles[i]): return False
+        return True
+
+    def some_match(m,k):
+        if m==1: return False
+        sub_cycles=[]
+        for i in range(m):
+            sub_cycles.append(cycle[i*k:(i+1)*k])
+        return matches(sub_cycles)
+
+    for m,k in Factors:
+        if some_match(m,k):
+            return True
+    return False
+
+def factorizes(cycle,n):
+    Factors = factorize(n)
+    for Factor in Factors:
+        if len(Factors) > 0 and anymatch(cycle,Factors): return True
+    return False
+
+def seen_before(cycle,Cycles):
+    for predecessor in Cycles:
+        if cycles_equal(cycle,predecessor): return True
+    return False
+
+def prune(n):
+    Cycles = []
+    for cycle in generate_cycles(n):
+        if not factorizes(cycle,n) and not seen_before(cycle,Cycles):
+            Cycles.append(cycle)
+            yield cycle
+
 
 if __name__=='__main__':
     start  = time()
@@ -129,6 +194,10 @@ if __name__=='__main__':
             ]:
                 Cycle,_ = calculate_cycle(rng,args.M, args.N,S)
                 print (f'{get_p(S):8s}\t{Cycle.sum():9.06f}')
+
+        case 'prune':
+            for cycle in prune(args.n):
+                print (cycle)
 
     elapsed = time() - start
     minutes = int(elapsed/60)
