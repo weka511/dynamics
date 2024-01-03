@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#   Copyright (C) 2023 Simon Crase
+#   Copyright (C) 2023-2024 Simon Crase
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -33,6 +33,12 @@ def generate_colour_names(reverse=True):
                 yield f'xkcd:{parts[0]}'
 
 def create_colour_names(n=None):
+    '''
+    Produce a list of colours, starting with the most easily recognized.
+
+    Parameters:
+        n      Length of list
+    '''
     Product = []
     for c in generate_colour_names():
         Product.append(c)
