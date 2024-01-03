@@ -196,8 +196,11 @@ if __name__=='__main__':
                 print (f'{get_p(S):8s}\t{Cycle.sum():9.06f}')
 
         case 'prune':
-            for cycle in prune(args.n):
-                print (cycle)
+            for n in range(1,args.n+1):
+                for p in prune(n):
+                    S = [1 if p0==1 else -1 for p0 in p ]
+                    Cycle,_ = calculate_cycle(rng,args.M, args.N,S)
+                    print (f'{get_p(S):8s}\t{Cycle.sum():9.06f}')
 
     elapsed = time() - start
     minutes = int(elapsed/60)
