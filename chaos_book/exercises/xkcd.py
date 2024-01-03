@@ -34,9 +34,9 @@ def generate_colour_names(reverse=True):
 
 def create_colour_names(n=None):
     Product = []
-    for i,c in enumerate(generate_colour_names()):
+    for c in generate_colour_names():
         Product.append(c)
-        if n != None and i>n: break
+        if n != None and len(Product)>=n: break
 
     return Product
 
