@@ -80,15 +80,31 @@ def get_name_for_save(extra = None,
 
 
 
-def calculate_cycle(rng,M,N,S,a=6):
+def calculate_cycle(rng,M,N,S,a=6,b=-1,atol=1e-12):
     '''
-    Find cycles in inverse Hénon map
-    '''
-    X = rng.uniform(0,0.25,2*M + N)
-    for i in range(M):
-        for j in range(1,X.size-1):
-            X[j] =   SymbolicDynamics.get_sign(S,j) * np.sqrt((1-X[j-1]-X[j+1])/a)
+    Find cycles in inverse Hénon map. We start with N points and iterate using inverse Hénon map.
+    The N points are padded to avoid effect of zero boundary conditions (do we really need this?)
 
+    Parameters:
+        rng      Random number generator for initialization
+        M        Padding
+        N        Number of points in space
+        S        Symbolic dynamics weights
+        a        Hénon parameter
+        b        Hénon parameter
+        atol     Absolute tolerance. End iteration if solution moves by less than this value
+    '''
+    X = rng.uniform(0,0.5/len(S),2*M + N)
+    for i in range(M):
+        delta = 0.
+        for j in range(1,X.size-1):
+            term = max((-b-X[j-1]-X[j+1])/a,0)  # Issue 50: argument to sqrt sometimes
+                                                # negative because of rounding
+            x_new =   SymbolicDynamics.get_sign(S,j) * np.sqrt(term)
+            delta = max(delta,abs(X[j]-x_new))
+            X[j] =  x_new
+        if delta<atol:
+            break
     Cycle = X[M:M+len(S)]
     return Cycle,X
 
