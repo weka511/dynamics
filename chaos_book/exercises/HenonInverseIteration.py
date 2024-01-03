@@ -23,6 +23,7 @@ from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from xkcd import create_colour_names
 
 def sign(s):
     converted = int(s)
@@ -82,11 +83,22 @@ if __name__=='__main__':
         case 'explore':
             Cycle,X = calculate_cycle(rng,args.M,args.N,args.S)
 
+            Colours = create_colour_names(n=len(args.S))
             fig = figure(figsize=(12,12))
             ax1 = fig.add_subplot(1,1,1)
-            ax1.scatter(range(args.N),X[args.M:-args.M],s=1)
-            avge =  r'$\Sigma_i x_{p,i}$'
-            ax1.set_title(f'p={get_p(args.S)}, {avge}={Cycle.sum():.6f}')
+            ax1.scatter(X[args.M-1:-args.M-1],X[args.M:-args.M])
+            for i in range(len(Colours)):
+                ax1.scatter(X[args.M-1+i],X[args.M+i],
+                            c = Colours[i],
+                            label = f'i={i}')
+                ax1.arrow(X[args.M-1+i],X[args.M+i],X[args.M-1+i+1]-X[args.M-1+i],X[args.M+i+1]-X[args.M+i],
+                          length_includes_head = True,
+                          facecolor = Colours[(i+1)%len(Colours)],
+                          head_width = 0.03,
+                          head_length = 0.05)
+            tex_avge =  r'$\Sigma_i x_{p,i}$'
+            ax1.set_title(f'Cycles for Hénon repeller: p={get_p(args.S)}, {tex_avge}={Cycle.sum():.6f}')
+            ax1.legend()
             fig.savefig(get_name_for_save())
 
         case 'list':
