@@ -26,11 +26,25 @@ from matplotlib.pyplot import figure, show
 from scipy.linalg import eig
 from xkcd import create_colour_names
 
-def sign(s):
-    converted = int(s)
-    if converted==0: return -1
-    elif converted==1: return 1
-    else: raise ArgumentTypeError(f'{s} should be 0 or 1')
+class SymbolicDynamics:
+    '''
+    A class that looks after symbolic dynamics. The user sees (e.g.) 10100,
+    but the Inverse iterations see [+1, -1, +1, -1, -1]
+    '''
+    @staticmethod
+    def sign(s):
+        converted = int(s)
+        if converted==0: return -1
+        elif converted==1: return 1
+        else: raise ArgumentTypeError(f'{s} should be 0 or 1')
+
+    @staticmethod
+    def get_sign(S,i):
+        return S[i%len(S)]
+
+    @staticmethod
+    def get_p(S):
+        return ''.join(['0' if s==-1 else '1' for s in S ])
 
 def parse_args():
     '''Define and parse command line arguments'''
@@ -38,7 +52,7 @@ def parse_args():
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--N', type = int, default = 1000)
     parser.add_argument('--M', type = int, default = 100)
-    parser.add_argument('--S', type = sign, nargs = '+')
+    parser.add_argument('--S', type = SymbolicDynamics.sign, nargs = '+')
     parser.add_argument('action',choices=['explore',
                                           'list',
                                           'prune'])
@@ -64,22 +78,24 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
-def get_sign(S,i):
-    return S[i%len(S)]
 
-def get_p(S):
-    return ''.join(['0' if s==-1 else '1' for s in S ])
 
 def calculate_cycle(rng,M,N,S,a=6):
+    '''
+    Find cycles in inverse Hénon map
+    '''
     X = rng.uniform(0,0.25,2*M + N)
     for i in range(M):
         for j in range(1,X.size-1):
-            X[j] =   get_sign(S,j) * np.sqrt((1-X[j-1]-X[j+1])/a)
+            X[j] =   SymbolicDynamics.get_sign(S,j) * np.sqrt((1-X[j-1]-X[j+1])/a)
 
     Cycle = X[M:M+len(S)]
     return Cycle,X
 
 def generate_cycles(m):
+    '''
+    Produce all cycles of specified length
+    '''
     for i in range(2**m):
         A = []
         for j in range(m):
@@ -88,6 +104,15 @@ def generate_cycles(m):
         yield A[::-1]
 
 def factorize(n):
+    '''
+    Find all pairs of factors of a number
+
+    Parameters:
+        n       The number to be factorized
+
+    Returns:
+        List of pairs (k,m), such that n == k*m
+    '''
     Factors = []
     for k in range(1,n+1):
         m = n//k
@@ -96,15 +121,29 @@ def factorize(n):
     return Factors
 
 def cycles_equal(c1,c2):
+    '''
+    Determine whether two strings are equal within a cyclic permutation.
+
+    Parameters:
+        c1   First string
+        c2   The other
+    '''
+    assert len(c1)==len(c2),'Strings should be same length'
     if c1 == c2: return True
     for i in range(1,len(c1)):
         c = c1[i:] + c1[:i]
         if c == c2: return True
     return False
 
-def anymatch(cycle,Factors):
+def anymatch(s,Factors):
+    '''
+    Verify that string can be broken into a set of substrings,
+    such that each substring matches every other to within a cyclic permutation
 
-
+    Parameters:
+        s        The string
+        Factors  A list of all integers (m,k) such that m*k = len(s)
+    '''
     def matches(sub_cycles):
         for i in range(1,len(sub_cycles)):
             if not cycles_equal(sub_cycles[0],sub_cycles[i]): return False
@@ -114,7 +153,7 @@ def anymatch(cycle,Factors):
         if m==1: return False
         sub_cycles=[]
         for i in range(m):
-            sub_cycles.append(cycle[i*k:(i+1)*k])
+            sub_cycles.append(s[i*k:(i+1)*k])
         return matches(sub_cycles)
 
     for m,k in Factors:
@@ -122,18 +161,36 @@ def anymatch(cycle,Factors):
             return True
     return False
 
-def factorizes(cycle,n):
+def factorizes(s,n):
+    '''
+    Verify whether string factorizes into substrings that match to within a cycle
+    '''
     Factors = factorize(n)
     for Factor in Factors:
-        if len(Factors) > 0 and anymatch(cycle,Factors): return True
+        if len(Factors) > 0 and anymatch(s,Factors): return True
     return False
 
-def seen_before(cycle,Cycles):
+def seen_before(s,Cycles):
+    '''
+    Verify that a string already appears within a list to within a cycle
+
+    Parameters:
+        s       The string
+        Cycles  The list to be searched
+    '''
     for predecessor in Cycles:
-        if cycles_equal(cycle,predecessor): return True
+        if cycles_equal(s,predecessor): return True
     return False
 
 def prune(n):
+    '''
+    Generate strings from symbolic dynamics, subject to pruning rules:
+    1.  No string can be a the cyclic permuitation of any other
+    2.  No string can consist entirely of substrings that are cyclic permutations of each other.
+
+    Parameters:
+        n     Length of each string
+    '''
     Cycles = []
     for cycle in generate_cycles(n):
         if not factorizes(cycle,n) and not seen_before(cycle,Cycles):
@@ -141,11 +198,21 @@ def prune(n):
             yield cycle
 
 def create_jacobian(X,n,m,a=6,b=-1):
+    '''
+    Calculate Jacobian using equation (4.44)
+    '''
     J = np.eye(2)
     for i in range(n):
         M = np.array([[-2*a*X[m+i],b],[1,0]])
         J = np.dot(M,J)
     return J
+
+def get_lambda(X,n,m):
+    '''
+    Get expanding eigenvalue
+    '''
+    w,_ = eig(create_jacobian(X,n,m))
+    return np.real(w[np.argmax(abs(w))])
 
 if __name__=='__main__':
     start  = time()
@@ -156,8 +223,7 @@ if __name__=='__main__':
             n = len(args.S)
             Cycle,X = calculate_cycle(rng,args.M,args.N,args.S)
             Colours = create_colour_names(n=n)
-            w,_ = eig(create_jacobian(X,n,args.M))
-            Lambda = np.real(w[np.argmax(abs(w))])
+            Lambda = get_lambda(X,n,args.M)
             fig = figure(figsize=(12,12))
             ax1 = fig.add_subplot(1,1,1)
             ax1.scatter(X[args.M-1:-args.M-1],X[args.M:-args.M])
@@ -171,7 +237,7 @@ if __name__=='__main__':
                           head_width = 0.03,
                           head_length = 0.05)
             tex_avge =  r'$\Sigma_i x_{p,i}$'
-            ax1.set_title(fr'Cycles for Hénon repeller: p={get_p(args.S)}, $\Lambda_p$={Lambda:.6e}, {tex_avge}={Cycle.sum():.6f}')
+            ax1.set_title(fr'Cycles for Hénon repeller: p={SymbolicDynamics.get_p(args.S)}, $\Lambda_p$={Lambda:.6e}, {tex_avge}={Cycle.sum():.6f}')
             ax1.legend()
             fig.savefig(get_name_for_save())
 
@@ -202,18 +268,19 @@ if __name__=='__main__':
                 [1,1,1,1,1,-1]
             ]:
                 Cycle,X = calculate_cycle(rng,args.M, args.N,S)
-                w,_ = eig(create_jacobian(X,len(S),args.M))
-                Lambda = np.real(w[np.argmax(abs(w))])
-                print (f'{get_p(S):8s}\t{Lambda:9.6e}\t{Cycle.sum():9.06f}')
+                Lambda = get_lambda(X,len(S),args.M)
+                print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:9.6e}\t{Cycle.sum():9.06f}')
 
         case 'prune':
             for n in range(1,args.n+1):
                 for p in prune(n):
-                    S = [1 if p0==1 else -1 for p0 in p ]
-                    Cycle,X = calculate_cycle(rng,args.M, args.N,S)
-                    w,_ = eig(create_jacobian(X,n,args.M))
-                    Lambda = np.real(w[np.argmax(abs(w))])
-                    print (f'{get_p(S):8s}\t{Lambda:0.06e}\t{Cycle.sum():9.06f}')
+                    try:
+                        S = [1 if p0==1 else -1 for p0 in p ]
+                        Cycle,X = calculate_cycle(rng,args.M, args.N,S)
+                        Lambda = get_lambda(X,n,args.M)
+                        print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:0.06e}\t{Cycle.sum():9.06f}')
+                    except ValueError:
+                        print (f'Value error processing {p}')
 
     elapsed = time() - start
     minutes = int(elapsed/60)
