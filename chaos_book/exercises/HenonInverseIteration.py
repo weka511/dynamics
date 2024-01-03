@@ -23,6 +23,7 @@ from os.path import  basename,splitext,join
 from time import time
 import numpy as np
 from matplotlib.pyplot import figure, show
+from scipy.linalg import eig
 from xkcd import create_colour_names
 
 def sign(s):
@@ -139,6 +140,12 @@ def prune(n):
             Cycles.append(cycle)
             yield cycle
 
+def create_jacobian(X,n,m,a=6,b=-1):
+    J = np.eye(2)
+    for i in range(n):
+        M = np.array([[-2*a*X[m+i],b],[1,0]])
+        J = np.dot(M,J)
+    return J
 
 if __name__=='__main__':
     start  = time()
@@ -146,23 +153,25 @@ if __name__=='__main__':
     rng = np.random.default_rng()
     match(args.action):
         case 'explore':
+            n = len(args.S)
             Cycle,X = calculate_cycle(rng,args.M,args.N,args.S)
-
-            Colours = create_colour_names(n=len(args.S))
+            Colours = create_colour_names(n=n)
+            w,_ = eig(create_jacobian(X,n,args.M))
+            Lambda = np.real(w[np.argmax(abs(w))])
             fig = figure(figsize=(12,12))
             ax1 = fig.add_subplot(1,1,1)
             ax1.scatter(X[args.M-1:-args.M-1],X[args.M:-args.M])
-            for i in range(len(Colours)):
+            for i in range(n):
                 ax1.scatter(X[args.M-1+i],X[args.M+i],
                             c = Colours[i],
                             label = f'i={i}')
                 ax1.arrow(X[args.M-1+i],X[args.M+i],X[args.M-1+i+1]-X[args.M-1+i],X[args.M+i+1]-X[args.M+i],
                           length_includes_head = True,
-                          facecolor = Colours[(i+1)%len(Colours)],
+                          facecolor = Colours[(i+1)%n],
                           head_width = 0.03,
                           head_length = 0.05)
             tex_avge =  r'$\Sigma_i x_{p,i}$'
-            ax1.set_title(f'Cycles for Hénon repeller: p={get_p(args.S)}, {tex_avge}={Cycle.sum():.6f}')
+            ax1.set_title(fr'Cycles for Hénon repeller: p={get_p(args.S)}, $\Lambda_p$={Lambda:.6e}, {tex_avge}={Cycle.sum():.6f}')
             ax1.legend()
             fig.savefig(get_name_for_save())
 
@@ -192,15 +201,19 @@ if __name__=='__main__':
                 [1,1,1,-1,1,-1],
                 [1,1,1,1,1,-1]
             ]:
-                Cycle,_ = calculate_cycle(rng,args.M, args.N,S)
-                print (f'{get_p(S):8s}\t{Cycle.sum():9.06f}')
+                Cycle,X = calculate_cycle(rng,args.M, args.N,S)
+                w,_ = eig(create_jacobian(X,len(S),args.M))
+                Lambda = np.real(w[np.argmax(abs(w))])
+                print (f'{get_p(S):8s}\t{Lambda:9.6e}\t{Cycle.sum():9.06f}')
 
         case 'prune':
             for n in range(1,args.n+1):
                 for p in prune(n):
                     S = [1 if p0==1 else -1 for p0 in p ]
-                    Cycle,_ = calculate_cycle(rng,args.M, args.N,S)
-                    print (f'{get_p(S):8s}\t{Cycle.sum():9.06f}')
+                    Cycle,X = calculate_cycle(rng,args.M, args.N,S)
+                    w,_ = eig(create_jacobian(X,n,args.M))
+                    Lambda = np.real(w[np.argmax(abs(w))])
+                    print (f'{get_p(S):8s}\t{Lambda:0.06e}\t{Cycle.sum():9.06f}')
 
     elapsed = time() - start
     minutes = int(elapsed/60)
