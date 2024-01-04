@@ -58,6 +58,8 @@ def parse_args():
                                           'prune',
                                           'rational'])
     parser.add_argument('--n', type = int, default = 6)
+    parser.add_argument('--a', type = float, default = 6)
+    parser.add_argument('--b', type = float, default = -1)
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -81,7 +83,10 @@ def get_name_for_save(extra = None,
 
 
 
-def calculate_cycle(rng,M,N,S,a=6,b=-1,atol=1e-12):
+def calculate_cycle(rng,M,N,S,
+                    a = 6,
+                    b = -1,
+                    atol = 1e-12):
     '''
     Find cycles in inverse Hénon map. We start with N points and iterate using inverse Hénon map.
     The N points are padded to avoid effect of zero boundary conditions (do we really need this?)
@@ -224,11 +229,11 @@ def create_jacobian(X,n,m,a=6,b=-1):
         J = np.dot(M,J)
     return J
 
-def get_lambda(X,n,m):
+def get_lambda(X,n,m,a=6,b=-1):
     '''
     Get expanding eigenvalue
     '''
-    w,_ = eig(create_jacobian(X,n,m))
+    w,_ = eig(create_jacobian(X,n,m,a=a,b=b))
     return np.real(w[np.argmax(abs(w))])
 
 if __name__=='__main__':
@@ -238,9 +243,13 @@ if __name__=='__main__':
     match(args.action):
         case 'explore':
             n = len(args.S)
-            Cycle,X = calculate_cycle(rng,args.M,args.N,args.S)
+            Cycle,X = calculate_cycle(rng,args.M,args.N,args.S,
+                                      a = args.a,
+                                      b = args.b)
             Colours = create_colour_names(n=n)
-            Lambda = get_lambda(X,n,args.M)
+            Lambda = get_lambda(X,n,args.M,
+                                a = args.a,
+                                b = args.b)
 
             fig = figure(figsize=(12,12))
             ax1 = fig.add_subplot(1,1,1)
@@ -248,7 +257,7 @@ if __name__=='__main__':
             for i in range(n):
                 ax1.scatter(X[args.M-1+i],X[args.M+i],
                             c = Colours[i],
-                            label = f'i={i}')
+                            label = f'({X[args.M-1+i]:.06f},{X[args.M+i]:.06f})')
                 ax1.arrow(X[args.M-1+i],X[args.M+i],X[args.M-1+i+1]-X[args.M-1+i],X[args.M+i+1]-X[args.M+i],
                           length_includes_head = True,
                           facecolor = Colours[(i+1)%n],
@@ -285,8 +294,12 @@ if __name__=='__main__':
                 [1,1,1,-1,1,-1],
                 [1,1,1,1,1,-1]
             ]:
-                Cycle,X = calculate_cycle(rng,args.M, args.N,S)
-                Lambda = get_lambda(X,len(S),args.M)
+                Cycle,X = calculate_cycle(rng,args.M, args.N,S,
+                                      a = args.a,
+                                      b = args.b)
+                Lambda = get_lambda(X,len(S),args.M,
+                                      a = args.a,
+                                      b = args.b)
                 print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:9.6e}\t{Cycle.sum():9.06f}')
 
         case 'prune':
@@ -294,8 +307,12 @@ if __name__=='__main__':
                 for p in prune(n):
                     try:
                         S = [1 if p0==1 else -1 for p0 in p ]
-                        Cycle,X = calculate_cycle(rng,args.M, args.N,S)
-                        Lambda = get_lambda(X,n,args.M)
+                        Cycle,X = calculate_cycle(rng,args.M, args.N,S,
+                                      a = args.a,
+                                      b = args.b)
+                        Lambda = get_lambda(X,n,args.M,
+                                      a = args.a,
+                                      b = args.b)
                         print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:0.06e}\t{Cycle.sum():9.06f}')
                     except ValueError:
                         print (f'Value error processing {p}')
@@ -310,12 +327,14 @@ if __name__=='__main__':
             ]):
                 n = len(S)
                 Colours = create_colour_names(n=n)
-                Cycle,X = calculate_cycle(rng,args.M, args.N,S)
+                Cycle,X = calculate_cycle(rng,args.M, args.N,S,
+                                      a = args.a,
+                                      b = args.b)
                 ax1 = fig.add_subplot(2,2,1+j)
                 for i in range(n):
                     ax1.scatter(X[args.M-1+i],X[args.M+i],
                                 c = Colours[i],
-                                label = f'i={i}')
+                                label = f'({X[args.M-1+i]:.06f},{X[args.M+i]:.06f})')
                     ax1.arrow(X[args.M-1+i],X[args.M+i],X[args.M-1+i+1]-X[args.M-1+i],X[args.M+i+1]-X[args.M+i],
                               length_includes_head = True,
                               facecolor = Colours[(i+1)%n],
