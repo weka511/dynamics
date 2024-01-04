@@ -55,7 +55,8 @@ def parse_args():
     parser.add_argument('--S', type = SymbolicDynamics.sign, nargs = '+')
     parser.add_argument('action',choices=['explore',
                                           'list',
-                                          'prune'])
+                                          'prune',
+                                          'rational'])
     parser.add_argument('--n', type = int, default = 6)
     return parser.parse_args()
 
@@ -240,6 +241,7 @@ if __name__=='__main__':
             Cycle,X = calculate_cycle(rng,args.M,args.N,args.S)
             Colours = create_colour_names(n=n)
             Lambda = get_lambda(X,n,args.M)
+
             fig = figure(figsize=(12,12))
             ax1 = fig.add_subplot(1,1,1)
             ax1.scatter(X[args.M-1:-args.M-1],X[args.M:-args.M])
@@ -297,6 +299,33 @@ if __name__=='__main__':
                         print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:0.06e}\t{Cycle.sum():9.06f}')
                     except ValueError:
                         print (f'Value error processing {p}')
+
+        case 'rational':
+            fig = figure(figsize=(12,12))
+            for j,S in enumerate([
+                [1,-1],
+                [1,1,-1,-1],
+                [1,1,-1,1,-1,-1],
+                [1,-1,1,1,-1,-1]
+            ]):
+                n = len(S)
+                Colours = create_colour_names(n=n)
+                Cycle,X = calculate_cycle(rng,args.M, args.N,S)
+                ax1 = fig.add_subplot(2,2,1+j)
+                for i in range(n):
+                    ax1.scatter(X[args.M-1+i],X[args.M+i],
+                                c = Colours[i],
+                                label = f'i={i}')
+                    ax1.arrow(X[args.M-1+i],X[args.M+i],X[args.M-1+i+1]-X[args.M-1+i],X[args.M+i+1]-X[args.M+i],
+                              length_includes_head = True,
+                              facecolor = Colours[(i+1)%n],
+                              head_width = 0.03,
+                              head_length = 0.05)
+                tex_avge =  r'$\Sigma_i x_{p,i}$'
+                ax1.set_title(fr'p={SymbolicDynamics.get_p(S)}, {tex_avge}={Cycle.sum():.6f}')
+                ax1.legend()
+            fig.suptitle('Cycles for Hénon repeller')
+            fig.savefig(get_name_for_save())
 
     elapsed = time() - start
     minutes = int(elapsed/60)
