@@ -60,6 +60,8 @@ def parse_args():
     parser.add_argument('--n', type = int, default = 6)
     parser.add_argument('--a', type = float, default = 6)
     parser.add_argument('--b', type = float, default = -1)
+    parser.add_argument('--factorA',  default=False, action='store_true')
+    parser.add_argument('--tol', type = float, default = 1e-6)
     return parser.parse_args()
 
 def get_name_for_save(extra = None,
@@ -269,6 +271,8 @@ if __name__=='__main__':
             fig.savefig(get_name_for_save())
 
         case 'list':
+            factor = args.a if args.factorA else 1
+            factor_string = f'/{args.a}' if args.factorA else ''
             for S in [
                 [-1],
                 [1],
@@ -300,7 +304,14 @@ if __name__=='__main__':
                 Lambda = get_lambda(X,len(S),args.M,
                                       a = args.a,
                                       b = args.b)
-                print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:9.6e}\t{Cycle.sum():9.06f}')
+                if args.factorA:
+                    numerator = args.a*Cycle.sum()
+                    if abs(round(numerator)-numerator) < args.tol:
+                        print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:9.6e}\t{numerator:9.0f}{factor_string}')
+                    else:
+                        print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:9.6e}\t{numerator:9.06f}{factor_string}')
+                else:
+                    print (f'{SymbolicDynamics.get_p(S):8s}\t{Lambda:9.6e}\t{Cycle.sum():9.06f}')
 
         case 'prune':
             for n in range(1,args.n+1):
