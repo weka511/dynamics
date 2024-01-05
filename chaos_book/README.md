@@ -41,7 +41,7 @@ wk12|wk12.py|-|Cycle Expansion
 wk16|ksSub.py|-|Turbulence
 exercises|burkeshaw.py|10.4|The Burke-Shaw System
 -|henon.py|6.3| How unstable is the Hénon attractor?
--|HenonInverseIteration.py|7.2|Chaosbook Exercise 7.2: Inverse Iteration Method for the Hénon repeller
+-|HenonInverseIteration.py|7.2|Chaosbook Exercise 7.2: Inverse Iteration Method for the Hénon repeller, plus an investigation of Exercise 7.3
 -|lyapunov.py|7.1|Rössler attractor: Fixed Points, Floquet Multipliers, and Lyapunov Exponents
 -|mirandastone.py|11.5|[Proto-Lorentz system](https://chaosbook.org/library/Mir93.pdf)
 -|pinball.py|9.1|A pinball simulator. Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point.
