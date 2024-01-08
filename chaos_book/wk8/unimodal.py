@@ -1,4 +1,6 @@
-from numpy import array, append
+#!/usr/bin/env python
+
+import numpy as np
 
 class Unimodal:
     '''
@@ -16,11 +18,11 @@ class Unimodal:
         multiple iterations of this map from point x0
         n: the iteration number.
         '''
-        x      = x0
-        future = array([])
+        x = x0
+        future = np.empty((n))
         for i in range(n):
-            x      = self.returnMap(x)
-            future = append(future, x)
+            x = self.returnMap(x)
+            future[i] = x
 
         return future
 
@@ -29,10 +31,10 @@ class Unimodal:
         future itinerary of point x0.
         n : the iteration number.
         '''
-        x      = x0
-        future = array([])
+        x = x0
+        future = np.empty((n))
         for i in range(n):
-            x      = self.returnMap(x)
-            future = append(future, int(x > self.C))
+            x = self.returnMap(x)
+            future[i] = int(x > self.C)
 
         return future
