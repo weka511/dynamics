@@ -28,11 +28,18 @@ def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
+    parser.add_argument('--n', type=int, default = 5)
     return parser.parse_args()
 
 def get_w(s):
     '''
     Equation (14.4)
+
+    Parameters:
+        s     In itinerary
+
+    Returns:
+        Tent map point with future itinerary S, as computed by eqiation (14.4)
     '''
     n = s.size
     w = np.empty((n))
@@ -40,6 +47,19 @@ def get_w(s):
     for i in range(1,n):
         w[i] = w[i-1] if s[i] == 0 else (1 - w[i-1])
     return w
+
+def generate_prime_cycles(N):
+    for n in range(1,args.n+1):
+        for m in range(2**n):
+            if n>1 and m == 0: continue
+            if n>1 and m == 2**n-1: continue
+            candidate = format(m,f'0{n}b')
+            s = np.zeros(len(candidate))
+            for i in range(len(candidate)):
+                if candidate[i] == '1':
+                    s[i] = 1
+            w = get_w(s)
+            yield candidate,s,w
 
 def get_name_for_save(extra = None,
                       sep = '-',
@@ -60,10 +80,16 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
+
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
-    w = get_w(np.array([1,0,0,1,1]))
+
+    for cycle in generate_prime_cycles(args.n):
+        print (cycle)
+
+    w = get_w(np.array([1,1,1]))
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,1,1)
 
