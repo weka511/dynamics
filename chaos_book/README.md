@@ -45,6 +45,7 @@ exercises|burkeshaw.py|10.4|The Burke-Shaw System
 -|lyapunov.py|7.1|Rössler attractor: Fixed Points, Floquet Multipliers, and Lyapunov Exponents
 -|mirandastone.py|11.5|[Proto-Lorentz system](https://chaosbook.org/library/Mir93.pdf)
 -|pinball.py|9.1|A pinball simulator. Implement the disk to disk maps to compute a trajectory of a pinball for a given starting point.
+-|prime.py|14.2|Exercise 14.2 Generating Prime Cycles
 -|rgb.txt|-|Data downloaded from [XKCD survey](https://xkcd.com/color/rgb.txt)
 -|rossler.py|6.3|Rössler attractor Lyapunov Exponents
 -|trapped.py|9.2|Trapped orbits. Construct figure 1.9 using Monte-Carlo simulation
