@@ -33,11 +33,22 @@ def parse_args():
     return parser.parse_args()
 
 def get_next(x):
-    a,b = x #a/b
+    '''
+    Get next point in tent map
+
+    Parameters:
+        x    Current point as a rational a/b represented as (a,b)
+    Returns:
+        Tuple representing next point
+    '''
+    a,b = x
     if 2*a < b:
         return (2*a,b)
     else:
         return (2*(b-a),b)
+
+def get_itinerary(cycle):
+    return [0 if 2*a < b else 1 for a,b in cycle]
 
 def format_cycle(cycle):
     def format(a,b):
@@ -53,14 +64,17 @@ def get_w(s):
         s     In itinerary
 
     Returns:
-        Tent map point with future itinerary S, as computed by eqiation (14.4)
+        Tent map point with future itinerary S, as computed by equation (14.4)
     '''
-    n = s.size
+    n = len(s)
     w = np.empty((n))
     w[0] = s[0]
     for i in range(1,n):
         w[i] = w[i-1] if s[i] == 0 else (1 - w[i-1])
-    return w
+    if np.count_nonzero(s)%2==0:
+        return w
+    else:
+        return np.concatenate((w,1-w))
 
 def generate_prime_cycles(N):
     for n in range(1,args.n+1):
@@ -94,7 +108,14 @@ def get_name_for_save(extra = None,
     name = basic if extra==None else f'{basic}{sep}{extra}'
     return join(figs,name)
 
-
+def create_orbit(x0):
+    orbit = [x0]
+    a0,b0 = x0
+    while True:
+        an,bn = get_next(orbit[-1])
+        if (a0==an and b0 == bn): break
+        orbit.append((an,bn))
+    return orbit
 
 if __name__=='__main__':
     start  = time()
@@ -102,16 +123,12 @@ if __name__=='__main__':
 
     match args.case:
         case 1:
-            for x0 in [(2,3), (4,5), (6,7), (8,9), (14,17), (14,15),
+            for a0,b0 in [(0,1), (2,3), (4,5), (6,7), (8,9), (14,17), (14,15),
                         (16,17), (26,31), (28,33), (28,31), (10,11),
                         (30,31), (32,33)]:
-                x = [x0]
-                a0,b0 = x0
-                while True:
-                    x.append(get_next(x[-1]))
-                    an,bn = x[-1]
-                    if (a0==an and b0 == bn) or len(x)>10: break
-                print (format_cycle(x[:-1]))
+                orbit = create_orbit((a0,b0))
+                s = get_itinerary(orbit)
+                print (f'{a0}/{b0}', s, get_w(s))
 
         case 2:
 
