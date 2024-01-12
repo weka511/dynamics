@@ -29,7 +29,21 @@ def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     parser.add_argument('--n', type=int, default = 5)
+    parser.add_argument('case', type=int, choices = [1,2])
     return parser.parse_args()
+
+def get_next(x):
+    a,b = x #a/b
+    if 2*a < b:
+        return (2*a,b)
+    else:
+        return (2*(b-a),b)
+
+def format_cycle(cycle):
+    def format(a,b):
+        return '0' if 2*a < b else '1'
+    return ''.join([format(a,b) for a,b in cycle])
+
 
 def get_w(s):
     '''
@@ -86,10 +100,25 @@ if __name__=='__main__':
     start  = time()
     args = parse_args()
 
-    for cycle in generate_prime_cycles(args.n):
-        print (cycle)
+    match args.case:
+        case 1:
+            for x0 in [(2,3), (4,5), (6,7), (8,9), (14,17), (14,15),
+                        (16,17), (26,31), (28,33), (28,31), (10,11),
+                        (30,31), (32,33)]:
+                x = [x0]
+                a0,b0 = x0
+                while True:
+                    x.append(get_next(x[-1]))
+                    an,bn = x[-1]
+                    if (a0==an and b0 == bn) or len(x)>10: break
+                print (format_cycle(x[:-1]))
 
-    w = get_w(np.array([1,1,1]))
+        case 2:
+
+            for cycle in generate_prime_cycles(args.n):
+                print (cycle)
+
+            w = get_w(np.array([1,1,1]))
     fig = figure(figsize=(12,12))
     ax1 = fig.add_subplot(1,1,1)
 
@@ -100,3 +129,4 @@ if __name__=='__main__':
     print (f'Elapsed Time {minutes} m {seconds:.2f} s')
     if args.show:
         show()
+
