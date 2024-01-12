@@ -45,7 +45,7 @@ def get_next(x):
     else:
         return (2*(b-a),b)
 
-def get_itinerary(orbit):
+def create_itinerary(orbit):
     '''
     Convert an orbit to symbolic dynamics
 
@@ -101,8 +101,6 @@ def generate_prime_cycles(N):
             w = get_w(s)
             yield candidate,s,w
 
-
-
 def create_orbit(x0):
     '''
     Generate an orbit for tent map
@@ -120,6 +118,17 @@ def create_orbit(x0):
         orbit.append((an,bn))
     return np.array(orbit)
 
+def evaluate_gamma(w):
+    '''
+    Equation (14.4): convert cycle w to gamma
+    '''
+    divisor = 2
+    sum = 0
+    for i in range(w.size):
+        sum += w[i]/divisor
+        divisor *= 2
+    return sum / (1 - 2/divisor)
+
 if __name__=='__main__':
     start  = time()
     args = parse_args()
@@ -128,9 +137,9 @@ if __name__=='__main__':
         case 1:
             for a0,b0 in [(0,1), (2,3), (4,5), (6,7), (8,9), (14,17), (14,15),
                         (16,17), (26,31), (28,33), (28,31), (10,11), (30,31), (32,33)]:
-                orbit = create_orbit((a0,b0))
-                s = get_itinerary(orbit)
-                print (f'{a0}/{b0}', s, get_w(s))
+                s = create_itinerary(create_orbit((a0,b0)))
+                w = get_w(s)
+                print (f'{a0}/{b0}', s, w, evaluate_gamma(w), a0/b0)
 
         case 2:
 
