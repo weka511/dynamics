@@ -19,6 +19,10 @@
 #   The needed function velocity_reduced() and  stabilityMatrix_reduced()
 #   is implemented for you.
 
+'''
+    8.1/Q8.2|two modes system continued -- kneading theory
+'''
+
 ######################################################################
 from argparse import ArgumentParser
 from matplotlib.pyplot import figure,  show
@@ -39,9 +43,9 @@ def rk4(velo, y0, dt, nstp):
     '''
     4th order Runge-Kutta method
     '''
-    y      = np.zeros( (nstp, np.size(y0)) )
+    y = np.zeros( (nstp, np.size(y0)) )
     y[0,:] = y0
-    yt     = y0
+    yt = y0
     for i in range(1, nstp):
         k1 = velo(yt, None)
         k2 = velo(yt+0.5*dt*k1, None)
@@ -65,13 +69,13 @@ def velocity_reduced(stateVec_reduced, t):
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
 
-    velo = np.array([
-            (G_mu1-x1**2)*x1 + G_c1*x1*x2,
-            x2 + y2 + x1**2 + G_a2*x2*x1**2 + 2*G_c1*y2**2,
-            -x2 + y2 + G_a2*y2*x1**2 - 2*G_c1*x2*y2
-            ])
+    return np.array([
+        (G_mu1-x1**2)*x1 + G_c1*x1*x2,
+        x2 + y2 + x1**2 + G_a2*x2*x1**2 + 2*G_c1*y2**2,
+        -x2 + y2 + G_a2*y2*x1**2 - 2*G_c1*x2*y2
+    ])
 
-    return velo
+
 
 def stabilityMatrix_reduced(stateVec_reduced):
     '''
@@ -84,12 +88,11 @@ def stabilityMatrix_reduced(stateVec_reduced):
     x2 = stateVec_reduced[1]
     y2 = stateVec_reduced[2]
 
-    stab = np.array([
+    return np.array([
             [-3*x1**2 + G_mu1 + G_c1*x2, G_c1*x1, 0],
             [2*x1 + 2*G_a2*x1*x2, 1+G_a2*x1**2, 1+4*G_c1*y2],
             [2*G_a2*x1*y2, -1-2*G_c1*y2, 1+G_a2*x1**2-2*G_c1*x2]
-            ])
-    return stab
+    ])
 
 def integrator_reduced(init_state, dt, nstp):
     '''
@@ -120,7 +123,7 @@ def integrator_reduced_with_jacob(stateVec_reduced, dt, nstp):
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser('8.1/Q8.2|two modes system continued -- kneading theory')
+    parser = ArgumentParser(__doc__)
     parser.add_argument('case',
                         type    = int,
                         choices = [1,2],
@@ -137,14 +140,14 @@ if __name__ == '__main__':
     # They should be transformed to the original coordinates to get the inital guess
     # of periodic orbit
 
-    data           = np.load('data.npz')
+    data = np.load('data.npz')
     PoincarePoints = data['PoincarePoints'] # Poincare intersection points. dimension [1382 x 2]
-    arclength      = data['arclength']      # arclength
-    time           = data['time']           # the time stamp for each Poincare intersection point
-    req            = data['req']            # relative equilibrium
-    Px             = data['Px']             # the Px, Py, Pz axes of the new coordinate system
-    Py             = data['Py']
-    Pz             = data['Pz']
+    arclength = data['arclength']      # arclength
+    time = data['time']           # the time stamp for each Poincare intersection point
+    req = data['req']            # relative equilibrium
+    Px = data['Px']             # the Px, Py, Pz axes of the new coordinate system
+    Py = data['Py']
+    Pz = data['Pz']
 
     match args.case:
         case 1:
