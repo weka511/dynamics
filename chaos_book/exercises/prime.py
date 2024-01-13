@@ -27,7 +27,6 @@ def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--n', type=int, default = 5)
-    parser.add_argument('case', type=int, choices = [1,2])
     return parser.parse_args()
 
 def tent_map(x):
@@ -227,20 +226,11 @@ if __name__=='__main__':
     start  = time()
     args = parse_args()
 
-    match args.case:
-        case 1:
-            for a0,b0 in [(0,1), (2,3), (4,5), (6,7), (8,9), (14,17), (14,15),
-                        (16,17), (26,31), (28,33), (28,31), (10,11), (30,31), (32,33)]:
-                s = orbit2itinerary(create_orbit((a0,b0)))
-                w = get_w(s)
-                print (f'{a0}/{b0}', s, w, get_gamma(w,as_rational=False))
-
-        case 2:
-            for n in range(args.n+1):
-                for s in generate_prime_cycles(n):
-                    w = get_w(s)
-                    a,b = get_gamma(w)
-                    print (s, w, f'{a}/{b}')
+    for n in range(args.n+1):
+        for s in generate_prime_cycles(n):
+            w = get_w(s)
+            a,b = get_gamma(w)
+            print (s, w, f'{a}/{b}')
 
 
     elapsed = time() - start
