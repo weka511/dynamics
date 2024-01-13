@@ -137,6 +137,25 @@ def generate_cycles(n):
             if matches1(k): return True
         return False
 
+    def factors(cycle):
+        def found_factorization(i,m):
+            for j in range(1,m):
+                segment1 = cycle[:i]
+                segment2 =  cycle[j*i:(j+1)*i]
+                if not (segment1 == segment2).all(): return False
+            return True
+
+        for i in range(2,len(cycle)):
+            m = len(cycle)//i
+            if i*m == len(cycle):
+                if found_factorization(i,m): return True
+        return False
+
+    def some_cycle_factors(equivalent_cycles):
+        for cycle in equivalent_cycles:
+            if factors(cycle): return True
+        return False
+
     candidate = np.zeros((2**n,n),dtype=int)
     cycle_indices = np.empty((2**n),dtype=int)
     for i in range(2**n):
@@ -157,6 +176,9 @@ def generate_cycles(n):
         for i in range(1,2**n-1):
             if cycle_indices[i] == k:
                 equivalent_cycles.append(candidate[i,:])
+
+        if some_cycle_factors(equivalent_cycles): continue
+
         gammas = []
         for cycle in equivalent_cycles:
             w = get_w(cycle)
@@ -182,8 +204,9 @@ if __name__=='__main__':
                 print (f'{a0}/{b0}', s, w, abs(evaluate_gamma(w) - a0/b0))
 
         case 2:
-            for c in generate_cycles(args.n):
-                print (c)
+            for n in range(args.n):
+                for c in generate_cycles(n):
+                    print (c)
 
     elapsed = time() - start
     minutes = int(elapsed/60)
