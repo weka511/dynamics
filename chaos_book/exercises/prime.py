@@ -44,19 +44,20 @@ def tent_map(x):
     else:
         return (2*(b-a),b)
 
-def create_orbit(x0, map=tent_map):
+def create_orbit(x0, amap=tent_map):
     '''
-    Generate an orbit for tent map
+    Generate an orbit for some map
 
     Parameters:
         x    Starting point as a rational a/b represented as (a,b)
+        amap Function that maps one rational number into another
     Returns:
-        Point s for one cycle through orbit
+        Array containing points for one cycle through orbit
     '''
     orbit = [x0]
     a0,b0 = x0
-    while True:
-        an,bn = map(orbit[-1])
+    while True:  # Loop until first point repeats
+        an,bn = amap(orbit[-1])
         if (a0==an and b0 == bn): break
         orbit.append((an,bn))
     return np.array(orbit)
@@ -79,10 +80,10 @@ def orbit2itinerary(orbit):
 
 def get_w(s):
     '''
-    Equation (14.4)
+    Calculate digits in accordance with Equation (14.4)
 
     Parameters:
-        s     In itinerary
+        s     An itinerary
 
     Returns:
         Tent map point with future itinerary S, as computed by equation (14.4)
@@ -92,10 +93,7 @@ def get_w(s):
     w[0] = s[0]
     for i in range(1,n):
         w[i] = w[i-1] if s[i] == 0 else (1 - w[i-1])
-    if np.count_nonzero(s)%2==0:
-        return w
-    else:
-        return np.concatenate((w,1-w))
+    return w if np.count_nonzero(s)%2==0 else np.concatenate((w,1-w))
 
 
 def get_gamma(w,as_rational=True):
@@ -117,14 +115,14 @@ def get_gamma(w,as_rational=True):
         return a,b
 
     divisor = 2
-    sum = 0
+    sum_to_be_repeated = 0
     for i in range(w.size):
-        sum *= 2
-        sum += w[i]
+        sum_to_be_repeated *= 2
+        sum_to_be_repeated += w[i]
         divisor *= 2
-    gamma = cancel(2*sum,divisor-2)
+    gamma = cancel(2*sum_to_be_repeated,divisor-2)
 
-    return gamma if as_rational else 2*sum/(divisor-2)
+    return gamma if as_rational else 2*sum_to_be_repeated/(divisor-2) # See example 14.10
 
 
 def generate_prime_cycles(n):
@@ -181,39 +179,55 @@ def generate_prime_cycles(n):
             if factors(cycle): return True
         return False
 
-    candidate = np.zeros((2**n,n),dtype=int)
-    cycle_indices = np.empty((2**n),dtype=int)
-    for i in range(2**n):
-        k = i
-        for j in range(n):
-            candidate[i,n-j-1] = k%2
-            k //= 2
-        cycle_indices[i] = i
-        for j in range(i):
-            if matches(candidate[i,:],candidate[j,:]):
-                cycle_indices[i] = j
-                break
+    def create_candidates():
+        '''
+        Build a list of candidate cycles, i.e. all possible cycles of length n,
+        then link each one back to an earlier occurence of a cyclic permutation of itself.
+        If there is no earlier occurence, link to itself
+        '''
+        candidate = np.zeros((2**n,n),dtype=int)
+        cycle_indices = np.empty((2**n),dtype=int)
+        for i in range(2**n):
+            k = i
+            for j in range(n):
+                candidate[i,n-j-1] = k%2
+                k //= 2
+            cycle_indices[i] = i
+            for j in range(i):
+                if matches(candidate[i,:],candidate[j,:]):
+                    cycle_indices[i] = j
+                    break
+        return candidate,cycle_indices
+
+    candidate,cycle_indices = create_candidates()
 
     for k in list(set(cycle_indices)):
-        if n == 1:
+        if n == 1:     # For some reason the code below doesn't work for this case
             yield [0]
             yield [1]
             return
 
+        # All zeros and all ones are fixed points, and they have already been handled for n == 1
         if k==0: continue
         if k==2**n-1: continue
+
+        # Now we organize the candidate cycles into equaivalence classes, where cycles
+        # are deemed equivalent if one can be rotated onto another
         equivalent_cycles = []
 
         for i in range(1,2**n-1):
             if cycle_indices[i] == k:
                 equivalent_cycles.append(candidate[i,:])
 
+        # Discard and cycles that can be factored into repetitions of a simpler cycle
         if some_cycle_factors(equivalent_cycles): continue
 
+        # Now find the cycle that gives the largest value of gamma - see equation (14.7)
         gammas = []
         for cycle in equivalent_cycles:
             w = get_w(cycle)
             gammas.append(get_gamma(w,as_rational=False))
+
         yield equivalent_cycles[np.argmax(gammas)]
 
 def format_cycle(cycle):
@@ -231,7 +245,6 @@ if __name__=='__main__':
             w = get_w(s)
             a,b = get_gamma(w)
             print (s, w, f'{a}/{b}')
-
 
     elapsed = time() - start
     minutes = int(elapsed/60)
