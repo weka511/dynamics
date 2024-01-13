@@ -27,7 +27,7 @@ def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--n', type=int, default = 5)
-    parser.add_argument('case', type=int, choices = [1,2])
+    parser.add_argument('case', type=int, choices = [1,2,3])
     return parser.parse_args()
 
 def tent_map(x):
@@ -89,7 +89,7 @@ def get_w(s):
         Tent map point with future itinerary S, as computed by equation (14.4)
     '''
     n = len(s)
-    w = np.empty((n))
+    w = np.empty((n), dtype=int)
     w[0] = s[0]
     for i in range(1,n):
         w[i] = w[i-1] if s[i] == 0 else (1 - w[i-1])
@@ -108,6 +108,23 @@ def evaluate_gamma(w):
         sum += w[i]/divisor
         divisor *= 2
     return sum / (1 - 2/divisor)
+
+def get_gamma(w):
+    def cancel(a,b):
+        a1 = int(np.sqrt(a))+1
+        for i in range(2,a1):
+            if a%i == 0 and b%i == 0:
+                a //= i
+                b //= i
+        return a,b
+
+    divisor = 2
+    sum = 0
+    for i in range(w.size):
+        sum *= 2
+        sum += w[i]
+        divisor *= 2
+    return cancel(2*sum,divisor-2)
 
 
 def generate_prime_cycles(n):
@@ -153,6 +170,11 @@ def generate_prime_cycles(n):
                 cycle_indices[i] = j
                 break
     for k in list(set(cycle_indices)):
+        if n == 1:
+            yield [0]
+            yield [1]
+            return
+
         if k==0: continue
         if k==2**n-1: continue
         equivalent_cycles = []
@@ -185,13 +207,19 @@ if __name__=='__main__':
                         (16,17), (26,31), (28,33), (28,31), (10,11), (30,31), (32,33)]:
                 s = orbit2itinerary(create_orbit((a0,b0)))
                 w = get_w(s)
-                print (f'{a0}/{b0}', s, w, abs(evaluate_gamma(w) - a0/b0))
+                print (f'{a0}/{b0}', s, w, evaluate_gamma(w))
 
         case 2:
             for n in range(args.n):
-                for c in generate_prime_cycles(n):
-                    print (c)
+                for s in generate_prime_cycles(n):
+                    w = get_w(s)
+                    print (s, w, get_gamma(w))
 
+        case 3:
+            print (evaluate_gamma(np.array([1, 1, 1 ,0 ,0 ,0])))
+            print (evaluate_gamma(np.array([1, 1, 1 ,0,1,0 ,0 ,0,1,0])))
+            print (get_gamma(np.array([1, 1, 1 ,0 ,0 ,0])))
+            print (get_gamma(np.array([1, 1, 1 ,0,1,0 ,0 ,0,1,0])))
     elapsed = time() - start
     minutes = int(elapsed/60)
     seconds = elapsed - 60*minutes
