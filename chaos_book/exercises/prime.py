@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-'''Exercise 14.2 Generating Prime Cycles'''
+'''Exercise 14.2 Generate all Prime Cycles up to a specified length.'''
 
 
 from argparse import ArgumentParser
@@ -26,7 +26,7 @@ import numpy as np
 def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument('--n', type=int, default = 5)
+    parser.add_argument('--n', type=int, default = 5, help='Maximum lenght for cycles.')
     return parser.parse_args()
 
 def tent_map(x):
@@ -199,6 +199,24 @@ def generate_prime_cycles(n):
                     break
         return candidate,cycle_indices
 
+    def create_equivalence_cycles(k,n,candidate,cycle_indices):
+        '''
+        We need to organize the candidate cycles into equivalence classes, where cycles
+        are deemed equivalent if one can be rotated onto another
+
+        Parameters:
+            k              Denotes cycle being processes
+            n              Length of cycles
+            candidate      All possible cycles of length n
+            cycle_indices  A link to another cycle that is a rotation of k
+        '''
+        product = []
+
+        for i in range(1,2**n-1):
+            if cycle_indices[i] == k:
+                product.append(candidate[i,:])
+        return product
+
     candidate,cycle_indices = create_candidates()
 
     for k in list(set(cycle_indices)):
@@ -207,34 +225,20 @@ def generate_prime_cycles(n):
             yield [1]
             return
 
-        # All zeros and all ones are fixed points, and they have already been handled for n == 1
-        if k==0: continue
-        if k==2**n-1: continue
+        equivalent_cycles = create_equivalence_cycles(k,n,candidate,cycle_indices)
 
-        # Now we organize the candidate cycles into equaivalence classes, where cycles
-        # are deemed equivalent if one can be rotated onto another
-        equivalent_cycles = []
-
-        for i in range(1,2**n-1):
-            if cycle_indices[i] == k:
-                equivalent_cycles.append(candidate[i,:])
-
-        # Discard and cycles that can be factored into repetitions of a simpler cycle
+        # Discard any cycles that can be factored into repetitions of a simpler cycle
+        if k==0: continue          # n*[0]
+        if k==2**n-1: continue     # n*[1]
         if some_cycle_factors(equivalent_cycles): continue
 
         # Now find the cycle that gives the largest value of gamma - see equation (14.7)
         gammas = []
         for cycle in equivalent_cycles:
-            w = get_w(cycle)
-            gammas.append(get_gamma(w,as_rational=False))
+            gammas.append(get_gamma(get_w(cycle), as_rational=False))
 
         yield equivalent_cycles[np.argmax(gammas)]
 
-def format_cycle(cycle):
-    '''Used to display cycle'''
-    def format(a,b):
-        return '0' if 2*a < b else '1'
-    return ''.join([format(a,b) for a,b in cycle])
 
 if __name__=='__main__':
     start  = time()
