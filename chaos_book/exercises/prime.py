@@ -78,9 +78,6 @@ def orbit2itinerary(orbit):
         itinerary[i] = 0 if 2*a < b else 1
     return itinerary
 
-
-
-
 def get_w(s):
     '''
     Equation (14.4)
@@ -112,21 +109,8 @@ def evaluate_gamma(w):
         divisor *= 2
     return sum / (1 - 2/divisor)
 
-# def generate_prime_cycles(N):
-    # for n in range(1,N):
-        # for m in range(2**n):
-            # if n>1 and m == 0: continue
-            # if n>1 and m == 2**n-1: continue
-            # candidate = format(m,f'0{n}b')
-            # s = np.zeros(len(candidate))
-            # for i in range(len(candidate)):
-                # if candidate[i] == '1':
-                    # s[i] = 1
-            # w = get_w(s)
-            # gamma = evaluate_gamma(w)
-            # yield candidate,s,w,gamma
 
-def generate_cycles(n):
+def generate_prime_cycles(n):
 
     def matches(cycle1,cycle2):
         def matches1(k):
@@ -205,7 +189,7 @@ if __name__=='__main__':
 
         case 2:
             for n in range(args.n):
-                for c in generate_cycles(n):
+                for c in generate_prime_cycles(n):
                     print (c)
 
     elapsed = time() - start
