@@ -17,7 +17,6 @@
 
 '''Ergodicity of tent map'''
 
-
 from argparse import ArgumentParser
 from os.path import  basename,splitext,join
 from time import time
@@ -27,7 +26,7 @@ from matplotlib.pyplot import figure, show
 def parse_args():
     '''Define and parse command line arguments'''
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument('--N',type=int,default=10000)
+    parser.add_argument('--N',type=int,default=100000)
     parser.add_argument('--show',  default=False, action='store_true', help='Show plots')
     return parser.parse_args()
 
@@ -71,7 +70,7 @@ if __name__=='__main__':
         means.append(sum/(i+1))
         x = rng.random()
     ax1.scatter(range(args.N),xs,s=1,label='$f(x)$')
-    ax1.scatter(range(args.N),means,s=1,label=r'$\frac{1}{n}\sum_{i=1}{n}x$')
+    ax1.scatter(range(args.N),means,s=1,label=r'$\frac{1}{n}\sum_{i=1}^{n}f^i(x_0)$')
     ax1.set_title(__doc__)
     ax1.legend(loc='upper right',facecolor='xkcd:white')
     fig.savefig(get_name_for_save())
